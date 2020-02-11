@@ -571,7 +571,7 @@ function(input, output, session) {
     output$provinceMap <- renderPlot ({
 #        if(input$selectProvince0 %in% specialProvinces ) {
 #            return(NULL) } else { 
-        m = sf::st_read("map/shijie.shp")
+        m = sf::st_read("../../data/map/shijie.shp")
         plot(y, region = input$selectProvince0, 
              chinamap = m,
              palette='Blues')  

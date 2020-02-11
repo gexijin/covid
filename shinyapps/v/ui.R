@@ -1,0 +1,128 @@
+# Shiny app for showing the number of confirmed coronavirus cases across China
+# Xijin Ge 2/5/2020
+
+library(shiny)
+library(plotly)
+library(shinyBS,verbose=FALSE) # for popup figures
+
+# Define server logic required to draw a histogram
+ui <- fluidPage(
+  titlePanel("疫情统计和预测"),
+  tabsetPanel(
+    tabPanel("全国"
+    ,h4( paste0( gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月",
+                 gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), "日",
+                 "全国确诊:", y$chinaTotal$confirm, " (", finc(y$chinaAdd$confirm), ", ", finc( round(y$chinaAdd$confirm/(y$chinaTotal$confirm - y$chinaAdd$confirm)*100,1)  ), "%)",
+                 ",   疑似:", y$chinaTotal$suspect, " (", finc(y$chinaAdd$suspect), ", ", finc( round(y$chinaAdd$suspect/(y$chinaTotal$suspect - y$chinaAdd$suspect)*100,1)  ), "%)",
+                 ",   死亡:", y$chinaTotal$dead,    " (", finc(y$chinaAdd$dead),    ", ", finc( round(y$chinaAdd$dead/(y$chinaTotal$dead - y$chinaAdd$dead)*100,1)  ), "%)",
+                 ",   痊愈",  y$chinaTotal$heal,    " (", finc(y$chinaAdd$heal),    ", ", finc( round(y$chinaAdd$heal/(y$chinaTotal$heal - y$chinaAdd$heal)*100,1)  ), "%)" 
+                 )
+         )
+
+  
+    ,checkboxInput("logScale", "所有的图对数坐标 log10", value = FALSE)
+    #,plotlyOutput("historicalChinaDataPlotly")
+    ,plotOutput("historicalChinaData")
+    ,plotOutput("historicalChinaDataAdd")
+    ,plotOutput("confirmedByProvincesHistorical")    
+    ,plotOutput("realTimeProvinceConfirmed")
+
+    ,br()
+    ,br()
+
+    ) #tab1 --------------------------------------------------
+    
+    ,tabPanel("地图"
+              ,h4(paste0( gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月",
+                      gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), "日"), "(稍等几秒钟，地图下载)。")
+              ,plotOutput("ChinaMap")
+              
+    )
+
+    ,tabPanel("省"
+              ,selectInput("selectProvince0", NULL, choices = provinceNames)
+    #,tableOutput("todayTotalTable")
+    ,plotOutput("provienceHistorical")      
+    ,plotOutput("provienceHistoricalAdd")      
+    ,plotOutput("cities_in_proviences")    
+    ,br()
+    #,plotlyOutput("cities_in_proviences_selected_plotly")
+    ,plotOutput("realTimeCityConfirmed") 
+    ,plotOutput("provinceMap")
+    ,br()
+
+
+
+    )
+    
+    ,tabPanel("市"
+              ,fluidRow( 
+                column(3, selectInput("selectProvince", NULL, choices = provinceNames)  ),
+                column(3, selectInput("selectCity", NULL, choices = cityNames))
+              )
+              ,plotOutput("cities_in_proviences_selected")        
+              ,plotOutput("cities_in_proviences_selectedAdd")  
+              )
+    
+    ,tabPanel("世界"
+              ,plotOutput("realTimeCityConfirmedWorld")
+              ,br()
+              ,plotOutput("worldMap")            
+              
+              )#tab2 --------------------------------------------------
+    
+    ,tabPanel("预测" 
+              ,sliderInput("daysForcasted", "选择预测天数",
+                             min = 1, max = 7,
+                             value = 10)
+              ,h5("简单的算法进行的预测,程序没有认真检查，仅供参考。参见", 
+                  a("源代码",href="https://github.com/gexijin/wuhan"),
+                  "。用了R的forecast 软件包里的forecast函数预测。用了exponential smoothing。")
+              ,h5("先直接用全国的确诊总数的时间序列：")
+             ,plotOutput("forecastConfirmedRaw")
+             ,br()   
+             ,br() 
+             ,h5("把全国的确诊总数先换算成了每天比前一天增加的百分比，
+                 去除了前面10天不稳定的数据, 再预测：")
+             ,plotOutput("forecastConfirmedChange")
+             ,br()
+             ,br()
+             ,h5("直接用全国的死亡累计数预测：")
+             ,plotOutput("forecastDeadRaw")
+             ,br()
+             ,br()
+             ,h5("把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：")
+             ,plotOutput("forecastDeadChange")
+             ,br()
+
+    ) #tab2 --------------------------------------------------
+
+    ,tabPanel("?"
+              ,h4("不保证数据和分析的可靠性，仅供参考。", style = "color:red")
+    ,h5("该网站是我工作之余仓促码出来的, 难免有错误。见",
+        a("源代码。 ", href="https://github.com/gexijin/wuhan"),
+        "主要目的是帮助朋友们了解疫情。纯粹个人行为，无任何商业或非商业动机。",
+        "bcloud.org 是以前注册的一个域名，随手拿来用了，不属于任何组织。"
+        )
+    ,h5("之所以能很快写出来，最主要是因为南方医科大学的",
+         a("余光创教授",  href="http://portal.smu.edu.cn/jcyxy/info/1084/2203.htm"),
+        "(微信公众号biobabble）写了一个功能强大的下载实时数据的软件包：",
+        a("nCov2019。", href="https://mp.weixin.qq.com/s?__biz=MzI5NjUyNzkxMg==&mid=2247488621&idx=1&sn=727f8bdec2801ddc0315b9fedaa40acc&scene=21"),
+        "实时数据来自腾讯， 每天更新。历史数据从【新一线城市研究所×8点健闻】。好像不是每天都更新。")
+    ,h5("有意见或建议可以给我发"
+        ,a("邮件",href="mailto:xijin.ge@sdstate.edu?Subject=疫情网站" ),"。 ",
+        "我做生物信息学方面的研究，用计算的方法探索生命的奥秘。也开发一些遗传组学数据的软件。",
+        a("研究室网页", href="http://ge-lab.org/"), "。"  )
+    ,h5("武汉加油！ 中国加油！")
+    ,h5("This website tracks the cases of the 2019-nCoV coronavirus originated from Wuhan, China. Developed on Feb 5, 2020 by",a("Ge Xijin", href="https://twitter.com/StevenXGe"),
+        "based on the R package", a("nCov2019",href="https://github.com/GuangchuangYu/nCov2019"), 
+        "by", a("Dr. Guangchuang Yu.", href="https://twitter.com/guangchuangyu"),
+        " Source code on", a("GitHub. ", href="https://github.com/gexijin/wuhan"),
+        "Not official data. Accuracy not guaranteed. All rights reserved.")
+    ,h5("2/5/20  Version 0")  
+    ,h5("2/8/20  Version 0.1")
+    ,h5("2/9/20 Version 0.2 ")
+    )
+  )
+    ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics      
+)

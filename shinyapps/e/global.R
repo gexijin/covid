@@ -12,7 +12,7 @@
 isEnglish <- TRUE 
 #-----------------------------------------------
 
-if(!isEnglish) { 
+if(isEnglish) { 
 library(pinyin)
   mypy <- pydic(method = "toneless") # 载入默认字典
   #py("武汉", sep = "", dic = mypy) # 转换

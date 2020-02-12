@@ -18,6 +18,7 @@ unzip map.zip
 sudo wget https://github.com/rstudio/shiny-examples/releases/download/v0.10.1/wqy-zenhei.ttc
 cp wqy-zenhei.ttc  ../shinyapps/v/
 
+cp wqy-zenhei.ttc  ../shinyapps/v/
 
 echo 'Data has been downloaded and unziped'
 

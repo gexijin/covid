@@ -7,20 +7,26 @@ library(shinyBS,verbose=FALSE) # for popup figures
 
 # Define server logic required to draw a histogram
 ui <- fluidPage(
-  titlePanel("疫情统计和预测"),
+  titlePanel(z("疫情统计和预测")),
   tabsetPanel(
-    tabPanel("全国"
-    ,h4( paste0( gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月",
-                 gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), "日",
-                 "全国确诊:", y$chinaTotal$confirm, " (", finc(y$chinaAdd$confirm), ", ", finc( round(y$chinaAdd$confirm/(y$chinaTotal$confirm - y$chinaAdd$confirm)*100,1)  ), "%)",
-                 ",   疑似:", y$chinaTotal$suspect, " (", finc(y$chinaAdd$suspect), ", ", finc( round(y$chinaAdd$suspect/(y$chinaTotal$suspect - y$chinaAdd$suspect)*100,1)  ), "%)",
-                 ",   死亡:", y$chinaTotal$dead,    " (", finc(y$chinaAdd$dead),    ", ", finc( round(y$chinaAdd$dead/(y$chinaTotal$dead - y$chinaAdd$dead)*100,1)  ), "%)",
-                 ",   痊愈",  y$chinaTotal$heal,    " (", finc(y$chinaAdd$heal),    ", ", finc( round(y$chinaAdd$heal/(y$chinaTotal$heal - y$chinaAdd$heal)*100,1)  ), "%)" 
+    tabPanel(z("全国")
+    ,h4( paste0( 
+                 z("全国确诊:"), y$chinaTotal$confirm, " (", finc(y$chinaAdd$confirm), ", ", finc( round(y$chinaAdd$confirm/(y$chinaTotal$confirm - y$chinaAdd$confirm)*100,1)  ), "%)",
+                 z(",   疑似:"), y$chinaTotal$suspect, " (", finc(y$chinaAdd$suspect), ", ", finc( round(y$chinaAdd$suspect/(y$chinaTotal$suspect - y$chinaAdd$suspect)*100,1)  ), "%)",
+                 z(",   死亡:"), y$chinaTotal$dead,    " (", finc(y$chinaAdd$dead),    ", ", finc( round(y$chinaAdd$dead/(y$chinaTotal$dead - y$chinaAdd$dead)*100,1)  ), "%)",
+                z(",   痊愈"),  y$chinaTotal$heal,    " (", finc(y$chinaAdd$heal),    ", ", finc( round(y$chinaAdd$heal/(y$chinaTotal$heal - y$chinaAdd$heal)*100,1)  ), "%)", " ",
+                 z("更新"), "     ", z( paste0( gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
+                 gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日"),"  ", z("北京时间"), "  ", gsub(".* ","", y$lastUpdateTime)
+                
                  )
          )
 
-  
-    ,checkboxInput("logScale", "所有的图对数坐标 log10", value = FALSE)
+    ,fluidRow( 
+      column(6, checkboxInput("logScale", z("所有的图对数坐标 log10"), value = FALSE) )
+#      ,column(2, downloadButton('dataDownload', z('下载')	) )
+      ,column(6, align="right",a(z("英语"),  href=myURL) )
+      )
+    
     #,plotlyOutput("historicalChinaDataPlotly")
     ,plotOutput("historicalChinaData")
     ,plotOutput("historicalChinaDataAdd")
@@ -32,15 +38,15 @@ ui <- fluidPage(
 
     ) #tab1 --------------------------------------------------
     
-    ,tabPanel("地图"
-              ,h4(paste0( gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月",
-                      gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), "日"), "(稍等几秒钟，地图下载)。")
+    ,tabPanel(z("地图")
+              ,h4(paste0( z(paste0(gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
+                      gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日")), z("(稍等几秒钟，地图下载)。"))
               ,plotOutput("ChinaMap")
               
     )
 
-    ,tabPanel("省"
-              ,selectInput("selectProvince0", NULL, choices = provinceNames)
+    ,tabPanel(z("省")
+              ,selectInput("selectProvince0", NULL, choices = provinceNamesList)
     #,tableOutput("todayTotalTable")
     ,plotOutput("provienceHistorical")      
     ,plotOutput("provienceHistoricalAdd")      
@@ -50,53 +56,54 @@ ui <- fluidPage(
     ,plotOutput("realTimeCityConfirmed") 
     ,plotOutput("provinceMap")
     ,br()
-
-
-
     )
     
-    ,tabPanel("市"
+    ,tabPanel(z("市")
               ,fluidRow( 
-                column(3, selectInput("selectProvince", NULL, choices = provinceNames)  ),
+                column(3, selectInput("selectProvince", NULL, choices = provinceNamesList)  ),
                 column(3, selectInput("selectCity", NULL, choices = cityNames))
               )
               ,plotOutput("cities_in_proviences_selected")        
               ,plotOutput("cities_in_proviences_selectedAdd")  
               )
     
-    ,tabPanel("世界"
+    ,tabPanel(z("世界")
               ,plotOutput("realTimeCityConfirmedWorld")
               ,br()
               ,plotOutput("worldMap")            
               
               )#tab2 --------------------------------------------------
     
-    ,tabPanel("预测" 
-              ,sliderInput("daysForcasted", "选择预测天数",
+    ,tabPanel(z("预测") 
+              ,sliderInput("daysForcasted", z("选择预测天数"),
                              min = 1, max = 7,
                              value = 10)
-              ,h5("简单的算法进行的预测,程序没有认真检查，仅供参考。参见", 
-                  a("源代码",href="https://github.com/gexijin/wuhan"),
-                  "。用了R的forecast 软件包里的forecast函数预测。用了exponential smoothing。")
-              ,h5("先直接用全国的确诊总数的时间序列：")
+              ,h5(z("简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。") )
+              ,h5(z("先直接用全国的确诊总数的时间序列："))
              ,plotOutput("forecastConfirmedRaw")
              ,br()   
              ,br() 
-             ,h5("把全国的确诊总数先换算成了每天比前一天增加的百分比，
-                 去除了前面10天不稳定的数据, 再预测：")
+             ,h5(z("把全国的确诊总数先换算成了每天比前一天增加的百分比，
+                 去除了前面10天不稳定的数据, 再预测："))
              ,plotOutput("forecastConfirmedChange")
              ,br()
              ,br()
-             ,h5("直接用全国的死亡累计数预测：")
+             ,h5(z("直接用全国的死亡累计数预测："))
              ,plotOutput("forecastDeadRaw")
              ,br()
              ,br()
-             ,h5("把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：")
+             ,h5(z("把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：") )
              ,plotOutput("forecastDeadChange")
              ,br()
 
     ) #tab2 --------------------------------------------------
-
+    ,tabPanel(z("数据") 
+              , downloadButton('dataDownload', z('数据下载')	)
+              ,br(),br()
+              ,DT::dataTableOutput('examineData')
+              ,br()
+              
+    ) #tab2 --------------------------------------------------
     ,tabPanel("?"
               ,h4("不保证数据和分析的可靠性，仅供参考。", style = "color:red")
     ,h5("该网站是我工作之余仓促码出来的, 难免有错误。见",
@@ -111,17 +118,24 @@ ui <- fluidPage(
         "实时数据来自腾讯， 每天更新。历史数据从【新一线城市研究所×8点健闻】。好像不是每天都更新。")
     ,h5("有意见或建议可以给我发"
         ,a("邮件",href="mailto:xijin.ge@sdstate.edu?Subject=疫情网站" ),"。 ",
-        "我做生物信息学方面的研究，用计算的方法探索生命的奥秘。也开发一些遗传组学数据的软件。",
-        a("研究室网页", href="http://ge-lab.org/"), "。"  )
+        "我做生物信息学方面的研究，用计算的方法探索生命的奥秘 (",
+        a("研究室网页", href="http://ge-lab.org/"), ")。"  )
     ,h5("武汉加油！ 中国加油！")
+    
+    ,h4("Accuracy not guaranteed. Not official data.", style = "color:red")
     ,h5("This website tracks the cases of the 2019-nCoV coronavirus originated from Wuhan, China. Developed on Feb 5, 2020 by",a("Ge Xijin", href="https://twitter.com/StevenXGe"),
         "based on the R package", a("nCov2019",href="https://github.com/GuangchuangYu/nCov2019"), 
-        "by", a("Dr. Guangchuang Yu.", href="https://twitter.com/guangchuangyu"),
-        " Source code on", a("GitHub. ", href="https://github.com/gexijin/wuhan"),
-        "Not official data. Accuracy not guaranteed. All rights reserved.")
+        "by", a("Dr. Guangchuang Yu.", href="https://twitter.com/guangchuangyu"))
+    ,h5("Feedbacks or suggestions please"
+        ,a("email me",href="mailto:xijin.ge@sdstate.edu?Subject=Coronavirus website" ),".",
+        "I am bioinformatics researcher (",
+        a("lab", href="http://ge-lab.org/"), ")."  )
+    ,h5("All rights reserved.")
+    
     ,h5("2/5/20  Version 0")  
     ,h5("2/8/20  Version 0.1")
     ,h5("2/9/20 Version 0.2 ")
+    ,h5("2/12/20 V 0.3 English version")
     )
   )
     ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics      

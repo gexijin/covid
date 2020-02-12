@@ -6,6 +6,45 @@
 # remotes::install_github("GuangchuangYu/nCov2019")  # main data package
 # remotes::install_github("GuangchuangYu/chinamap")   #Chinese map
 # install.packages(c("sp","mapproj","maps","sf"))
+# install.packages("pinyin")
+
+#--------------English version or Chinese version
+isEnglish <- FALSE 
+#-----------------------------------------------
+if(isEnglish)
+  myURL = "http://www.bcloud.org/v/"  else
+    myURL = "http://www.bcloud.org/e/" 
+if(isEnglish) { 
+library(pinyin)
+  mypy <- pydic(method = "toneless") # 载入默认字典
+  #py("武汉", sep = "", dic = mypy) # 转换
+}
+py1 <- function (ChineseName) 
+  # Translate Chinese names into English based on the pinyin package
+  # The capitalize function is based the capitalize function in Hmsic package
+  # ""武汉"" --> "Wuhan"
+{
+  if(!isEnglish) { 
+    return(ChineseName) 
+    } else {  
+  string <- as.character( py(ChineseName, sep = "", dic = mypy) )
+  capped <- grep("^[A-Z]", string, invert = TRUE)
+  substr(string[capped], 1, 1) <- toupper(substr(string[capped], 1, 1))
+  return(string)
+  }
+}
+
+py2 <- function (ChineseNames) 
+  # Translate a vector of Chinese strings into English
+  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
+{
+  if(!isEnglish) { 
+    return(ChineseNames) 
+  } else {
+    unlist( lapply(as.character( ChineseNames ), py1) )
+  }
+}
+
 entireCountry <- "全国各省"
 options(scipen=999) # turn off scientific notation like 1e+06
 #daysForcasted = 10
@@ -16,7 +55,6 @@ library(dplyr)
 library(tidyr) # for gather function 
 y <- get_nCov2019()  # load real time data from Tencent
 x <- load_nCov2019() #load historical data
-
 
 # correct an erorr in data "四川 " "四川"
 x$data$province <- gsub(" ", "", x$data$province)
@@ -45,9 +83,13 @@ cityNames <- x$data %>%
 #Beijing, ...
 specialProvinces <- names(sort(table(x$data$province))[1:10] )
 
-
 # add province names to end of city names, as Beijing, Shanghai
 cityNames = c(cityNames, provinceNames)
+
+cityNamesList <- setNames(cityNames, cityNames)
+if(isEnglish) 
+  cityNamesList <- setNames(cityNames, py2( cityNames) )
+
 #Today's totals
 todayTotal <- do.call(rbind, Map(data.frame, total=y$chinaTotal,add=y$chinaAdd))
 colnames(todayTotal) <- c("总数","增加")
@@ -132,3 +174,175 @@ if (.Platform$OS.type == "windows") {
     )
   }
 }
+
+z <- function (ChineseName) {
+  # translate chinese Names and menu items to English
+  # it Uses a dictionary above
+  if(!isEnglish) { 
+    return(ChineseName) 
+  } else {
+    translated <- myDic2[ChineseName]
+    if(is.na(translated)) 
+      return( ChineseName ) else
+        return(translated)
+  }
+}
+
+z2 <- function (ChineseNames) 
+  # Translate a vector of Chinese strings into English
+  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
+{
+  if(!isEnglish) { 
+    return(ChineseNames) 
+  } else {
+    unlist( lapply(as.character( ChineseNames ), z) )
+  }
+}
+
+myDic = matrix( c( 
+  #---------------------Countries
+  "中国", "China",
+  "日本", "Japan",
+  "新加坡","Singapore" ,
+  "泰国" , "Thailand",
+  "韩国" , "South Korea",
+  "马来西亚", "Malaysia",
+  "德国", "Germany",
+  "越南", "Vietnam",
+  "澳大利亚", "Australia",
+  "美国", "USA",
+  "法国", "France",
+  "英国", "UK",
+  "阿联酋", "UAE",
+  "加拿大", "Canada",
+  "印度" , "India",
+  "菲律宾", "philippines",
+  "意大利", "Italy",
+  "西班牙", "Spain",
+  "俄罗斯", "Russia",
+  "比利时", "Belgium",
+  "斯里兰卡", "Sri Lanka",
+  "瑞典", "Sweden",
+  "柬埔寨", "cambodia",
+  "尼泊尔", "Nepal",
+  "芬兰"  , "Finland",
+  
+  #---------------------Provinces
+  "湖北", "Hubei",
+  "广东", "Guangdong",
+  "浙江", "Zhejiang",
+  "河南", "Henan",
+  "湖南", "Hunan",
+  "安徽", "Anhui",
+  "江西", "Jiangxi",
+  "江苏", "Jiangsu",
+  "山东", "Shandong",
+  "重庆", "Chengqing",
+  "四川", "Sicuan",
+  "黑龙江", "Heilongjiang",
+  "北京", "Beijing",
+  "上海", "Shanghai",
+  "福建", "Fujian",
+  "河北" , "Hebei",
+  "陕西" , "Shangxi",
+  "广西", "Guangxi",
+  "云南", "Yunnan",
+  "海南", "Hainan",
+  "山西", "Shanxi",
+  "贵州", "Guizhou",
+  "辽宁", "Liaoning",
+  "天津", "Tianjin",
+  "甘肃", "Gansu",
+  "吉林", "Jilin",
+  "内蒙古", "Inner Mongolia",
+  "新疆", "Xinjiang",
+  "宁夏", "Ningxia",
+  "香港", "Hong Kong",
+  "台湾", "Taiwan",
+  "青海", "Qinghai",
+  "澳门", "Macau",
+  "西藏", "Tibet",
+  
+  #---------------------Menu items
+
+  
+  "疫情统计和预测", "Coronavirus epidemic statistics and forecast",
+  
+  "全国", "China",
+  "地图", "Map",
+  "省", "Provinces",
+  "市", "Cities",
+  "世界", "World",
+  "预测", "Forecast",
+  
+  "确诊", "Confirmed",
+  "死亡", "Death",
+  "痊愈", "Discharged",
+  
+  "全国确诊:", "China total confirmed: ",
+  ",   疑似:",  ",   suspected:",
+  ",   死亡:",  ",   death:",
+  ",   痊愈", ",   discharaged", 
+  "01月", "Jan.",
+  "02月", "Feb.",
+  "03月", "March",
+  "04月", "April",
+  "05月", "May",
+  "06月", "June",
+  "07月", "July",
+  "08月", "August",
+  "09月", "Sept.",
+  "10月", "Oct.",  
+  "11月", "Nov.", 
+  "12月", "Dec.", 
+  "日", " ",
+  "更新", "Updated",
+  "北京时间", "Beijing time",
+  "所有的图对数坐标 log10", "log10 scale for all plots",
+  "(稍等几秒钟，地图下载)。", "Downloading map......",
+  "选择预测天数", "Choose how many days to forecast",
+  "简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。",
+       "We used a simple time series data forecasting model provided by the forecast package in R and the exponential smoothing method. We did not do rigrious testing of the models.",
+
+  "先直接用全国的确诊总数的时间序列：", 
+       "First we used the time series of the total confirmed cases in China to forecast:",
+  
+  "把全国的确诊总数先换算成了每天比前一天增加的百分比，
+                 去除了前面10天不稳定的数据, 再预测：",
+  "We transformed the data into daily increased percentage, and run the forecast:",
+  
+  "直接用全国的死亡累计数预测：", "Forecasting the total deathes in China directly:",
+  
+  "把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：",
+     "Forecasting the daily percent increase:",
+  
+  "各市", "Cities",
+  "确诊 (死亡)", "Confirmed (dead)",
+  "腾迅", " from Tencent",
+  "世界各国确诊 (死亡)", "Confirmed (dead) across countries",
+  "全国总数", "China total",
+  "全国每日新增", "New cases in China",
+  "总数", "Total",
+  "新增", " New cases",
+  "预期", "Prediction:",
+  "全国确诊", "Total confirmed cases in China",
+  "天后全国确诊 ", "days later, total confirmed in China will be ",
+  ", 区间[", ", 95% CI [",
+  "死亡人数增加百分比(%)","% increase in death",
+  "预期全国死亡累计每天增加", "Predicted % daily increase in death",
+  "天后达到 ", " days later will be",
+  "全国死亡人数", "Total deathes in China",
+  "天后全国死亡累计", "days later total deathes in China will be",
+  "全国各省", "Confirmed cases across provinces",
+  "英语","中文", 
+  "数据", "Data",
+  "数据下载", "Download Data",
+  "last", "last"
+),nrow=2)
+# make a vector value is English, Name is chinese
+myDic2 <- myDic[2,]
+names(myDic2) <- myDic[1,]
+
+
+provinceNamesList <- setNames(provinceNames, z2(provinceNames) )
+

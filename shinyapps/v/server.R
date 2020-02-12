@@ -15,7 +15,7 @@ function(input, output, session) {
         cityNamesProvince <- unique( x[input$selectProvince,]$city )
         ix <- match(cityNames, cityNamesProvince)
 
-        updateSelectInput(session, "selectCity", NULL, choices = cityNames[!is.na(ix)] ) 
+        updateSelectInput(session, "selectCity", NULL, choices = cityNamesList[!is.na(ix)] ) 
         if( input$selectProvince == entireCountry ) 
             updateSelectInput(session, "selectCity", NULL, choices = NULL )    
         
@@ -27,13 +27,14 @@ function(input, output, session) {
     output$confirmedByProvincesHistorical <- renderPlot({
 
             d2 <- summary(x)[,1:5]
+            if(isEnglish) d2$province <- py2( d2$province )  # translate into Pinyin
             p <- ggplot(d2,
                         aes(time, as.numeric(cum_confirm), group=province, color=province)) +
                 geom_point() + geom_line() +
                 geom_text_repel(aes(label=province),  family="SimSun",data=d2[d2$time == time(x), ], hjust=1) +
                 theme_gray(base_size = 14) + theme(legend.position='none') +
                 xlab(NULL) + ylab(NULL) + 
-                ggtitle(paste(entireCountry,  x$time,"更新") )         
+                ggtitle(paste( z(entireCountry),  z("更新"), x$time ) )         
 
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -45,13 +46,14 @@ function(input, output, session) {
     output$cities_in_proviences <- renderPlot({
 
         d <- x[input$selectProvince0, ]
+        if(isEnglish) d$city <- py2( d$city )  # translate into Pinyin
         p <- ggplot(d,
                aes(time, as.numeric(cum_confirm), group=city, color=city)) +
             geom_point() + geom_line() +
             geom_text_repel(aes(label=city), family="SimSun",data=d[d$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) + 
-            ggtitle(paste(input$selectProvince0, "各市", x$time, "更新") )
+            ggtitle(paste(z(input$selectProvince0), z("各市"), z("更新"), x$time) )
 
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -64,12 +66,14 @@ function(input, output, session) {
 
         d = y[]; d <- d[1:20, ]
         d$confirm=as.numeric(d$confirm)
-        d$name = fct_reorder(d$name, d$confirm)
+        if(isEnglish) d$name <- py2( d$name )  # translate into Pinyin
+        d$name = fct_reorder(d$name, d$confirm)        
         
         # This is used to create spaces so the numbers on top of the bar shows up.
         maxN <- max(d$confirm) *1.5
         if(input$logScale) 
             maxN <- max(d$confirm) *10
+        
         
         p <- ggplot(d, aes(name, confirm)) + 
             geom_col(fill='steelblue') + coord_flip() +
@@ -80,7 +84,7 @@ function(input, output, session) {
             theme(text = element_text(size=17, family="SimSun"),
                   axis.text.x = element_text(angle=0, hjust=1))  + 
             #ggtitle(paste("Confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
-            ggtitle(paste("确诊 (死亡)", gsub(" .*","", y$lastUpdateTime), "腾迅") ) +            
+            ggtitle(paste( z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
             expand_limits(y = maxN)
         #theme(plot.title = element_text(size = 18))
         
@@ -95,6 +99,7 @@ function(input, output, session) {
     output$realTimeCityConfirmed <- renderPlot({
         d = y[input$selectProvince0,] 
         d$confirm=as.numeric(d$confirm)
+        if(isEnglish) d$name <- py2( d$name )  # translate into Pinyin
         d$name = fct_reorder(d$name, d$confirm)
         
         # This is used to create spaces so the numbers on top of the bar shows up.
@@ -111,7 +116,7 @@ function(input, output, session) {
             theme(text = element_text(size=17, family="SimSun"),
                   axis.text.x = element_text(angle=0, hjust=1))  + 
             #ggtitle(paste("Confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
-            ggtitle(paste(input$selectProvince0, "确诊 (死亡)", gsub(" .*","", y$lastUpdateTime), "腾迅") ) +            
+            ggtitle(paste( z(input$selectProvince0), z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
             expand_limits(y = maxN)
             #theme(plot.title = element_text(size = 18))
         
@@ -126,6 +131,7 @@ function(input, output, session) {
     output$realTimeCityConfirmedWorld <- renderPlot({
         d = y['global',] 
         d$confirm=as.numeric(d$confirm)
+         d$name <- z2( d$name )  # translate into Pinyin
         d$name = fct_reorder(d$name, d$confirm)
         
         d <- d[1:20, ]
@@ -144,7 +150,7 @@ function(input, output, session) {
             theme(text = element_text(size=17, family="SimSun"),
                   axis.text.x = element_text(angle=0, hjust=1))  + 
             #ggtitle(paste("Confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
-            ggtitle(paste("各国确诊 (死亡)", gsub(" .*","", y$lastUpdateTime), "腾迅") ) +            
+            ggtitle(paste(z("世界各国确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
             expand_limits(y = maxN)
         #theme(plot.title = element_text(size = 18))
         
@@ -168,10 +174,10 @@ function(input, output, session) {
         dl <- d2 %>%
             gather( type, count, cum_confirm:cum_heal) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = "确诊",
-                                         cum_dead = "死亡",
-                                         cum_heal = "痊愈"))
-        
+                                         cum_confirm = z("确诊"),
+                                         cum_dead = z("死亡"),
+                                         cum_heal = z("痊愈")))
+
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
             geom_point(size=3) + geom_line() +
@@ -179,7 +185,7 @@ function(input, output, session) {
             theme_gray(base_size = 14) + theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) 
 
-            p <- p + ggtitle(paste("全国总数", x$time, "更新") ) 
+            p <- p + ggtitle(paste( z("全国总数"), z("更新"), x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -203,10 +209,9 @@ function(input, output, session) {
         dl <- d2 %>%
             gather( type, count, cum_confirm:cum_heal) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = "确诊",
-                                         cum_dead = "死亡",
-                                         cum_heal = "痊愈"))
-        
+                                         cum_confirm = z("确诊"),
+                                         cum_dead = z("死亡"),
+                                         cum_heal = z("痊愈")))
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
             geom_point() + geom_line() +
@@ -215,7 +220,7 @@ function(input, output, session) {
             theme(legend.title = element_blank()) +
             xlab(NULL) + ylab(NULL) 
         
-        p <- p + ggtitle(paste("全国总数", x$time, "更新") ) 
+        p <- p + ggtitle(paste(z("全国总数"), z("更新"), x$time )) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -245,10 +250,9 @@ function(input, output, session) {
         dl <- d3 %>%
             gather( type, count, cum_confirm:cum_heal) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = "确诊",
-                                         cum_dead = "死亡",
-                                         cum_heal = "痊愈"))
-        
+                                         cum_confirm = z("确诊"),
+                                         cum_dead = z("死亡"),
+                                         cum_heal = z("痊愈")))
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
             geom_point(size=3) + geom_line() +
@@ -256,7 +260,7 @@ function(input, output, session) {
             theme_gray(base_size = 14) + theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) 
         
-        p <- p + ggtitle(paste("全国每日新增", x$time, "更新") ) 
+        p <- p + ggtitle(paste(z("全国每日新增"), z("更新"), x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -291,9 +295,9 @@ function(input, output, session) {
         dl <- d3 %>%
             gather( type, count, cum_confirm:cum_heal) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = "确诊",
-                                         cum_dead = "死亡",
-                                         cum_heal = "痊愈"))
+                                         cum_confirm = z("确诊"),
+                                         cum_dead = z("死亡"),
+                                         cum_heal = z("痊愈")))
         
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
@@ -302,7 +306,7 @@ function(input, output, session) {
             theme_gray(base_size = 14) + theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) 
         
-        p <- p + ggtitle(paste(input$selectProvince0, "新增", x$time, "更新") ) 
+        p <- p + ggtitle(paste(z(input$selectProvince0), z("新增"), z("更新"), x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -327,9 +331,9 @@ function(input, output, session) {
         dl <- d2 %>%
             gather( type, count, cum_confirm:cum_heal) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = "确诊",
-                                         cum_dead = "死亡",
-                                         cum_heal = "痊愈"))
+                                         cum_confirm = z("确诊"),
+                                         cum_dead = z("死亡"),
+                                         cum_heal = z("痊愈")))
         
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
@@ -338,7 +342,7 @@ function(input, output, session) {
             theme_gray(base_size = 14) + theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) 
         
-        p <- p + ggtitle(paste(input$selectProvince0, "总数", x$time, "更新") ) 
+        p <- p + ggtitle(paste(z(input$selectProvince0), z("总数"), z("更新"), x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -356,22 +360,20 @@ function(input, output, session) {
                 mutate( cum_dead = meanImput(cum_dead, 2)) %>%
                 mutate( cum_heal = meanImput(cum_heal, 2)) 
             
-
-            
             dl <- d2 %>%
                 gather( type, count, cum_confirm:cum_heal) %>%
                 mutate( type = recode_factor(type,
-                                             cum_confirm = "确诊",
-                                             cum_dead = "死亡",
-                                             cum_heal = "痊愈"))
-
+                                             cum_confirm = z("确诊"),
+                                             cum_dead = z("死亡"),
+                                             cum_heal = z("痊愈")))
+            
             p <- ggplot(dl,
                         aes(time, as.numeric(count), group=type, color=type)) +
                         geom_point(size=3) + geom_line() +
                         geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
                         theme_gray(base_size = 14) + theme(legend.position='none') +
                         xlab(NULL) + ylab(NULL) 
-            p <- p + ggtitle(paste(input$selectCity, "总数", x$time, "更新") )                    
+            p <- p + ggtitle(paste( py1(input$selectCity), z("总数"), z( "更新"), x$time) )                    
 
         
         if(input$logScale) 
@@ -404,10 +406,10 @@ function(input, output, session) {
         dl <- d3 %>%
             gather( type, count, cum_confirm:cum_heal) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = "确诊",
-                                         cum_dead = "死亡",
-                                         cum_heal = "痊愈"))
-        
+                                         cum_confirm = z("确诊"),
+                                         cum_dead = z("死亡"),
+                                         cum_heal = z("痊愈")))
+      
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
             geom_point(size=3) + geom_line() +
@@ -415,7 +417,7 @@ function(input, output, session) {
             theme_gray(base_size = 14) + theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) 
 
-            p <- p + ggtitle(paste(input$selectCity, "新增", x$time, "更新") )                    
+            p <- p + ggtitle(paste( py1(input$selectCity), z("新增"), z("更新"), x$time ) )                   
 
         
         if(input$logScale) 
@@ -435,10 +437,10 @@ function(input, output, session) {
         dl <- d2 %>%
             gather( type, count, cum_confirm:cum_heal) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = "确诊",
-                                         cum_dead = "死亡",
-                                         cum_heal = "痊愈"))
-        
+                                         cum_confirm = z("确诊"),
+                                         cum_dead = z("死亡"),
+                                         cum_heal = z("痊愈")))
+       
         p <- ggplot(dl,
                     aes(time, count, group=type, color=type)) +
             geom_point() + geom_line() +
@@ -446,7 +448,7 @@ function(input, output, session) {
             theme_gray(base_size = 14)  + theme(legend.title = element_blank() ) +
             xlab(NULL) + ylab(NULL) 
 
-            p <- p + ggtitle(paste(input$selectCity, x$time, "更新") )                    
+            p <- p + ggtitle(paste(input$selectCity, z("更新"), x$time ) )                   
 
         
         if(input$logScale) 
@@ -489,8 +491,8 @@ function(input, output, session) {
                         start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
         forecasted <- forecast(ets(confirmed), input$daysForcasted)
         plot(forecasted, xaxt="n", main="", 
-             ylab = "全国确诊",
-             xlab = paste0("预期", input$daysForcasted, "天后全国确诊 ", round(forecasted$mean[input$daysForcasted],0), ", 区间[",
+             ylab = z("全国确诊"),
+             xlab = paste0(z("预期"), input$daysForcasted, z("天后全国确诊 "), round(forecasted$mean[input$daysForcasted],0), z(", 区间["),
                           round(forecasted$lower[input$daysForcasted],0), "-",round(forecasted$upper[input$daysForcasted],0),"]")            
         )
         a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
@@ -517,9 +519,9 @@ function(input, output, session) {
 #        predictedNdeaded = d2$cum_dead[nrow(d2)]* (1+ forecasted$mean[input$daysForcasted]/100)^input$daysForcasted 
         predictedNdead = d2$cum_dead[nrow(d2)]* increasesByPercentages(forecasted$mean)           
         plot(forecasted, xaxt="n", main="", 
-             ylab = "死亡人数增加百分比(%)",
-             xlab = paste0("预期全国死亡累计每天增加", round(mean(forecasted$mean),1),
-                          "%，", input$daysForcasted, "天后达到 ", round(predictedNdead,0) )            
+             ylab = z("死亡人数增加百分比(%)"),
+             xlab = paste0(z("预期全国死亡累计每天增加"), round(mean(forecasted$mean),1),
+                          "%，", input$daysForcasted, z("天后达到 "), round(predictedNdead,0) )            
         )
         a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
         axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
@@ -536,8 +538,8 @@ function(input, output, session) {
                      start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
         forecasted <- forecast(ets(deaded), input$daysForcasted)
         plot(forecasted, xaxt="n", main="", 
-             ylab = "全国死亡人数",
-             xlab = paste0("预期", input$daysForcasted, "天后全国死亡累计", round(forecasted$mean[input$daysForcasted],0), "，区间[",
+             ylab = z("全国死亡人数"),
+             xlab = paste0(z("预期"), input$daysForcasted, z("天后全国死亡累计"), round(forecasted$mean[input$daysForcasted],0), z("，区间["),
                           round(forecasted$lower[input$daysForcasted],0), "-",round(forecasted$upper[input$daysForcasted],0),"]")            
         )
         a = seq(as.Date(min(d2$time)), by="days", length= + nrow(d2) -1 )
@@ -546,7 +548,7 @@ function(input, output, session) {
     
     #世界地图--------------------------------------------------
     output$worldMap <- renderPlot ({
-        withProgress(message = '下载地图', value = 0, {
+        withProgress(message = z('下载地图'), value = 0, {
         incProgress(0.1)
         plot(y, 
              continuous_scale=FALSE,
@@ -556,7 +558,7 @@ function(input, output, session) {
 
     #中国地图---------------------------------------------------
     output$ChinaMap <- renderPlot ({
-        withProgress(message = '下载地图', value = 0, {
+        withProgress(message = z('下载地图'), value = 0, {
         incProgress(0.1)
         cn = get_map_china()
         incProgress(0.5)
@@ -576,6 +578,42 @@ function(input, output, session) {
              chinamap = m,
              palette='Blues')  
         #}    
-    }, height = 600, width = 800)       
+    }, height = 600, width = 800)  
+    
+    historicalData <- reactive({
+      df <- x$data
+      df$provinceE <- z2(df$province)
+      df$cityE <- py2(df$city)
+      n <- ncol(df)
+      df[ ,c(n-1, n, 1:(n-3))]
+      
+    })
+    output$dataDownload <- downloadHandler(
+      filename = function() {paste0("coronavirus_histrical_",x$time,".tsv")},
+      content = function(file) {
+        # issues with Chinese characters solved
+        # http://kevinushey.github.io/blog/2018/02/21/string-encoding-and-r/
+        con <- file(file, open = "w+", encoding = "native.enc")
+        for(i in 1:nrow(historicalData()) )
+          #write line by line 
+          writeLines( paste(historicalData()[i,], collapse = "\t"), con = con, useBytes = TRUE)
+        close(con)
+      }
+    )
+    
+    output$examineData <- DT::renderDataTable({
+      tem <- historicalData()
+      if(isEnglish) { 
+        tem <- tem[, c(1,2,5:8,11:13)]
+        colnames(tem) = c("Prov.", "City", "Time", "Confirmed","Recovered","Dead",
+                          "Newly Confirmed","Newly Recovered","Newly Dead")
+         return( tem ) 
+        } else { 
+          tem <- tem[, c(3:8,11:13)]
+          colnames(tem) = c("省", "市", "时间","确诊","痊愈","死亡",
+                            "新确诊","新痊愈","新死亡")
+           return( tem  )
+        }
+      
+    })
 }
-

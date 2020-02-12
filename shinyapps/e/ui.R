@@ -21,8 +21,12 @@ ui <- fluidPage(
                  )
          )
 
-  
-    ,checkboxInput("logScale", z("所有的图对数坐标 log10"), value = FALSE)
+    ,fluidRow( 
+      column(6, checkboxInput("logScale", z("所有的图对数坐标 log10"), value = FALSE) )
+#      ,column(2, downloadButton('dataDownload', z('下载')	) )
+      ,column(6, align="right",a(z("英语"),  href=myURL) )
+      )
+    
     #,plotlyOutput("historicalChinaDataPlotly")
     ,plotOutput("historicalChinaData")
     ,plotOutput("historicalChinaDataAdd")
@@ -93,7 +97,13 @@ ui <- fluidPage(
              ,br()
 
     ) #tab2 --------------------------------------------------
-
+    ,tabPanel(z("数据") 
+              , downloadButton('dataDownload', z('数据下载')	)
+              ,br(),br()
+              ,DT::dataTableOutput('examineData')
+              ,br()
+              
+    ) #tab2 --------------------------------------------------
     ,tabPanel("?"
               ,h4("不保证数据和分析的可靠性，仅供参考。", style = "color:red")
     ,h5("该网站是我工作之余仓促码出来的, 难免有错误。见",

@@ -11,7 +11,9 @@
 #--------------English version or Chinese version
 isEnglish <- TRUE 
 #-----------------------------------------------
-
+if(isEnglish)
+  myURL = "http://www.bcloud.org/v/"  else
+    myURL = "http://www.bcloud.org/e/" 
 if(isEnglish) { 
 library(pinyin)
   mypy <- pydic(method = "toneless") # 载入默认字典
@@ -43,7 +45,6 @@ py2 <- function (ChineseNames)
   }
 }
 
-
 entireCountry <- "全国各省"
 options(scipen=999) # turn off scientific notation like 1e+06
 #daysForcasted = 10
@@ -54,7 +55,6 @@ library(dplyr)
 library(tidyr) # for gather function 
 y <- get_nCov2019()  # load real time data from Tencent
 x <- load_nCov2019() #load historical data
-
 
 # correct an erorr in data "四川 " "四川"
 x$data$province <- gsub(" ", "", x$data$province)
@@ -69,8 +69,6 @@ provinceNames <- x$data %>%
   arrange(desc(cum_confirm)) %>% 
   pull(province)
 
-
-
 #provinceNames <- c(entireCountry, provinceNames)
 
 # Get a list of cities sorted by cases
@@ -81,7 +79,6 @@ cityNames <- x$data %>%
   filter(row_number() ==1) %>%
   arrange(desc(cum_confirm)) %>% 
   pull(city)
-
 
 #Beijing, ...
 specialProvinces <- names(sort(table(x$data$province))[1:10] )
@@ -269,7 +266,7 @@ myDic = matrix( c(
   #---------------------Menu items
 
   
-  "疫情统计和预测", "Coronavirus epidemic tracking and forecast",
+  "疫情统计和预测", "Coronavirus epidemic statistics and forecast",
   
   "全国", "China",
   "地图", "Map",
@@ -337,6 +334,9 @@ myDic = matrix( c(
   "全国死亡人数", "Total deathes in China",
   "天后全国死亡累计", "days later total deathes in China will be",
   "全国各省", "Confirmed cases across provinces",
+  "英语","中文", 
+  "数据", "Data",
+  "数据下载", "Download Data",
   "last", "last"
 ),nrow=2)
 # make a vector value is English, Name is chinese

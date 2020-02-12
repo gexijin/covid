@@ -578,6 +578,42 @@ function(input, output, session) {
              chinamap = m,
              palette='Blues')  
         #}    
-    }, height = 600, width = 800)       
+    }, height = 600, width = 800)  
+    
+    historicalData <- reactive({
+      df <- x$data
+      df$provinceE <- z2(df$province)
+      df$cityE <- py2(df$city)
+      n <- ncol(df)
+      df[ ,c(n-1, n, 1:(n-3))]
+      
+    })
+    output$dataDownload <- downloadHandler(
+      filename = function() {paste0("coronavirus_histrical_",x$time,".tsv")},
+      content = function(file) {
+        # issues with Chinese characters solved
+        # http://kevinushey.github.io/blog/2018/02/21/string-encoding-and-r/
+        con <- file(file, open = "w+", encoding = "native.enc")
+        for(i in 1:nrow(historicalData()) )
+          #write line by line 
+          writeLines( paste(historicalData()[i,], collapse = "\t"), con = con, useBytes = TRUE)
+        close(con)
+      }
+    )
+    
+    output$examineData <- DT::renderDataTable({
+      tem <- historicalData()
+      if(isEnglish) { 
+        tem <- tem[, c(1,2,5:8,11:13)]
+        colnames(tem) = c("Prov.", "City", "Time", "Confirmed","Recovered","Dead",
+                          "Newly Confirmed","Newly Recovered","Newly Dead")
+         return( tem ) 
+        } else { 
+          tem <- tem[, c(3:8,11:13)]
+          colnames(tem) = c("省", "市", "时间","确诊","痊愈","死亡",
+                            "新确诊","新痊愈","新死亡")
+           return( tem  )
+        }
+      
+    })
 }
-

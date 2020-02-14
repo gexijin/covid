@@ -16,7 +16,7 @@ if(isEnglish)
     myURL = "http://www.bcloud.org/e/" 
 if(isEnglish) { 
 library(pinyin)
-  mypy <- pydic(method = "toneless") # 载入默认字典
+  mypy <- pydic(method = "toneless",dic = 'pinyin2') # 载入默认字典
   #py("武汉", sep = "", dic = mypy) # 转换
 }
 py1 <- function (ChineseName) 
@@ -282,7 +282,8 @@ myDic = matrix( c(
   "全国确诊:", "China total confirmed: ",
   ",   疑似:",  ",   suspected:",
   ",   死亡:",  ",   death:",
-  ",   痊愈", ",   discharaged", 
+  ",   痊愈:", ",   discharaged:", 
+  "一天之内数字会有多次更新。", "Updated serveral times a day. May not be final count for the day.",
   "01月", "Jan.",
   "02月", "Feb.",
   "03月", "March",

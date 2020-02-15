@@ -93,7 +93,7 @@ if(isEnglish)
 #Today's totals
 todayTotal <- do.call(rbind, Map(data.frame, total=y$chinaTotal,add=y$chinaAdd))
 colnames(todayTotal) <- c("总数","增加")
-rownames(todayTotal) <- c("确诊","疑似","死亡","痊愈")
+rownames(todayTotal) <- c("确诊","疑似","死亡","痊愈","New Confirmed","NewSever")
 
 ChinaHistory <- summary(x)[, 2:5] %>% 
   mutate(cum_dead = as.integer(cum_dead)) %>%

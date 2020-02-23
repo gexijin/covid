@@ -182,7 +182,7 @@ function(input, output, session) {
                     aes(time, as.numeric(count), group=type, color=type)) +
             geom_point(size=3) + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
-            theme_gray(base_size = 14) + theme(legend.position='none') +
+            theme_gray(base_size = 14) + #theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) 
 
             p <- p + ggtitle(paste( z("全国总数"), z("更新"), x$time) ) 
@@ -257,7 +257,7 @@ function(input, output, session) {
                     aes(time, as.numeric(count), group=type, color=type)) +
             geom_point(size=3) + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
-            theme_gray(base_size = 14) + theme(legend.position='none') +
+            theme_gray(base_size = 14) + #theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) 
         
         p <- p + ggtitle(paste(z("全国每日新增"), z("更新"), x$time) ) 

@@ -9,7 +9,8 @@
 # install.packages("pinyin")
 
 #--------------English version or Chinese version
-isEnglish <- FALSE 
+if (file.exists("English_version"))
+isEnglish <- TRUE else isEnglish <- FALSE
 #-----------------------------------------------
 if(isEnglish)
   myURL = "http://www.bcloud.org/v/"  else
@@ -100,8 +101,17 @@ todayTotal <- do.call(rbind, Map(data.frame, total=y$chinaTotal,add=y$chinaAdd))
 colnames(todayTotal) <- c("总数","增加")
 rownames(todayTotal) <- c("确诊","疑似","死亡","痊愈","New Confirmed","NewSever")
 
-ChinaHistory <- summary(y) %>%
-  mutate(time = as.Date( gsub("\\.","-",paste0("2020-",date) )) )
+# Use data from Tencent for historical China data
+#ChinaHistory <- summary(y) %>%
+#  mutate(time = as.Date( gsub("\\.","-",paste0("2020-",date) )) )
+
+ChinaHistory <- x$data %>%
+                mutate(cum_dead = as.integer(cum_dead)) %>%
+                group_by(time) %>%
+                summarise( confirm = sum(cum_confirm, na.rm = TRUE), # missing values in some cities
+                           dead = sum(cum_dead, na.rm = TRUE),
+                           heal = sum(cum_heal,  na.rm = TRUE)) 
+
 
 
 # missing data imput using the mean of n neighboring data points on both sides

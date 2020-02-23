@@ -163,15 +163,8 @@ function(input, output, session) {
     #全国细节 历史图 -------------------------------------------
     output$historicalChinaData <- renderPlot({
 
-        d2 <- ChinaHistory %>% 
-            mutate(dead = as.integer(dead)) %>%
-            group_by(time) %>%
-            summarise( confirm = sum(confirm, na.rm = TRUE), # missing values in some cities
-                       dead = sum(dead, na.rm = TRUE),
-                       heal = sum(heal,  na.rm = TRUE)) 
-
         
-        dl <- d2 %>%
+        dl <- ChinaHistory %>%
             gather( type, count, confirm:heal) %>%
             mutate( type = recode_factor(type,
                                          confirm = z("确诊"),
@@ -231,12 +224,7 @@ function(input, output, session) {
     #全国细节 历史图 增加-------------------------------------------
     output$historicalChinaDataAdd <- renderPlot({
         
-        d2 <- ChinaHistory %>% 
-            mutate(dead = as.integer(dead)) %>%
-            group_by(time) %>%
-            summarise( confirm = sum(confirm, na.rm = TRUE), # missing values in some cities
-                       dead = sum(dead, na.rm = TRUE),
-                       heal = sum(heal,  na.rm = TRUE)) 
+        d2 <- ChinaHistory 
         
         d3 <- d2[-1, ] %>%
             mutate(confirm = diff(d2$confirm)) %>%     

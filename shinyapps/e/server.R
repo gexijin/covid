@@ -26,10 +26,10 @@ function(input, output, session) {
     #各个省 确诊 历史数  -------------------------------------------    
     output$confirmedByProvincesHistorical <- renderPlot({
 
-            d2 <- summary(x)[,1:5]
+            d2 <- summary(x)
             if(isEnglish) d2$province <- py2( d2$province )  # translate into Pinyin
             p <- ggplot(d2,
-                        aes(time, as.numeric(cum_confirm), group=province, color=province)) +
+                        aes(time, as.numeric(confirmed), group=province, color=province)) +
                 geom_point() + geom_line() +
                 geom_text_repel(aes(label=province),  family="SimSun",data=d2[d2$time == time(x), ], hjust=1) +
                 theme_gray(base_size = 14) + theme(legend.position='none') +
@@ -48,7 +48,7 @@ function(input, output, session) {
         d <- x[input$selectProvince0, ]
         if(isEnglish) d$city <- py2( d$city )  # translate into Pinyin
         p <- ggplot(d,
-               aes(time, as.numeric(cum_confirm), group=city, color=city)) +
+               aes(time, as.numeric(confirmed), group=city, color=city)) +
             geom_point() + geom_line() +
             geom_text_repel(aes(label=city), family="SimSun",data=d[d$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + theme(legend.position='none') +
@@ -64,7 +64,7 @@ function(input, output, session) {
     #全国 当天 确诊 数  -------------------------------------------
     output$realTimeProvinceConfirmed <- renderPlot({
 
-        d = y[]; d <- d[1:20, ]
+        d = y[]; #d <- d[1:20, ]
         d$confirm=as.numeric(d$confirm)
         if(isEnglish) d$name <- py2( d$name )  # translate into Pinyin
         d$name = fct_reorder(d$name, d$confirm)        
@@ -115,7 +115,7 @@ function(input, output, session) {
             xlab(NULL) + ylab(NULL) +
             theme(text = element_text(size=17, family="SimSun"),
                   axis.text.x = element_text(angle=0, hjust=1))  + 
-            #ggtitle(paste("Confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
+            #ggtitle(paste("confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
             ggtitle(paste( z(input$selectProvince0), z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
             expand_limits(y = maxN)
             #theme(plot.title = element_text(size = 18))
@@ -163,20 +163,20 @@ function(input, output, session) {
     #全国细节 历史图 -------------------------------------------
     output$historicalChinaData <- renderPlot({
 
-        d2 <- summary(x)[,2:5] %>% 
-            mutate(cum_dead = as.integer(cum_dead)) %>%
+        d2 <- ChinaHistory %>% 
+            mutate(dead = as.integer(dead)) %>%
             group_by(time) %>%
-            summarise( cum_confirm = sum(cum_confirm, na.rm = TRUE), # missing values in some cities
-                       cum_dead = sum(cum_dead, na.rm = TRUE),
-                       cum_heal = sum(cum_heal,  na.rm = TRUE)) 
+            summarise( confirm = sum(confirm, na.rm = TRUE), # missing values in some cities
+                       dead = sum(dead, na.rm = TRUE),
+                       heal = sum(heal,  na.rm = TRUE)) 
 
         
         dl <- d2 %>%
-            gather( type, count, cum_confirm:cum_heal) %>%
+            gather( type, count, confirm:heal) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = z("确诊"),
-                                         cum_dead = z("死亡"),
-                                         cum_heal = z("痊愈")))
+                                         confirm = z("确诊"),
+                                         dead = z("死亡"),
+                                         heal = z("痊愈")))
 
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
@@ -198,20 +198,20 @@ function(input, output, session) {
     #全国细节 历史图 Plotly-------------------------------------------
     output$historicalChinaDataPlotly <- renderPlotly({
         
-        d2 <- summary(x)[,2:5] %>% 
-            mutate(cum_dead = as.integer(cum_dead)) %>%
-            group_by(time) %>%
-            summarise( cum_confirm = sum(cum_confirm, na.rm = TRUE), # missing values in some cities
-                       cum_dead = sum(cum_dead, na.rm = TRUE),
-                       cum_heal = sum(cum_heal,  na.rm = TRUE)) 
-        
-        
-        dl <- d2 %>%
-            gather( type, count, cum_confirm:cum_heal) %>%
-            mutate( type = recode_factor(type,
-                                         cum_confirm = z("确诊"),
-                                         cum_dead = z("死亡"),
-                                         cum_heal = z("痊愈")))
+      d2 <- ChinaHistory %>% 
+        mutate(dead = as.integer(dead)) %>%
+        group_by(time) %>%
+        summarise( confirm = sum(confirm, na.rm = TRUE), # missing values in some cities
+                   dead = sum(dead, na.rm = TRUE),
+                   heal = sum(heal,  na.rm = TRUE)) 
+      
+      
+      dl <- d2 %>%
+        gather( type, count, confirm:heal) %>%
+        mutate( type = recode_factor(type,
+                                     confirm = z("确诊"),
+                                     dead = z("死亡"),
+                                     heal = z("痊愈")))
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
             geom_point() + geom_line() +
@@ -231,28 +231,28 @@ function(input, output, session) {
     #全国细节 历史图 增加-------------------------------------------
     output$historicalChinaDataAdd <- renderPlot({
         
-        d2 <- summary(x)[,2:5] %>% 
-            mutate(cum_dead = as.integer(cum_dead)) %>%
+        d2 <- ChinaHistory %>% 
+            mutate(dead = as.integer(dead)) %>%
             group_by(time) %>%
-            summarise( cum_confirm = sum(cum_confirm, na.rm = TRUE), # missing values in some cities
-                       cum_dead = sum(cum_dead, na.rm = TRUE),
-                       cum_heal = sum(cum_heal,  na.rm = TRUE)) 
+            summarise( confirm = sum(confirm, na.rm = TRUE), # missing values in some cities
+                       dead = sum(dead, na.rm = TRUE),
+                       heal = sum(heal,  na.rm = TRUE)) 
         
         d3 <- d2[-1, ] %>%
-            mutate(cum_confirm = diff(d2$cum_confirm)) %>%     
-            mutate(cum_dead = diff(d2$cum_dead)) %>%
-            mutate(cum_heal = diff(d2$cum_heal))
+            mutate(confirm = diff(d2$confirm)) %>%     
+            mutate(dead = diff(d2$dead)) %>%
+            mutate(heal = diff(d2$heal))
         
         # add a row with zeros but with date; so that the two figures align
         d3 <- rbind(d2[1, ], d3)
         d3[1, 2:4] <- 0;
         
         dl <- d3 %>%
-            gather( type, count, cum_confirm:cum_heal) %>%
+            gather( type, count, confirm:heal) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = z("确诊"),
-                                         cum_dead = z("死亡"),
-                                         cum_heal = z("痊愈")))
+                                         confirm = z("确诊"),
+                                         dead = z("死亡"),
+                                         heal = z("痊愈")))
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
             geom_point(size=3) + geom_line() +
@@ -271,33 +271,33 @@ function(input, output, session) {
     #省 历史图 新增-------------------------------------------
     output$provienceHistoricalAdd <- renderPlot({
         d2 <- x[input$selectProvince0, ]  %>% 
-            mutate(cum_dead = as.integer(cum_dead)) %>%
-            select( city, time, cum_confirm, cum_dead, cum_heal) %>%
+            mutate(dead = as.integer(dead)) %>%
+            select( city, time, confirmed, dead, cured) %>%
             group_by(time) %>%
-            summarise( cum_confirm = sum(cum_confirm, na.rm = TRUE), # missing values in some cities
-                       cum_dead = sum(cum_dead, na.rm = TRUE),
-                       cum_heal = sum(cum_heal,  na.rm = TRUE)) %>%
+            summarise( confirmed = sum(confirmed, na.rm = TRUE), # missing values in some cities
+                       dead = sum(dead, na.rm = TRUE),
+                       cured = sum(cured,  na.rm = TRUE)) %>%
             arrange( order(time)) %>%
-            mutate( cum_confirm = meanImput(cum_confirm, 2)) %>%
-            mutate( cum_dead = meanImput(cum_dead, 2)) %>%
-            mutate( cum_heal = meanImput(cum_heal, 2)) 
+            mutate( confirmed = meanImput(confirmed, 2)) %>%
+            mutate( dead = meanImput(dead, 2)) %>%
+            mutate( cured = meanImput(cured, 2)) 
         
 
         d3 <- d2[-1, ] %>%
-            mutate(cum_confirm = diff(d2$cum_confirm)) %>%     
-            mutate(cum_dead = diff(d2$cum_dead)) %>%
-            mutate(cum_heal = diff(d2$cum_heal)) 
+            mutate(confirmed = diff(d2$confirmed)) %>%     
+            mutate(dead = diff(d2$dead)) %>%
+            mutate(cured = diff(d2$cured)) 
         
         # add a row with zeros but with date; so that the two figures align
         d3 <- rbind(d2[1, ], d3)
         d3[1, 2:4] <- 0;
         
         dl <- d3 %>%
-            gather( type, count, cum_confirm:cum_heal) %>%
+            gather( type, count, confirmed:cured) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = z("确诊"),
-                                         cum_dead = z("死亡"),
-                                         cum_heal = z("痊愈")))
+                                         confirmed = z("确诊"),
+                                         dead = z("死亡"),
+                                         cured = z("痊愈")))
         
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
@@ -317,23 +317,23 @@ function(input, output, session) {
     #省 历史图  -------------------------------------------
     output$provienceHistorical <- renderPlot({
         d2 <- x[input$selectProvince0, ]  %>% 
-            mutate(cum_dead = as.integer(cum_dead)) %>%
-            select( city, time, cum_confirm, cum_dead, cum_heal) %>%
+            mutate(dead = as.integer(dead)) %>%
+            select( city, time, confirmed, dead, cured) %>%
             group_by(time) %>%
-            summarise( cum_confirm = sum(cum_confirm, na.rm = TRUE), # missing values in some cities
-                       cum_dead = sum(cum_dead, na.rm = TRUE),
-                       cum_heal = sum(cum_heal,  na.rm = TRUE)) %>%
+            summarise( confirmed = sum(confirmed, na.rm = TRUE), # missing values in some cities
+                       dead = sum(dead, na.rm = TRUE),
+                       cured = sum(cured,  na.rm = TRUE)) %>%
             arrange( order(time)) %>%
-            mutate( cum_confirm = meanImput(cum_confirm, 2)) %>%
-            mutate( cum_dead = meanImput(cum_dead, 2)) %>%
-            mutate( cum_heal = meanImput(cum_heal, 2)) 
+            mutate( confirmed = meanImput(confirmed, 2)) %>%
+            mutate( dead = meanImput(dead, 2)) %>%
+            mutate( cured = meanImput(cured, 2)) 
         
         dl <- d2 %>%
-            gather( type, count, cum_confirm:cum_heal) %>%
+            gather( type, count, confirmed:cured) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = z("确诊"),
-                                         cum_dead = z("死亡"),
-                                         cum_heal = z("痊愈")))
+                                         confirmed = z("确诊"),
+                                         dead = z("死亡"),
+                                         cured = z("痊愈")))
         
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
@@ -354,18 +354,18 @@ function(input, output, session) {
     output$cities_in_proviences_selected <- renderPlot({
 
             d2 <- subset(x[input$selectProvince,], city == input$selectCity)  %>% 
-                mutate(cum_dead = as.integer(cum_dead)) %>%
-                select( time, cum_confirm, cum_dead, cum_heal) %>%
-                mutate( cum_confirm = meanImput(cum_confirm, 2)) %>%
-                mutate( cum_dead = meanImput(cum_dead, 2)) %>%
-                mutate( cum_heal = meanImput(cum_heal, 2)) 
+                mutate(dead = as.integer(dead)) %>%
+                select( time, confirmed, dead, cured) %>%
+                mutate( confirmed = meanImput(confirmed, 2)) %>%
+                mutate( dead = meanImput(dead, 2)) %>%
+                mutate( cured = meanImput(cured, 2)) 
             
             dl <- d2 %>%
-                gather( type, count, cum_confirm:cum_heal) %>%
+                gather( type, count, confirmed:cured) %>%
                 mutate( type = recode_factor(type,
-                                             cum_confirm = z("确诊"),
-                                             cum_dead = z("死亡"),
-                                             cum_heal = z("痊愈")))
+                                             confirmed = z("确诊"),
+                                             dead = z("死亡"),
+                                             cured = z("痊愈")))
             
             p <- ggplot(dl,
                         aes(time, as.numeric(count), group=type, color=type)) +
@@ -387,28 +387,28 @@ function(input, output, session) {
     output$cities_in_proviences_selectedAdd <- renderPlot({
         
         d2 <- subset(x[input$selectProvince,], city == input$selectCity)  %>% 
-            mutate(cum_dead = as.integer(cum_dead)) %>%
-            select( time, cum_confirm, cum_dead, cum_heal) %>%
-            mutate( cum_confirm = meanImput(cum_confirm, 2)) %>%
-            mutate( cum_dead = meanImput(cum_dead, 2)) %>%
-            mutate( cum_heal = meanImput(cum_heal, 2)) %>%
+            mutate(dead = as.integer(dead)) %>%
+            select( time, confirmed, dead, cured) %>%
+            mutate( confirmed = meanImput(confirmed, 2)) %>%
+            mutate( dead = meanImput(dead, 2)) %>%
+            mutate( cured = meanImput(cured, 2)) %>%
             arrange(order(time) )
         
         d3 <- d2[-1, ] %>%
-            mutate(cum_confirm = diff(d2$cum_confirm)) %>%     
-            mutate(cum_dead = diff(d2$cum_dead)) %>%
-            mutate(cum_heal = diff(d2$cum_heal))     
+            mutate(confirmed = diff(d2$confirmed)) %>%     
+            mutate(dead = diff(d2$dead)) %>%
+            mutate(cured = diff(d2$cured))     
         
         # add a row with zeros but with date; so that the two figures align
         d3 <- rbind(d2[1, ], d3)
         d3[1, 2:4] <- 0;
         
         dl <- d3 %>%
-            gather( type, count, cum_confirm:cum_heal) %>%
+            gather( type, count, confirmed:cured) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = z("确诊"),
-                                         cum_dead = z("死亡"),
-                                         cum_heal = z("痊愈")))
+                                         confirmed = z("确诊"),
+                                         dead = z("死亡"),
+                                         cured = z("痊愈")))
       
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
@@ -430,16 +430,16 @@ function(input, output, session) {
     #城市细节 历史图 Plotly-------------------------------------------
     output$cities_in_proviences_selected_plotly <- renderPlotly({
             d2 <- subset(x[input$selectProvince,], city == input$selectCity)  %>% 
-                mutate(cum_dead = as.integer(cum_dead)) %>%
-                select( time, cum_confirm, cum_dead, cum_heal) 
+                mutate(dead = as.integer(dead)) %>%
+                select( time, confirmed, dead, heal) 
 
         
         dl <- d2 %>%
-            gather( type, count, cum_confirm:cum_heal) %>%
+            gather( type, count, confirmed:heal) %>%
             mutate( type = recode_factor(type,
-                                         cum_confirm = z("确诊"),
-                                         cum_dead = z("死亡"),
-                                         cum_heal = z("痊愈")))
+                                         confirmed = z("确诊"),
+                                         dead = z("死亡"),
+                                         heal = z("痊愈")))
        
         p <- ggplot(dl,
                     aes(time, count, group=type, color=type)) +
@@ -462,19 +462,19 @@ function(input, output, session) {
         d2 <- ChinaHistory
         par(mar = c(4, 3, 0, 2)) 
         # missing data with average of neighbors
-        d2$cum_confirm<- meanImput(d2$cum_confirm, 2)
+        d2$confirm<- meanImput(d2$confirm, 2)
         d2 <- d2[-(1:10), ] # remove the first 10 days as % change is huge
         
-        confirmed <- ts(diff(d2$cum_confirm)/d2$cum_confirm[1:(nrow(d2)-1)]*100, # percent change
+        confirm <- ts(diff(d2$confirm)/d2$confirm[1:(nrow(d2)-1)]*100, # percent change
                         start = c(year(min(d2$time)), yday(min(d2$time)) + 1 ), frequency=365  )
         
-        forecasted <- forecast(ets(confirmed), input$daysForcasted)
+        forecasted <- forecast(ets(confirm), input$daysForcasted)
         
-        predictedNconfirmed = d2$cum_confirm[nrow(d2)]* increasesByPercentages(forecasted$mean)       
+        predictedNconfirm = d2$confirm[nrow(d2)]* increasesByPercentages(forecasted$mean)       
         plot(forecasted, xaxt="n", main="", 
              ylab = "全国确诊增加百分比(%)",
              xlab = paste0("预期全国确诊每天增加", round( mean( forecasted$mean ), 1 ),
-                          "%，", input$daysForcasted, "天后达到", round(predictedNconfirmed,0) )            
+                          "%，", input$daysForcasted, "天后达到", round(predictedNconfirm,0) )            
              )
         a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
         axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
@@ -485,11 +485,11 @@ function(input, output, session) {
         d2 <- ChinaHistory
         par(mar = c(4, 3, 0, 2))
         # missing data with average of neighbors
-        d2$cum_confirm<- meanImput(d2$cum_confirm, 2)
+        d2$confirm<- meanImput(d2$confirm, 2)
         
-        confirmed <- ts(d2$cum_confirm, # percent change
+        confirm <- ts(d2$confirm, # percent change
                         start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
-        forecasted <- forecast(ets(confirmed), input$daysForcasted)
+        forecasted <- forecast(ets(confirm), input$daysForcasted)
         plot(forecasted, xaxt="n", main="", 
              ylab = z("全国确诊"),
              xlab = paste0(z("预期"), input$daysForcasted, z("天后全国确诊 "), round(forecasted$mean[input$daysForcasted],0), z(", 区间["),
@@ -505,19 +505,19 @@ function(input, output, session) {
         par(mar = c(4, 3, 0, 2))       
         
         # missing data with average of neighbors
-        d2$cum_dead <- meanImput(d2$cum_dead, 2)
+        d2$dead <- meanImput(d2$dead, 2)
         
         d2 <- d2[-(1:10), ] # remove the first 10 days as % change is huge
         
-        dead <- ts(diff(d2$cum_dead)/d2$cum_dead[1:(nrow(d2)-1)]*100, # percent change
+        dead <- ts(diff(d2$dead)/d2$dead[1:(nrow(d2)-1)]*100, # percent change
                      start = c(year(min(d2$time)), yday(min(d2$time)) + 1 ), frequency=365  )
 
 
         
         forecasted <- forecast(ets(dead), input$daysForcasted)
         
-#        predictedNdeaded = d2$cum_dead[nrow(d2)]* (1+ forecasted$mean[input$daysForcasted]/100)^input$daysForcasted 
-        predictedNdead = d2$cum_dead[nrow(d2)]* increasesByPercentages(forecasted$mean)           
+#        predictedNdeaded = d2$dead[nrow(d2)]* (1+ forecasted$mean[input$daysForcasted]/100)^input$daysForcasted 
+        predictedNdead = d2$dead[nrow(d2)]* increasesByPercentages(forecasted$mean)           
         plot(forecasted, xaxt="n", main="", 
              ylab = z("死亡人数增加百分比(%)"),
              xlab = paste0(z("预期全国死亡累计每天增加"), round(mean(forecasted$mean),1),
@@ -532,9 +532,9 @@ function(input, output, session) {
         d2 <- ChinaHistory
         par(mar = c(4, 3, 0, 2))        
         # missing data with average of neighbors
-        d2$cum_dead <- meanImput(d2$cum_dead, 2)
+        d2$dead <- meanImput(d2$dead, 2)
         
-        deaded <- ts(d2$cum_dead, # percent change
+        deaded <- ts(d2$dead, # percent change
                      start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
         forecasted <- forecast(ets(deaded), input$daysForcasted)
         plot(forecasted, xaxt="n", main="", 
@@ -561,9 +561,10 @@ function(input, output, session) {
         withProgress(message = z('下载地图'), value = 0, {
         incProgress(0.1)
         cn = get_map_china()
+        cn$province <- trans_province(cn$province) 
         incProgress(0.5)
         })
-        plot(y, region='china', chinamap=cn,
+        plot(get_nCov2019(lang='en'), region='china', chinamap=cn,
              continuous_scale=FALSE,
              palette='Blues')
 
@@ -574,7 +575,7 @@ function(input, output, session) {
 #        if(input$selectProvince0 %in% specialProvinces ) {
 #            return(NULL) } else { 
         m = sf::st_read("../../data/map/shijie.shp")
-        plot(y, region = input$selectProvince0, 
+        plot(y, region = "四川", #region = input$selectProvince0, 
              chinamap = m,
              palette='Blues')  
         #}    
@@ -604,14 +605,12 @@ function(input, output, session) {
     output$examineData <- DT::renderDataTable({
       tem <- historicalData()
       if(isEnglish) { 
-        tem <- tem[, c(1,2,5:8,11:13)]
-        colnames(tem) = c("Prov.", "City", "Time", "Confirmed","Recovered","Dead",
-                          "Newly Confirmed","Newly Recovered","Newly Dead")
+        tem <- tem[, -c(4:5)]
+        colnames(tem) = c("Prov.", "City", "Time", "Confirmed","Recovered","Dead")
          return( tem ) 
         } else { 
-          tem <- tem[, c(3:8,11:13)]
-          colnames(tem) = c("省", "市", "时间","确诊","痊愈","死亡",
-                            "新确诊","新痊愈","新死亡")
+          tem <- tem[, -c(1:2)]
+          colnames(tem) = c( "时间","省", "市","确诊","痊愈","死亡")
            return( tem  )
         }
       

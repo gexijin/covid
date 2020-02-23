@@ -68,10 +68,10 @@ x$data$city <- gsub(" ", "", x$data$city)
 
 #Get a list of sorted provinces
 provinceNames <- x$data %>% 
-  arrange(province, desc(confirmed) ) %>%
+  arrange(province, desc(cum_confirm) ) %>%
   group_by(province) %>%
   filter(row_number() ==1) %>%
-  arrange(desc(confirmed)) %>% 
+  arrange(desc(cum_confirm)) %>% 
   pull(province)
 
 #provinceNames <- c(entireCountry, provinceNames)
@@ -79,10 +79,10 @@ provinceNames <- x$data %>%
 # Get a list of cities sorted by cases
 cityNames <- x$data %>% 
   filter(province != city) %>%
-  arrange(city, desc(confirmed) ) %>%
+  arrange(city, desc(cum_confirm) ) %>%
   group_by(city) %>%
   filter(row_number() ==1) %>%
-  arrange(desc(confirmed)) %>% 
+  arrange(desc(cum_confirm)) %>% 
   pull(city)
 
 #Beijing, ...

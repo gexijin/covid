@@ -131,12 +131,14 @@ function(input, output, session) {
     
     #世界各国分布图，现在的数据 -------------------------------------------
     output$realTimeCityConfirmedWorld <- renderPlot({
-        d = y['global',] 
-        d$confirm=as.numeric(d$confirm)
-         d$name <- z2( d$name )  # translate into Pinyin
-        d$name = fct_reorder(d$name, d$confirm)
+        d <- y['global',] %>%
+          filter(!is.na(name)) %>%
+          mutate( confirm =as.numeric(confirm) ) %>%
+          mutate (name = z2( name ) ) %>%
+          mutate( name = fct_reorder(name, confirm))
         
-        d <- d[1:20, ]
+        d <- d[-1, ] #remove the first row
+        
         
         # This is used to create spaces so the numbers on top of the bar shows up.
         maxN <- max(d$confirm) *1.5
@@ -160,11 +162,10 @@ function(input, output, session) {
             p <- p + scale_y_log10() 
         p
         
-    }, width = plotWidth - 100 ) 
+    }, width = plotWidth - 100, height = 600 ) 
 
     #全国细节 历史图 -------------------------------------------
     output$historicalChinaData <- renderPlotly({
-
         
         dl <- ChinaHistory %>%
             gather( type, count, confirm:heal) %>%

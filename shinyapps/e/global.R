@@ -327,7 +327,7 @@ myDic = matrix( c(
   "各市", "Cities",
   "确诊 (死亡)", "Confirmed (dead)",
   "腾迅", " from Tencent",
-  "世界各国确诊 (死亡)", "Confirmed (dead) across countries",
+  "世界各国确诊 (死亡)", "Confirmed (dead) in countries outside China",
   "全国总数", "China total",
   "全国每日新增", "New cases in China",
   "总数", "Total",

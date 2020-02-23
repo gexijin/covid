@@ -8,7 +8,6 @@
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")
 plotWidth = 900
-plotWidth - 100
 #--------------English version or Chinese version
 if (file.exists("English_version"))
 isEnglish <- TRUE else isEnglish <- FALSE

@@ -455,7 +455,7 @@ function(input, output, session) {
              )
         a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
         axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
-    })
+    }, width = plotWidth - 100 )
     
     #全国确诊人数预测, 直接预测-------------------------------------------
     output$forecastConfirmedRaw <- renderPlot ({
@@ -474,7 +474,7 @@ function(input, output, session) {
         )
         a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
         axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
-    }) 
+    }, width = plotWidth - 100 ) 
 
     #全国死亡人数预测, 用百分比预测-------------------------------------------
     output$forecastDeadChange <- renderPlot ({
@@ -502,7 +502,7 @@ function(input, output, session) {
         )
         a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
         axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
-    })
+    }, width = plotWidth - 100 )
     
     #全国死亡人数预测, 直接预测-------------------------------------------
     output$forecastDeadRaw <- renderPlot ({
@@ -521,7 +521,7 @@ function(input, output, session) {
         )
         a = seq(as.Date(min(d2$time)), by="days", length= + nrow(d2) -1 )
         axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
-    })  
+    }, width = plotWidth - 100 )  
     
     #世界地图--------------------------------------------------
     output$worldMap <- renderPlot ({

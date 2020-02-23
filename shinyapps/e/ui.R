@@ -28,8 +28,8 @@ ui <- fluidPage(
       )
     
     #,plotlyOutput("historicalChinaDataPlotly")
-    ,plotOutput("historicalChinaData")
-    ,plotOutput("historicalChinaDataAdd")
+    ,plotlyOutput("historicalChinaData")
+    ,plotlyOutput("historicalChinaDataAdd")
     ,plotOutput("confirmedByProvincesHistorical")    
     ,plotOutput("realTimeProvinceConfirmed")
 
@@ -48,8 +48,8 @@ ui <- fluidPage(
     ,tabPanel(z("省")
               ,selectInput("selectProvince0", NULL, choices = provinceNamesList)
     #,tableOutput("todayTotalTable")
-    ,plotOutput("provienceHistorical")      
-    ,plotOutput("provienceHistoricalAdd")      
+    ,plotlyOutput("provienceHistorical")      
+    ,plotlyOutput("provienceHistoricalAdd")      
     ,plotOutput("cities_in_proviences")    
     ,br()
     #,plotlyOutput("cities_in_proviences_selected_plotly")
@@ -63,8 +63,8 @@ ui <- fluidPage(
                 column(3, selectInput("selectProvince", NULL, choices = provinceNamesList)  ),
                 column(3, selectInput("selectCity", NULL, choices = cityNames))
               )
-              ,plotOutput("cities_in_proviences_selected")        
-              ,plotOutput("cities_in_proviences_selectedAdd")  
+              ,plotlyOutput("cities_in_proviences_selected")        
+              ,plotlyOutput("cities_in_proviences_selectedAdd")  
               )
     
     ,tabPanel(z("世界")
@@ -108,7 +108,7 @@ ui <- fluidPage(
               ,h4("不保证数据和分析的可靠性，仅供参考。", style = "color:red")
     ,h5("该网站是我工作之余仓促码出来的, 难免有错误。见",
         a("源代码。 ", href="https://github.com/gexijin/wuhan"),
-        "主要目的是帮助朋友们了解疫情。纯粹个人行为，无任何商业或非商业动机。",
+        "主要目的是帮助朋友们了解疫情。纯粹个人行为。",
         "bcloud.org 是以前注册的一个域名，随手拿来用了，不属于任何组织。"
         )
     ,h5("之所以能很快写出来，最主要是因为南方医科大学的",
@@ -123,19 +123,21 @@ ui <- fluidPage(
     ,h5("武汉加油！ 中国加油！")
     
     ,h4("Accuracy not guaranteed. Not official data.", style = "color:red")
-    ,h5("This website tracks the cases of the 2019-nCoV coronavirus originated from Wuhan, China. Developed on Feb 5, 2020 by",a("Ge Xijin", href="https://twitter.com/StevenXGe"),
+    ,h5("This website tracks the cases of the 2019-nCoV (SARS-Cov-2) coronavirus originated from Wuhan, China. Developed on Feb 5, 2020 by",a("Ge Xijin", href="https://twitter.com/StevenXGe"),
         "based on the R package", a("nCov2019",href="https://github.com/GuangchuangYu/nCov2019"), 
         "by", a("Dr. Guangchuang Yu.", href="https://twitter.com/guangchuangyu"))
     ,h5("Feedbacks or suggestions please"
         ,a("email me",href="mailto:xijin.ge@sdstate.edu?Subject=Coronavirus website" ),".",
         "I am bioinformatics researcher (",
         a("lab", href="http://ge-lab.org/"), ")."  )
+    ,h5("I am not a epidemiologists, or statistician. Just got too much time on my hand")
     ,h5("All rights reserved.")
     
     ,h5("2/5/20  Version 0")  
     ,h5("2/8/20  Version 0.1")
     ,h5("2/9/20 Version 0.2 ")
     ,h5("2/12/20 V 0.3 English version")
+    ,h5("2/23/20 v. 0.4 Interactive plots.")
     )
   )
     ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics      

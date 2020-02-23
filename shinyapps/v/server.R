@@ -26,7 +26,9 @@ function(input, output, session) {
     #各个省 确诊 历史数  -------------------------------------------    
     output$confirmedByProvincesHistorical <- renderPlot({
 
-            d2 <- summary(x)
+            d2 <- summary(x) %>%
+              filter( province != "湖北") %>%
+              filter( province != "Hubei")            
             if(isEnglish) d2$province <- py2( d2$province )  # translate into Pinyin
             p <- ggplot(d2,
                         aes(time, as.numeric(cum_confirm), group=province, color=province)) +
@@ -34,13 +36,13 @@ function(input, output, session) {
                 geom_text_repel(aes(label=province),  family="SimSun",data=d2[d2$time == time(x), ], hjust=1) +
                 theme_gray(base_size = 14) + theme(legend.position='none') +
                 xlab(NULL) + ylab(NULL) + 
-                ggtitle(paste( z(entireCountry),  z("更新"), x$time ) )         
+                ggtitle(paste( z(entireCountry),  z("湖北以外"), z("更新"), x$time ) )         
 
         if(input$logScale) 
             p <- p + scale_y_log10() 
         p
         
-    })
+    }, width = plotWidth - 100 )
     
     #省内各城市 确诊 历史数  -------------------------------------------    
     output$cities_in_proviences <- renderPlot({
@@ -59,7 +61,7 @@ function(input, output, session) {
             p <- p + scale_y_log10() 
         p
 
-    })
+    }, width = plotWidth - 100 )
 
     #全国 当天 确诊 数  -------------------------------------------
     output$realTimeProvinceConfirmed <- renderPlot({
@@ -92,7 +94,7 @@ function(input, output, session) {
             p <- p + scale_y_log10() 
         p
         
-    }) 
+    }, width = plotWidth - 100) 
     
     
     #省内各个城市当天确诊数  -------------------------------------------
@@ -124,7 +126,7 @@ function(input, output, session) {
             p <- p + scale_y_log10() 
         p
         
-    }) 
+    }, width = plotWidth - 100 ) 
     
     
     #世界各国分布图，现在的数据 -------------------------------------------
@@ -158,10 +160,10 @@ function(input, output, session) {
             p <- p + scale_y_log10() 
         p
         
-    }) 
+    }, width = plotWidth - 100 ) 
 
     #全国细节 历史图 -------------------------------------------
-    output$historicalChinaData <- renderPlot({
+    output$historicalChinaData <- renderPlotly({
 
         
         dl <- ChinaHistory %>%
@@ -172,57 +174,25 @@ function(input, output, session) {
                                          heal = z("痊愈")))
 
         p <- ggplot(dl,
-                    aes(time, as.numeric(count), group=type, color=type)) +
+                    aes(time, count, group=type, color=type)) +
             geom_point(size=3) + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + #theme(legend.position='none') +
-            xlab(NULL) + ylab(NULL) 
+            xlab(NULL) + ylab(NULL)  +
+            theme(legend.title = element_blank()) +
+            theme(plot.title = element_text(size = 13))
 
             p <- p + ggtitle(paste( z("全国总数"), z("更新"), x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        p
-        
-    })
-    
-    
-    
-    #全国细节 历史图 Plotly-------------------------------------------
-    output$historicalChinaDataPlotly <- renderPlotly({
-        
-      d2 <- ChinaHistory %>% 
-        mutate(dead = as.integer(dead)) %>%
-        group_by(time) %>%
-        summarise( confirm = sum(confirm, na.rm = TRUE), # missing values in some cities
-                   dead = sum(dead, na.rm = TRUE),
-                   heal = sum(heal,  na.rm = TRUE)) 
-      
-      
-      dl <- d2 %>%
-        gather( type, count, confirm:heal) %>%
-        mutate( type = recode_factor(type,
-                                     confirm = z("确诊"),
-                                     dead = z("死亡"),
-                                     heal = z("痊愈")))
-        p <- ggplot(dl,
-                    aes(time, as.numeric(count), group=type, color=type)) +
-            geom_point() + geom_line() +
-            #geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
-            theme_gray(base_size = 14) + 
-            theme(legend.title = element_blank()) +
-            xlab(NULL) + ylab(NULL) 
-        
-        p <- p + ggtitle(paste(z("全国总数"), z("更新"), x$time )) 
-        
-        if(input$logScale) 
-            p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x"))
+        ggplotly(p, tooltip = c("y", "x")) %>% 
+          layout( width = plotWidth)
         
     })
     
     #全国细节 历史图 增加-------------------------------------------
-    output$historicalChinaDataAdd <- renderPlot({
+    output$historicalChinaDataAdd <- renderPlotly({
         
         d2 <- ChinaHistory 
         
@@ -242,22 +212,25 @@ function(input, output, session) {
                                          dead = z("死亡"),
                                          heal = z("痊愈")))
         p <- ggplot(dl,
-                    aes(time, as.numeric(count), group=type, color=type)) +
+                    aes(time, count, group=type, color=type)) +
             geom_point(size=3) + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + #theme(legend.position='none') +
-            xlab(NULL) + ylab(NULL) 
+            xlab(NULL) + ylab(NULL) +
+            theme(legend.title = element_blank()) +
+            theme(plot.title = element_text(size = 13))
         
         p <- p + ggtitle(paste(z("全国每日新增"), z("更新"), x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        p
+        ggplotly(p, tooltip = c("y", "x")) %>% 
+          layout( width = plotWidth)
         
     })
 
     #省 历史图 新增-------------------------------------------
-    output$provienceHistoricalAdd <- renderPlot({
+    output$provienceHistoricalAdd <- renderPlotly({
         d2 <- x[input$selectProvince0, ]  %>% 
             mutate(cum_dead = as.integer(cum_dead)) %>%
             select( city, time, cum_confirm, cum_dead, cum_heal) %>%
@@ -288,22 +261,25 @@ function(input, output, session) {
                                          cum_heal = z("痊愈")))
         
         p <- ggplot(dl,
-                    aes(time, as.numeric(count), group=type, color=type)) +
+                    aes(time, count, group=type, color=type)) +
             geom_point(size=3) + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
-            theme_gray(base_size = 14) + theme(legend.position='none') +
-            xlab(NULL) + ylab(NULL) 
+            theme_gray(base_size = 14) + #theme(legend.position='none') +
+            xlab(NULL) + ylab(NULL)  +
+            theme(legend.title = element_blank()) +
+          theme(plot.title = element_text(size = 13))
         
         p <- p + ggtitle(paste(z(input$selectProvince0), z("新增"), z("更新"), x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        p
+        ggplotly(p, tooltip = c("y", "x")) %>% 
+          layout( width = plotWidth)
         
     })
     
     #省 历史图  -------------------------------------------
-    output$provienceHistorical <- renderPlot({
+    output$provienceHistorical <- renderPlotly({
         d2 <- x[input$selectProvince0, ]  %>% 
             mutate(cum_dead = as.integer(cum_dead)) %>%
             select( city, time, cum_confirm, cum_dead, cum_heal) %>%
@@ -327,19 +303,24 @@ function(input, output, session) {
                     aes(time, as.numeric(count), group=type, color=type)) +
             geom_point(size=3) + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
-            theme_gray(base_size = 14) + theme(legend.position='none') +
-            xlab(NULL) + ylab(NULL) 
+            theme_gray(base_size = 14) + 
+            #theme(legend.position='none') +
+            xlab(NULL) + ylab(NULL)  +
+            theme(legend.title = element_blank()) +
+          theme(plot.title = element_text(size = 13))
         
         p <- p + ggtitle(paste(z(input$selectProvince0), z("总数"), z("更新"), x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        p
+        
+        ggplotly(p, tooltip = c("y", "x")) %>% 
+          layout( width = plotWidth)
         
     })
             
     #城市细节 历史图 -------------------------------------------
-    output$cities_in_proviences_selected <- renderPlot({
+    output$cities_in_proviences_selected <- renderPlotly({
 
             d2 <- subset(x[input$selectProvince,], city == input$selectCity)  %>% 
                 mutate(cum_dead = as.integer(cum_dead)) %>%
@@ -356,23 +337,27 @@ function(input, output, session) {
                                              cum_heal = z("痊愈")))
             
             p <- ggplot(dl,
-                        aes(time, as.numeric(count), group=type, color=type)) +
+                        aes(time, count, group=type, color=type)) +
                         geom_point(size=3) + geom_line() +
-                        geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
-                        theme_gray(base_size = 14) + theme(legend.position='none') +
-                        xlab(NULL) + ylab(NULL) 
+                        #geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
+                        theme_gray(base_size = 14) + #theme(legend.position='none') +
+                        xlab(NULL) + ylab(NULL) +
+                        theme(legend.title = element_blank()) +
+                        theme(plot.title = element_text(size = 13))
             p <- p + ggtitle(paste( py1(input$selectCity), z("总数"), z( "更新"), x$time) )                    
 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        p
+            
+        ggplotly(p, tooltip = c("y", "x")) %>% 
+          layout( width = plotWidth)
         
     })
     
 
     #城市细节 历史图 新增-------------------------------------------
-    output$cities_in_proviences_selectedAdd <- renderPlot({
+    output$cities_in_proviences_selectedAdd <- renderPlotly({
         
         d2 <- subset(x[input$selectProvince,], city == input$selectCity)  %>% 
             mutate(cum_dead = as.integer(cum_dead)) %>%
@@ -402,15 +387,18 @@ function(input, output, session) {
                     aes(time, as.numeric(count), group=type, color=type)) +
             geom_point(size=3) + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
-            theme_gray(base_size = 14) + theme(legend.position='none') +
-            xlab(NULL) + ylab(NULL) 
+            theme_gray(base_size = 14) + #theme(legend.position='none') +
+            xlab(NULL) + ylab(NULL) +
+            theme(legend.title = element_blank())+
+            theme(plot.title = element_text(size = 13)) 
 
             p <- p + ggtitle(paste( py1(input$selectCity), z("新增"), z("更新"), x$time ) )                   
 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        p
+        ggplotly(p, tooltip = c("y", "x")) %>% 
+          layout( width = plotWidth)
         
     })
 
@@ -441,7 +429,8 @@ function(input, output, session) {
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x"))
+        ggplotly(p, tooltip = c("y", "x"))%>% 
+          layout( width = plotWidth)
         
     })
     
@@ -460,9 +449,9 @@ function(input, output, session) {
         
         predictedNconfirm = d2$confirm[nrow(d2)]* increasesByPercentages(forecasted$mean)       
         plot(forecasted, xaxt="n", main="", 
-             ylab = "全国确诊增加百分比(%)",
-             xlab = paste0("预期全国确诊每天增加", round( mean( forecasted$mean ), 1 ),
-                          "%，", input$daysForcasted, "天后达到", round(predictedNconfirm,0) )            
+             ylab = z("全国确诊增加百分比(%)"),
+             xlab = paste0(z("预期全国确诊每天增加"), round( mean( forecasted$mean ), 1 ),
+                          "%，", input$daysForcasted, z("天后达到 "), round(predictedNconfirm,0) )            
              )
         a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
         axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
@@ -527,7 +516,7 @@ function(input, output, session) {
         forecasted <- forecast(ets(deaded), input$daysForcasted)
         plot(forecasted, xaxt="n", main="", 
              ylab = z("全国死亡人数"),
-             xlab = paste0(z("预期"), input$daysForcasted, z("天后全国死亡累计"), round(forecasted$mean[input$daysForcasted],0), z("，区间["),
+             xlab = paste0(z("预期"), input$daysForcasted, z("天后全国死亡累计"), round(forecasted$mean[input$daysForcasted],0), z(", 区间["),
                           round(forecasted$lower[input$daysForcasted],0), "-",round(forecasted$upper[input$daysForcasted],0),"]")            
         )
         a = seq(as.Date(min(d2$time)), by="days", length= + nrow(d2) -1 )

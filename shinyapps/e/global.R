@@ -7,7 +7,8 @@
 # remotes::install_github("GuangchuangYu/chinamap")   #Chinese map
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")
-
+plotWidth = 900
+plotWidth - 100
 #--------------English version or Chinese version
 if (file.exists("English_version"))
 isEnglish <- TRUE else isEnglish <- FALSE
@@ -46,7 +47,7 @@ py2 <- function (ChineseNames)
   }
 }
 
-entireCountry <- "全国各省"
+entireCountry <- "全国"
 options(scipen=999) # turn off scientific notation like 1e+06
 #daysForcasted = 10
 options(warn=-1) #suppress warnings
@@ -273,7 +274,7 @@ myDic = matrix( c(
   #---------------------Menu items
 
   
-  "疫情统计和预测", "Coronavirus epidemic statistics and forecast",
+  "疫情统计和预测", "Coronavirus COVID-19 outbreak statistics and forecast",
   
   "全国", "China",
   "地图", "Map",
@@ -335,16 +336,18 @@ myDic = matrix( c(
   "预期", "Prediction:",
   "全国确诊", "Total confirmed cases in China",
   "天后全国确诊 ", "days later, total confirmed in China will be ",
+  "预期全国确诊每天增加", "Total confirmed cases in China will increase/decrease by",
   ", 区间[", ", 95% CI [",
   "死亡人数增加百分比(%)","% increase in death",
   "预期全国死亡累计每天增加", "Predicted % daily increase in death",
-  "天后达到 ", " days later will be",
+  "天后达到 ", " days later will be ",
   "全国死亡人数", "Total deathes in China",
-  "天后全国死亡累计", "days later total deathes in China will be",
+  "天后全国死亡累计", "days later total deathes in China will be ",
   "全国各省", "Confirmed cases across provinces",
   "英语","中文", 
   "数据", "Data",
   "数据下载", "Download Data",
+  "湖北以外", "without Hubei",
   "last", "last"
 ),nrow=2)
 # make a vector value is English, Name is chinese

@@ -64,7 +64,7 @@ function(input, output, session) {
     #全国 当天 确诊 数  -------------------------------------------
     output$realTimeProvinceConfirmed <- renderPlot({
 
-        d = y[]; #d <- d[1:20, ]
+        d = y[]; d <- d[1:20, ]
         d$confirm=as.numeric(d$confirm)
         if(isEnglish) d$name <- py2( d$name )  # translate into Pinyin
         d$name = fct_reorder(d$name, d$confirm)        
@@ -574,10 +574,11 @@ function(input, output, session) {
     output$provinceMap <- renderPlot ({
 #        if(input$selectProvince0 %in% specialProvinces ) {
 #            return(NULL) } else { 
+        if(isEnglish) { return(NULL) } else { 
         m = sf::st_read("../../data/map/shijie.shp")
-        plot(y, region = "四川", #region = input$selectProvince0, 
+        plot(get_nCov2019(), region = input$selectProvince0, 
              chinamap = m,
-             palette='Blues')  
+             palette='Blues')  }
         #}    
     }, height = 600, width = 800)  
     

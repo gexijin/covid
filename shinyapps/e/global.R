@@ -9,7 +9,7 @@
 # install.packages("pinyin")
 
 #--------------English version or Chinese version
-isEnglish <- FALSE 
+isEnglish <- TRUE 
 #-----------------------------------------------
 if(isEnglish)
   myURL = "http://www.bcloud.org/v/"  else

@@ -54,7 +54,7 @@ ui <- fluidPage(
     ,br()
     #,plotlyOutput("cities_in_proviences_selected_plotly")
     ,plotOutput("realTimeCityConfirmed") 
-    ,plotOutput("provinceMap")
+    ,plotOutput("provinceMap") 
     ,br()
     )
     

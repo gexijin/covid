@@ -53,8 +53,14 @@ options(warn=-1) #suppress warnings
 library(nCov2019)
 library(dplyr)
 library(tidyr) # for gather function 
-y <- get_nCov2019()  # load real time data from Tencent
-x <- load_nCov2019() #load historical data
+if(isEnglish) { 
+  try( y <- get_nCov2019(lang="en"), silent = TRUE)  # load real time data from Tencent
+  x <- load_nCov2019(lang="en") #load historical data
+} else {
+  try( y <- get_nCov2019(), silent = TRUE)  # load real time data from Tencent
+  x <- load_nCov2019() #load historical data
+}
+
 
 # correct an erorr in data "四川 " "四川"
 x$data$province <- gsub(" ", "", x$data$province)
@@ -62,11 +68,10 @@ x$data$city <- gsub(" ", "", x$data$city)
 
 #Get a list of sorted provinces
 provinceNames <- x$data %>% 
-  filter(province == city) %>%
-  arrange(province, desc(cum_confirm) ) %>%
+  arrange(province, desc(confirmed) ) %>%
   group_by(province) %>%
   filter(row_number() ==1) %>%
-  arrange(desc(cum_confirm)) %>% 
+  arrange(desc(confirmed)) %>% 
   pull(province)
 
 #provinceNames <- c(entireCountry, provinceNames)
@@ -74,14 +79,14 @@ provinceNames <- x$data %>%
 # Get a list of cities sorted by cases
 cityNames <- x$data %>% 
   filter(province != city) %>%
-  arrange(city, desc(cum_confirm) ) %>%
+  arrange(city, desc(confirmed) ) %>%
   group_by(city) %>%
   filter(row_number() ==1) %>%
-  arrange(desc(cum_confirm)) %>% 
+  arrange(desc(confirmed)) %>% 
   pull(city)
 
 #Beijing, ...
-specialProvinces <- names(sort(table(x$data$province))[1:10] )
+#specialProvinces <- names(sort(table(x$data$province))[1:10] )
 
 # add province names to end of city names, as Beijing, Shanghai
 cityNames = c(cityNames, provinceNames)
@@ -95,16 +100,8 @@ todayTotal <- do.call(rbind, Map(data.frame, total=y$chinaTotal,add=y$chinaAdd))
 colnames(todayTotal) <- c("总数","增加")
 rownames(todayTotal) <- c("确诊","疑似","死亡","痊愈","New Confirmed","NewSever")
 
-ChinaHistory <- summary(x)[, 2:5] %>% 
-  mutate(cum_dead = as.integer(cum_dead)) %>%
-  mutate(cum_confirm = replace_na(cum_confirm, 0),
-         cum_dead = replace_na(cum_dead, 0),
-         cum_heal = replace_na(cum_heal, 0)) %>%
-  group_by(time) %>%
-  summarise( cum_confirm = sum(cum_confirm),
-             cum_dead = sum(cum_dead),
-             cum_heal = sum(cum_heal)) %>%
-  arrange(time)
+ChinaHistory <- summary(y) %>%
+  mutate(time = as.Date( gsub("\\.","-",paste0("2020-",date) )) )
 
 
 # missing data imput using the mean of n neighboring data points on both sides

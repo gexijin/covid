@@ -88,7 +88,7 @@ function(input, output, session) {
             #ggtitle(paste("Confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
             ggtitle(paste( z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
             expand_limits(y = maxN)+ 
-          theme(plot.title = element_text(size = 13))
+          theme(plot.title = element_text(size = 15))
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -120,7 +120,7 @@ function(input, output, session) {
             #ggtitle(paste("confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
             ggtitle(paste( z(input$selectProvince0), z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
             expand_limits(y = maxN)+ 
-          theme(plot.title = element_text(size = 13))
+          theme(plot.title = element_text(size = 15))
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -156,7 +156,7 @@ function(input, output, session) {
             #ggtitle(paste("Confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
             ggtitle(paste(z("世界各国确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
             expand_limits(y = maxN) + 
-            theme(plot.title = element_text(size = 13))
+            theme(plot.title = element_text(size = 15))
         
         if(input$logScale) 
             p <- p + scale_y_log10() 

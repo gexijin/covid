@@ -1,4 +1,5 @@
 
+
 function(input, output, session) {
     
     observe({  
@@ -542,7 +543,7 @@ function(input, output, session) {
     output$provinceMap <- renderPlot ({
 #        if(input$selectProvince0 %in% specialProvinces ) {
 #            return(NULL) } else { 
-    
+        map1 = sf::st_read("../../data/map/shijie.shp")  
         if(isEnglish) { 
 
           plot(get_nCov2019(), region = input$selectProvince0, 

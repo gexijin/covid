@@ -23,7 +23,7 @@ library(shiny)
 library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 
-map1 = sf::st_read("../../data/map/shijie.shp")  
+
 
 plotWidth = 900
 

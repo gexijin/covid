@@ -7,7 +7,26 @@
 # remotes::install_github("GuangchuangYu/chinamap")   #Chinese map
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")
+
+# for plotting
+library(ggplot2)
+require(ggrepel)
+library(tidyr) # for gather function
+library(forcats) # ploting
+library(forecast) # time series
+library(lubridate) # for showing up time correctly
+library(plotly)
+library(chinamap)
+library(maps)
+
+library(shiny)
+library(plotly)
+library(shinyBS,verbose=FALSE) # for popup figures
+
+map1 = sf::st_read("../../data/map/shijie.shp")  
+
 plotWidth = 900
+
 #--------------English version or Chinese version
 if (file.exists("English_version"))
 isEnglish <- TRUE else isEnglish <- FALSE

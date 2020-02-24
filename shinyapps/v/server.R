@@ -1,13 +1,3 @@
-# for plotting
-library(ggplot2)
-require(ggrepel)
-library(tidyr) # for gather function
-library(forcats) # ploting
-library(forecast) # time series
-library(lubridate) # for showing up time correctly
-library(plotly)
-library(chinamap)
-library(maps)
 
 function(input, output, session) {
     
@@ -552,12 +542,17 @@ function(input, output, session) {
     output$provinceMap <- renderPlot ({
 #        if(input$selectProvince0 %in% specialProvinces ) {
 #            return(NULL) } else { 
-        if(isEnglish) { return(NULL) } else { 
-        m = sf::st_read("../../data/map/shijie.shp")
-        plot(get_nCov2019(), region = input$selectProvince0, 
-             chinamap = m,
-             palette='Blues')  }
-        #}    
+    
+        if(isEnglish) { 
+
+          plot(get_nCov2019(), region = input$selectProvince0, 
+               chinamap = map1,
+               palette='Blues')  
+          } else { 
+            plot(y, region = input$selectProvince0, 
+                 chinamap = map1,
+                palette='Blues')  
+            }
     }, height = 600, width = 800)  
     
     historicalData <- reactive({

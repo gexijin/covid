@@ -1,10 +1,6 @@
 # Shiny app for showing the number of confirmed coronavirus cases across China
 # Xijin Ge 2/5/2020
 
-library(shiny)
-library(plotly)
-library(shinyBS,verbose=FALSE) # for popup figures
-
 # Define server logic required to draw a histogram
 ui <- fluidPage(
   titlePanel(z("疫情统计和预测")),

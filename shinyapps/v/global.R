@@ -23,9 +23,7 @@ library(shiny)
 library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 
-
-
-plotWidth = 600
+plotWidth = 700
 
 #--------------English version or Chinese version
 if (file.exists("English_version"))

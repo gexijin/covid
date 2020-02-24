@@ -25,7 +25,7 @@ library(shinyBS,verbose=FALSE) # for popup figures
 
 
 
-plotWidth = 700
+plotWidth = 600
 
 #--------------English version or Chinese version
 if (file.exists("English_version"))

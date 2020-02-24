@@ -106,7 +106,7 @@ cityNames <- x$data %>%
   pull(city)
 
 #Beijing, ...
-#specialProvinces <- names(sort(table(x$data$province))[1:10] )
+specialProvinces <- c("北京", "上海", "重庆", "天津", "西藏")
 
 # add province names to end of city names, as Beijing, Shanghai
 cityNames = c(cityNames, provinceNames)

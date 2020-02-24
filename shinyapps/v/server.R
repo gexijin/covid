@@ -541,15 +541,11 @@ function(input, output, session) {
     
     #省地图---------------------------------------------------
     output$provinceMap <- renderPlot ({
-#        if(input$selectProvince0 %in% specialProvinces ) {
-#            return(NULL) } else { 
-        map1 = sf::st_read("../../data/map/shijie.shp")  
-        if(isEnglish) { 
-
-          plot(get_nCov2019(), region = input$selectProvince0, 
-               chinamap = map1,
-               palette='Blues')  
+        # 英语版或直辖市不画地图
+        if(isEnglish | input$selectProvince0 %in% specialProvinces) { 
+          return(NULL)
           } else { 
+            map1 = sf::st_read("../../data/map/shijie.shp")  
             plot(y, region = input$selectProvince0, 
                  chinamap = map1,
                 palette='Blues')  

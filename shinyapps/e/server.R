@@ -542,7 +542,8 @@ function(input, output, session) {
     #省地图---------------------------------------------------
     output$provinceMap <- renderPlot ({
         # 英语版或直辖市不画地图
-        if(isEnglish | input$selectProvince0 %in% specialProvinces) { 
+       # if(isEnglish | input$selectProvince0 %in% specialProvinces) { 
+      if(isEnglish ) { 
           return(NULL)
           } else { 
             map1 = sf::st_read("../../data/map/shijie.shp")  

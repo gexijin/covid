@@ -64,6 +64,7 @@ ui <- fluidPage(
               )
     
     ,tabPanel(z("世界")
+              ,plotOutput("historicalWorld")
               ,plotOutput("realTimeCityConfirmedWorld")
               ,br()
               ,plotOutput("worldMap")            
@@ -94,9 +95,10 @@ ui <- fluidPage(
 
     ) #tab2 --------------------------------------------------
     ,tabPanel(z("数据") 
-              , downloadButton('dataDownload', z('数据下载')	)
+              ,br()
+              , downloadButton('dataDownload', z('中国数据下载')	)
               ,br(),br()
-              ,DT::dataTableOutput('examineData')
+              , downloadButton('dataDownloadWorld', z('世界数据下载')	)             
               ,br()
               
     ) #tab2 --------------------------------------------------

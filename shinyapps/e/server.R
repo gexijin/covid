@@ -154,6 +154,43 @@ function(input, output, session) {
         p
         
     }, width = plotWidth - 100, height = 600 ) 
+    
+    
+    
+    #世界细节 历史图 -------------------------------------------
+    output$historicalWorld <- renderPlot({
+      
+      tem <- table(x$global$country)
+      
+      tem2 <- x$global %>%
+        group_by(country) %>%
+        summarise(max = max(cum_confirm)) %>%
+        filter(max > 10) %>%
+        pull(country)
+    
+      
+      
+      d <- x$global %>%
+        filter(country !="China") %>%
+        filter(  country %in%  names(tem)[tem > 10]    ) %>% # only keep contries with 20 more data points.
+        filter(  country %in%  tem2   ) %>%  # at least 20 cases
+        filter (time > as.Date("2020-2-1"))
+      
+      p <- ggplot(d,
+             aes(time, as.numeric(cum_confirm), group=country, color=country)) +
+        geom_point() + geom_line() +
+        geom_text_repel(aes(label=country), data=d[d$time == time(x), ], hjust=1) +
+        theme_bw(base_size = 14) + theme(legend.position='none') +
+        xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
+        labs(title="Countires other than China")
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      p
+    #  ggplotly(p, tooltip = c("y", "x")) %>% 
+    #    layout( width = plotWidth)
+      
+    }, width = plotWidth - 100)
 
     #全国细节 历史图 -------------------------------------------
     output$historicalChinaData <- renderPlotly({
@@ -553,38 +590,38 @@ function(input, output, session) {
             }
     }, height = 600, width = 800)  
     
-    historicalData <- reactive({
-      df <- x$data
-      df$provinceE <- z2(df$province)
-      df$cityE <- py2(df$city)
-      n <- ncol(df)
-      df[ ,c(n-1, n, 1:(n-3))]
-      
-    })
+
     output$dataDownload <- downloadHandler(
       filename = function() {paste0("coronavirus_histrical_",x$time,".tsv")},
       content = function(file) {
         # issues with Chinese characters solved
         # http://kevinushey.github.io/blog/2018/02/21/string-encoding-and-r/
         con <- file(file, open = "w+", encoding = "native.enc")
-        for(i in 1:nrow(historicalData()) )
+        df <- x$data
+        df$time <- as.character(format(df$time))
+        writeLines( paste( colnames(df), collapse = "\t"), con = con, useBytes = TRUE)
+        for(i in 1:nrow( df) )
           #write line by line 
-          writeLines( paste(historicalData()[i,], collapse = "\t"), con = con, useBytes = TRUE)
+          writeLines( paste( df[i,], collapse = "\t"), con = con, useBytes = TRUE)
         close(con)
       }
     )
     
-    output$examineData <- DT::renderDataTable({
-      tem <- historicalData()
-      if(isEnglish) { 
-        tem <- tem[, -c(4:5)]
-        colnames(tem) = c("Prov.", "City", "Time", "Confirmed","Recovered","Dead")
-         return( tem ) 
-        } else { 
-          tem <- tem[, -c(1:2)]
-          colnames(tem) = c( "时间","省", "市","确诊","痊愈","死亡")
-           return( tem  )
-        }
-      
-    })
+    output$dataDownloadWorld <- downloadHandler(
+      filename = function() {paste0("coronavirus_histrical_",x$time,".tsv")},
+      content = function(file) {
+        # issues with Chinese characters solved
+        # http://kevinushey.github.io/blog/2018/02/21/string-encoding-and-r/
+        con <- file(file, open = "w+", encoding = "native.enc")
+        df <- x["global"]
+        df$time <- as.character(format(df$time))
+        writeLines( paste( colnames(df), collapse = "\t"), con = con, useBytes = TRUE)
+        for(i in 1:nrow( df) )
+          #write line by line 
+          writeLines( paste( df[i,], collapse = "\t"), con = con, useBytes = TRUE)
+        close(con)
+      }
+    )
+    
+
 }

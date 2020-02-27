@@ -23,7 +23,7 @@ library(shiny)
 library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 
-plotWidth = 700
+plotWidth = 800
 
 #--------------English version or Chinese version
 if (file.exists("English_version"))
@@ -78,7 +78,11 @@ if(isEnglish) {
   try( y <- get_nCov2019(), silent = TRUE)  # load real time data from Tencent
   x <- load_nCov2019() #load historical data
 }
+x$data <- x$data %>% 
+   filter( time > as.Date("2020-1-10"))
 
+x$global <- x$global %>% 
+  filter( time > as.Date("2020-1-10"))
 
 # correct an erorr in data "四川 " "四川"
 x$data$province <- gsub(" ", "", x$data$province)
@@ -362,7 +366,8 @@ myDic = matrix( c(
   "全国各省", "Confirmed cases across provinces",
   "英语","中文", 
   "数据", "Data",
-  "数据下载", "Download Data",
+  "中国数据下载", "Download Data for China",
+  "世界数据下载", "Download Data for the World",
   "湖北以外", "without Hubei",
   "last", "last"
 ),nrow=2)

@@ -1,4 +1,13 @@
-
+# for plotting
+library(ggplot2)
+require(ggrepel)
+library(tidyr) # for gather function
+library(forcats) # ploting
+library(forecast) # time series
+library(lubridate) # for showing up time correctly
+library(plotly)
+library(chinamap)
+library(maps)
 
 function(input, output, session) {
     
@@ -153,19 +162,19 @@ function(input, output, session) {
             p <- p + scale_y_log10() 
         p
         
-    }, width = plotWidth - 100, height = 600 ) 
+    }, width = plotWidth - 100, height = 800 ) 
     
     
     
     #世界细节 历史图 -------------------------------------------
-    output$historicalWorld <- renderPlot({
+    output$historicalWorld <- renderPlotly({
       
       tem <- table(x$global$country)
       
       tem2 <- x$global %>%
         group_by(country) %>%
         summarise(max = max(cum_confirm)) %>%
-        filter(max > 10) %>%
+        filter(max > 20) %>%
         pull(country)
     
       
@@ -177,20 +186,20 @@ function(input, output, session) {
         filter (time > as.Date("2020-2-1"))
       
       p <- ggplot(d,
-             aes(time, as.numeric(cum_confirm), group=country, color=country)) +
+             aes(time, cum_confirm, group=country, color=country)) +
         geom_point() + geom_line() +
         geom_text_repel(aes(label=country), data=d[d$time == time(x), ], hjust=1) +
-        theme_bw(base_size = 14) + theme(legend.position='none') +
+        theme_gray(base_size = 14) + #theme(legend.position='none') +
         xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
-        labs(title="Countires other than China")
+        labs(title=z("其他国家感染人数"))
       
       if(input$logScale) 
         p <- p + scale_y_log10() 
-      p
-    #  ggplotly(p, tooltip = c("y", "x")) %>% 
-    #    layout( width = plotWidth)
       
-    }, width = plotWidth - 100)
+      ggplotly(p, tooltip = c("y", "x","country")) %>% 
+        layout( width = plotWidth)
+      
+    })
 
     #全国细节 历史图 -------------------------------------------
     output$historicalChinaData <- renderPlotly({
@@ -469,9 +478,9 @@ function(input, output, session) {
         par(mar = c(4, 3, 0, 2)) 
         # missing data with average of neighbors
         d2$confirm<- meanImput(d2$confirm, 2)
-        d2 <- d2[-(1:10), ] # remove the first 10 days as % change is huge
+        d2 <- d2[-(1:20), ] # remove the first 10 days as % change is huge
         
-        confirm <- ts(diff(d2$confirm)/d2$confirm[1:(nrow(d2)-1)]*100, # percent change
+        confirm <- ts(diff(d2$confirm)/(10 + d2$confirm[1:(nrow(d2)-1)])*100, # percent change
                         start = c(year(min(d2$time)), yday(min(d2$time)) + 1 ), frequency=365  )
         
         forecasted <- forecast(ets(confirm), input$daysForcasted)
@@ -513,9 +522,10 @@ function(input, output, session) {
         # missing data with average of neighbors
         d2$dead <- meanImput(d2$dead, 2)
         
-        d2 <- d2[-(1:10), ] # remove the first 10 days as % change is huge
+        d2 <- d2[-(1:20), ] # remove the first 10 days as % change is huge
         
-        dead <- ts(diff(d2$dead)/d2$dead[1:(nrow(d2)-1)]*100, # percent change
+        # Note that 5 is added to the denominator for stablize the %
+        dead <- ts(diff(d2$dead)/(5 + d2$dead[1:(nrow(d2)-1)])*100, # percent change
                      start = c(year(min(d2$time)), yday(min(d2$time)) + 1 ), frequency=365  )
 
 

@@ -8,20 +8,6 @@
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")
 
-# for plotting
-library(ggplot2)
-require(ggrepel)
-library(tidyr) # for gather function
-library(forcats) # ploting
-library(forecast) # time series
-library(lubridate) # for showing up time correctly
-library(plotly)
-library(chinamap)
-library(maps)
-
-library(shiny)
-library(plotly)
-library(shinyBS,verbose=FALSE) # for popup figures
 
 plotWidth = 800
 
@@ -369,6 +355,7 @@ myDic = matrix( c(
   "中国数据下载", "Download Data for China",
   "世界数据下载", "Download Data for the World",
   "湖北以外", "without Hubei",
+  "其他国家感染人数","Confirmed cases outside China",
   "last", "last"
 ),nrow=2)
 # make a vector value is English, Name is chinese

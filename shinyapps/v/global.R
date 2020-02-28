@@ -59,19 +59,23 @@ library(dplyr)
 library(tidyr) # for gather function 
 if(isEnglish) { 
   try( y <- get_nCov2019(lang="en"), silent = TRUE)  # load real time data from Tencent
-  x <- load_nCov2019(lang="en") #load historical data
+  x <- load_nCov2019(lang="en", source = "dxy") #load historical data
+  xgithub <- load_nCov2019(lang="en", source = "github") #load historical data 
 } else {
-  try( y <- get_nCov2019(), silent = TRUE)  # load real time data from Tencent
-  x <- load_nCov2019() #load historical data
-}
+  try( y <- get_nCov2019(lang="zh"), silent = TRUE)  # load real time data from Tencent
+  x <- load_nCov2019(lang="zh", source = "dxy") #load historical data
+  xgithub <- load_nCov2019(lang="zh", source = "github") #load historical data
+  }
 x$data <- x$data %>% 
-   filter( time > as.Date("2020-1-10"))
+  filter( time > as.Date("2020-1-10")) %>%
+  filter( !(cum_confirm == 0 & cum_dead == 0 & cum_heal == 0) )
 
-x$global <- x$global %>% 
-  filter( time > as.Date("2020-1-10"))
+#x$global <- x$global %>% 
+#  filter( time > as.Date("2020-1-10")) 
 
 # correct an erorr in data "四川 " "四川"
 x$data$province <- gsub(" ", "", x$data$province)
+#x$data$province <- gsub("省|市", "", x$data$province)
 x$data$city <- gsub(" ", "", x$data$city)
 
 #Get a list of sorted provinces
@@ -114,12 +118,15 @@ rownames(todayTotal) <- c("确诊","疑似","死亡","痊愈","New Confirmed","N
 
 ChinaHistory <- x$data %>%
                 mutate(cum_dead = as.integer(cum_dead)) %>%
-                group_by(time) %>%
-                summarise( confirm = sum(cum_confirm, na.rm = TRUE), # missing values in some cities
+               group_by(time) %>%
+               summarise( confirm = sum(cum_confirm, na.rm = TRUE), # missing values in some cities
                            dead = sum(cum_dead, na.rm = TRUE),
                            heal = sum(cum_heal,  na.rm = TRUE)) 
 
-
+#ChinaHistory <- x$global %>%
+#  filter(country == z('中国')) %>%
+#  select( -country) %>%
+#  rename( confirm = cum_confirm, heal = cum_heal, dead = cum_dead)
 
 # missing data imput using the mean of n neighboring data points on both sides
 # if n = 1, then two neighbors, if n=2 then 2 neighbors on both sides
@@ -356,6 +363,12 @@ myDic = matrix( c(
   "世界数据下载", "Download Data for the World",
   "湖北以外", "without Hubei",
   "其他国家感染人数","Confirmed cases outside China",
+  "武汉死亡率",  "Death rate in Wuhan: ",
+  ", 其他城市: ", ", other cities: ",
+  "武汉以外主要城市确诊数",  "Confirmed cases in cities excluding Wuhan",
+  "死亡人数"  ,"Deaths",
+  "各主要城市确诊数", "Confirmed cases in affected cities",
+  
   "last", "last"
 ),nrow=2)
 # make a vector value is English, Name is chinese

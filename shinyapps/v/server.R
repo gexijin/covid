@@ -26,9 +26,10 @@ function(input, output, session) {
     #各个省 确诊 历史数  -------------------------------------------    
     output$confirmedByProvincesHistorical <- renderPlot({
 
-            d2 <- summary(x) %>%
+            d2 <- xgithub$province %>%
               filter( province != "湖北") %>%
-              filter( province != "Hubei")            
+              filter( province != "Hubei") 
+            
             if(isEnglish) d2$province <- py2( d2$province )  # translate into Pinyin
             p <- ggplot(d2,
                         aes(time, as.numeric(cum_confirm), group=province, color=province)) +
@@ -36,7 +37,7 @@ function(input, output, session) {
                 geom_text_repel(aes(label=province),  family="SimSun",data=d2[d2$time == time(x), ], hjust=1) +
                 theme_gray(base_size = 14) + theme(legend.position='none') +
                 xlab(NULL) + ylab(NULL) + 
-                ggtitle(paste( z(entireCountry),  z("湖北以外"), z("更新"), x$time ) )         
+                ggtitle(paste( z(entireCountry),  z("湖北以外"), z("更新"), xgithub$time ) )         
 
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -128,6 +129,51 @@ function(input, output, session) {
         
     }, width = plotWidth - 100 ) 
     
+    #各个城市死亡率  -------------------------------------------
+    output$deathRatesCities <- renderPlotly({
+      d = x$data %>% 
+        arrange( desc(time, city))  %>%
+        filter(!duplicated(city)) %>% 
+        filter(province != city ) %>%
+        filter(cum_dead > 1)  %>%
+        filter(cum_confirm > 50) %>%
+        mutate(rate = 100*cum_dead/cum_confirm)
+
+      deathRate = paste0(z("武汉死亡率"), round(d$cum_dead[1]/d$cum_confirm[1]*100 ,2), "%",
+                         z(", 其他城市: "), round( mean(d$rate) ,2), "%, [", 
+                         round(t.test(d$rate[-1])$conf.int[1],2), "%-",
+                         round(t.test(d$rate[-1])$conf.int[2],2),"%]"
+                         )      
+      
+      if(isEnglish) d$province <- py2( d$province )  # translate into Pinyin      
+      if(isEnglish) d$city <- py2( d$city )       
+      p <- ggplot(d[-1, ], aes(cum_confirm, cum_dead, color = province, text=city)) +
+        xlab(z("各主要城市确诊数")) 
+
+      
+      if(input$logScale) {
+        p <- ggplot(d[, ], aes(cum_confirm, cum_dead, color = province, text=city)) +
+        scale_y_log10() +
+        scale_x_log10() +
+        xlab(z("各主要城市确诊数")) 
+
+      }
+      
+      p <- p +
+        geom_point() + 
+        geom_smooth(method = "lm", 
+                    inherit.aes = FALSE, 
+                    aes(cum_confirm, cum_dead), 
+                    se = FALSE
+                    , linetype = "dashed") +
+        ylab(z("死亡人数")) +
+        ggtitle(deathRate) +
+        theme(plot.title = element_text(size = 10))
+      
+      ggplotly(p, tooltip = c("y", "x","text")) %>% 
+        layout( width = plotWidth)
+      
+    } ) 
     
     #世界各国分布图，现在的数据 -------------------------------------------
     output$realTimeCityConfirmedWorld <- renderPlot({
@@ -169,9 +215,9 @@ function(input, output, session) {
     #世界细节 历史图 -------------------------------------------
     output$historicalWorld <- renderPlotly({
       
-      tem <- table(x$global$country)
+      tem <- table(xgithub$global$country)
       
-      tem2 <- x$global %>%
+      tem2 <- xgithub$global %>%
         group_by(country) %>%
         summarise(max = max(cum_confirm)) %>%
         filter(max > 20) %>%
@@ -179,8 +225,8 @@ function(input, output, session) {
     
       
       
-      d <- x$global %>%
-        filter(country !="China") %>%
+      d <- xgithub$global %>%
+        filter(country !=z('中国')) %>%
         filter(  country %in%  names(tem)[tem > 10]    ) %>% # only keep contries with 20 more data points.
         filter(  country %in%  tem2   ) %>%  # at least 20 cases
         filter (time > as.Date("2020-2-1"))
@@ -205,7 +251,7 @@ function(input, output, session) {
     output$historicalChinaData <- renderPlotly({
         
         dl <- ChinaHistory %>%
-            gather( type, count, confirm:heal) %>%
+            gather( type, count, c(confirm, heal, dead)) %>%
             mutate( type = recode_factor(type,
                                          confirm = z("确诊"),
                                          dead = z("死亡"),
@@ -213,7 +259,7 @@ function(input, output, session) {
 
         p <- ggplot(dl,
                     aes(time, count, group=type, color=type)) +
-            geom_point(size=3) + geom_line() +
+            geom_point() + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + #theme(legend.position='none') +
             xlab(NULL) + ylab(NULL)  +
@@ -244,14 +290,14 @@ function(input, output, session) {
         d3[1, 2:4] <- 0;
         
         dl <- d3 %>%
-            gather( type, count, confirm:heal) %>%
+            gather( type, count, c(confirm, heal, dead)) %>%
             mutate( type = recode_factor(type,
                                          confirm = z("确诊"),
                                          dead = z("死亡"),
                                          heal = z("痊愈")))
         p <- ggplot(dl,
                     aes(time, count, group=type, color=type)) +
-            geom_point(size=3) + geom_line() +
+            geom_point() + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + #theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) +
@@ -300,7 +346,7 @@ function(input, output, session) {
         
         p <- ggplot(dl,
                     aes(time, count, group=type, color=type)) +
-            geom_point(size=3) + geom_line() +
+            geom_point() + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + #theme(legend.position='none') +
             xlab(NULL) + ylab(NULL)  +
@@ -339,7 +385,7 @@ function(input, output, session) {
         
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
-            geom_point(size=3) + geom_line() +
+            geom_point() + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + 
             #theme(legend.position='none') +
@@ -376,7 +422,7 @@ function(input, output, session) {
             
             p <- ggplot(dl,
                         aes(time, count, group=type, color=type)) +
-                        geom_point(size=3) + geom_line() +
+                        geom_point() + geom_line() +
                         #geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
                         theme_gray(base_size = 14) + #theme(legend.position='none') +
                         xlab(NULL) + ylab(NULL) +
@@ -423,7 +469,7 @@ function(input, output, session) {
       
         p <- ggplot(dl,
                     aes(time, as.numeric(count), group=type, color=type)) +
-            geom_point(size=3) + geom_line() +
+            geom_point() + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + #theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) +

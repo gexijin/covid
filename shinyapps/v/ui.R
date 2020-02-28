@@ -30,7 +30,12 @@ ui <- fluidPage(
     ,plotlyOutput("historicalChinaData")
     ,plotlyOutput("historicalChinaDataAdd")
     ,plotOutput("confirmedByProvincesHistorical")    
+    , br()
     ,plotOutput("realTimeProvinceConfirmed")
+    ,br()
+    ,plotlyOutput("deathRatesCities")
+
+  
 
     ,br()
     ,br()

@@ -18,11 +18,11 @@ isEnglish <- TRUE else isEnglish <- FALSE
 if(isEnglish)
   myURL = "http://www.bcloud.org/v/"  else
     myURL = "http://www.bcloud.org/e/" 
-if(isEnglish) { 
+
 library(pinyin)
-  mypy <- pydic(method = "toneless",dic = 'pinyin2') # 载入默认字典
+mypy <- pydic(method = "toneless",dic = 'pinyin2') # 载入默认字典
   #py("武汉", sep = "", dic = mypy) # 转换
-}
+
 py1 <- function (ChineseName) 
   # Translate Chinese names into English based on the pinyin package
   # The capitalize function is based the capitalize function in Hmsic package

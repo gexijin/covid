@@ -104,10 +104,14 @@ ui <- fluidPage(
              ,h5(z("直接用全国的死亡累计数预测："))
              ,plotOutput("forecastDeadRaw")
              ,br()
+             
              ,br()
              ,h5(z("把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：") )
              ,plotOutput("forecastDeadChange")
-             ,br()
+             ,br(),br()
+             ,selectInput("selectCountry", NULL, choices = unique(contriesPrediction$country))
+             ,plotOutput("forecastConfirmedChangeWorld")
+             
 
     ) #tab2 --------------------------------------------------
     ,tabPanel(z("数据") 

@@ -140,6 +140,47 @@ ChinaHistory <- x$data %>%
 #  select( -country) %>%
 #  rename( confirm = cum_confirm, heal = cum_heal, dead = cum_dead)
 
+z <- function (ChineseName) {
+  # translate chinese Names and menu items to English
+  # it Uses a dictionary above
+  if(!isEnglish) { 
+    return(ChineseName) 
+  } else {
+    translated <- myDic2[ChineseName]
+    if(is.na(translated)) 
+      return( ChineseName ) else
+        return(translated)
+  }
+}
+
+z2 <- function (ChineseNames) 
+  # Translate a vector of Chinese strings into English
+  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
+{
+  if(!isEnglish) { 
+    return(ChineseNames) 
+  } else {
+    unlist( lapply(as.character( ChineseNames ), z) )
+  }
+}
+
+tem <- table(xgithub$global$country)
+tem2 <- xgithub$global %>%
+  group_by(country) %>%
+  summarise(max = max(cum_confirm)) %>% 
+  arrange(desc(max)) %>%
+  filter(max > 30) %>%
+  pull(country)
+
+contriesPrediction <- xgithub$global %>%
+  filter(country !='中国') %>%
+  filter(country !='China') %>%
+  filter(  country %in%  names(tem)[tem > 20]    ) %>% # only keep contries with 20 more data points.
+  filter(  country %in%  tem2   ) %>%  # at least 20 cases
+  filter (time > as.Date("2020-2-1")) %>%
+  rename(dead = cum_dead, confirm = cum_confirm, heal = cum_heal)
+
+
 # missing data imput using the mean of n neighboring data points on both sides
 # if n = 1, then two neighbors, if n=2 then 2 neighbors on both sides
 meanImput <- function (x, n = 2) { 
@@ -208,29 +249,6 @@ if (.Platform$OS.type == "windows") {
   }
 }
 
-z <- function (ChineseName) {
-  # translate chinese Names and menu items to English
-  # it Uses a dictionary above
-  if(!isEnglish) { 
-    return(ChineseName) 
-  } else {
-    translated <- myDic2[ChineseName]
-    if(is.na(translated)) 
-      return( ChineseName ) else
-        return(translated)
-  }
-}
-
-z2 <- function (ChineseNames) 
-  # Translate a vector of Chinese strings into English
-  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
-{
-  if(!isEnglish) { 
-    return(ChineseNames) 
-  } else {
-    unlist( lapply(as.character( ChineseNames ), z) )
-  }
-}
 
 myDic = matrix( c( 
   #---------------------Countries
@@ -380,6 +398,7 @@ myDic = matrix( c(
   "武汉以外主要城市确诊数",  "Confirmed cases in cities excluding Wuhan",
   "死亡人数"  ,"Deaths",
   "各主要城市确诊数", "Confirmed cases in affected cities",
+  "天后确诊 ", "days later confirmed cases in ",
   
   "last", "last"
 ),nrow=2)
@@ -387,6 +406,28 @@ myDic = matrix( c(
 myDic2 <- myDic[2,]
 names(myDic2) <- myDic[1,]
 
+z <- function (ChineseName) {
+  # translate chinese Names and menu items to English
+  # it Uses a dictionary above
+  if(!isEnglish) { 
+    return(ChineseName) 
+  } else {
+    translated <- myDic2[ChineseName]
+    if(is.na(translated)) 
+      return( ChineseName ) else
+        return(translated)
+  }
+}
 
+z2 <- function (ChineseNames) 
+  # Translate a vector of Chinese strings into English
+  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
+{
+  if(!isEnglish) { 
+    return(ChineseNames) 
+  } else {
+    unlist( lapply(as.character( ChineseNames ), z) )
+  }
+}
 provinceNamesList <- setNames(provinceNames, z2(provinceNames) )
 

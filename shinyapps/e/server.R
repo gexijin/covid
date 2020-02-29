@@ -553,6 +553,35 @@ function(input, output, session) {
         
     })
     
+    
+      
+    #世界 各国确诊人数预测, 预测-------------------------------------------    
+    
+      output$forecastConfirmedChangeWorld <- renderPlot ({
+        d2 <- contriesPrediction %>%
+          arrange(time) %>%
+          filter( country == input$selectCountry)
+        nRep = sum( d2$confirm == d2$confirm[2]) 
+        if(nRep > 3) 
+          d2 <- d2[-(1:(nRep-3)),]
+        
+        par(mar = c(4, 3, 0, 2))
+        # missing data with average of neighbors
+        d2$confirm<- meanImput(d2$confirm, 2)
+        
+        confirm <- ts(d2$confirm, # percent change
+                      start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
+        forecasted <- forecast(ets(confirm), input$daysForcasted)
+        plot(forecasted, xaxt="n", main="", 
+             ylab = z("全国确诊"),
+             xlab = paste0(z("预期"), input$daysForcasted, z("天后确诊 "),input$selectCountry, " ", round(forecasted$mean[input$daysForcasted],0), z(", 区间["),
+                           round(forecasted$lower[input$daysForcasted],0), "-",round(forecasted$upper[input$daysForcasted],0),"]")            
+        )
+        a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
+        axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
+      }, width = plotWidth - 100 ) 
+    
+    
     #全国确诊人数预测, 百分比预测-------------------------------------------    
     output$forecastConfirmedChange <- renderPlot ({
         d2 <- ChinaHistory

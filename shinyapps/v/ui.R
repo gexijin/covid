@@ -27,17 +27,21 @@ ui <- fluidPage(
       )
     
     #,plotlyOutput("historicalChinaDataPlotly")
-    ,plotlyOutput("historicalChinaData")
-    ,plotlyOutput("historicalChinaDataAdd")
-    ,plotOutput("confirmedByProvincesHistorical")    
-    , br()
+    ,img(src='ChinaMapAnimated2.gif', align = "center",width="600", height="450")
+     ,br(),br()
     ,plotOutput("realTimeProvinceConfirmed")
     ,br()
+    ,plotlyOutput("historicalChinaData")
+     ,br()
+    ,plotlyOutput("historicalChinaDataAdd")
+    ,br()
+    ,plotOutput("confirmedByProvincesHistorical")    
+    , br()
     ,plotlyOutput("deathRatesCities")
 
   
 
-    ,br()
+
     ,br()
 
     ) #tab1 --------------------------------------------------
@@ -46,18 +50,21 @@ ui <- fluidPage(
               ,h4(paste0( z(paste0(gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
                       gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日")), z("(稍等几秒钟，地图下载)。"))
               ,plotOutput("ChinaMap")
+
               
     )
 
     ,tabPanel(z("省")
               ,selectInput("selectProvince0", NULL, choices = provinceNamesList)
     #,tableOutput("todayTotalTable")
+    ,plotOutput("realTimeCityConfirmed") 
+    ,br()
     ,plotlyOutput("provienceHistorical")      
     ,plotlyOutput("provienceHistoricalAdd")      
     ,plotOutput("cities_in_proviences")    
     ,br()
     #,plotlyOutput("cities_in_proviences_selected_plotly")
-    ,plotOutput("realTimeCityConfirmed") 
+
     ,plotOutput("provinceMap") 
     ,br()
     )
@@ -72,8 +79,9 @@ ui <- fluidPage(
               )
     
     ,tabPanel(z("世界")
-              ,plotlyOutput("historicalWorld")
               ,plotOutput("realTimeCityConfirmedWorld")
+              ,br()
+              ,plotlyOutput("historicalWorld")
               ,br()
               ,plotOutput("worldMap")            
               

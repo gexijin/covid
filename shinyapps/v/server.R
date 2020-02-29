@@ -37,7 +37,7 @@ function(input, output, session) {
                 geom_text_repel(aes(label=province),  family="SimSun",data=d2[d2$time == time(x), ], hjust=1) +
                 theme_gray(base_size = 14) + theme(legend.position='none') +
                 xlab(NULL) + ylab(NULL) + 
-                ggtitle(paste( z(entireCountry),  z("湖北以外"), z("更新"), xgithub$time ) )         
+                ggtitle(paste( z(entireCountry),  z("湖北以外"),  xgithub$time ) )         
 
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -56,7 +56,7 @@ function(input, output, session) {
             geom_text_repel(aes(label=city), family="SimSun",data=d[d$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) + 
-            ggtitle(paste(z(input$selectProvince0), z("各市"), z("更新"), x$time) )
+            ggtitle(paste(z(input$selectProvince0), z("各市"),  x$time) )
 
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -137,7 +137,8 @@ function(input, output, session) {
         filter(province != city ) %>%
         filter(cum_dead > 1)  %>%
         filter(cum_confirm > 50) %>%
-        mutate(rate = 100*cum_dead/cum_confirm)
+        mutate(rate = 100*cum_dead/cum_confirm) 
+        
 
       deathRate = paste0(z("武汉死亡率"), round(d$cum_dead[1]/d$cum_confirm[1]*100 ,2), "%",
                          z(", 其他城市: "), round( mean(d$rate) ,2), "%, [", 
@@ -146,7 +147,8 @@ function(input, output, session) {
                          )      
       
       if(isEnglish) d$province <- py2( d$province )  # translate into Pinyin      
-      if(isEnglish) d$city <- py2( d$city )       
+      #if(isEnglish) 
+        d$city <- py3( d$city )       
       p <- ggplot(d[-1, ], aes(cum_confirm, cum_dead, color = province, text=city)) +
         xlab(z("各主要城市确诊数")) 
 
@@ -160,12 +162,12 @@ function(input, output, session) {
       }
       
       p <- p +
-        geom_point() + 
+        geom_point(size = 3) + 
         geom_smooth(method = "lm", 
                     inherit.aes = FALSE, 
                     aes(cum_confirm, cum_dead), 
-                    se = FALSE
-                    , linetype = "dashed") +
+                    se = FALSE, color = "darkgrey",
+                    linetype = "dashed") +
         ylab(z("死亡人数")) +
         ggtitle(deathRate) +
         theme(plot.title = element_text(size = 10))
@@ -184,6 +186,7 @@ function(input, output, session) {
           mutate( name = fct_reorder(name, confirm))
         
         d <- d[-1, ] #remove the first row
+        d <- d[1:20, ]
         
         
         # This is used to create spaces so the numbers on top of the bar shows up.
@@ -208,7 +211,7 @@ function(input, output, session) {
             p <- p + scale_y_log10() 
         p
         
-    }, width = plotWidth - 100, height = 800 ) 
+    }, width = plotWidth - 100 ) 
     
     
     
@@ -222,8 +225,6 @@ function(input, output, session) {
         summarise(max = max(cum_confirm)) %>%
         filter(max > 20) %>%
         pull(country)
-    
-      
       
       d <- xgithub$global %>%
         filter(country !=z('中国')) %>%
@@ -235,9 +236,10 @@ function(input, output, session) {
              aes(time, cum_confirm, group=country, color=country)) +
         geom_point() + geom_line() +
         geom_text_repel(aes(label=country), data=d[d$time == time(x), ], hjust=1) +
-        theme_gray(base_size = 14) + #theme(legend.position='none') +
+        theme_gray(base_size = 12) + #theme(legend.position='none') +
         xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
-        labs(title=z("其他国家感染人数"))
+        ggtitle (z("其他国家感染人数")) +
+        theme(plot.title = element_text(size = 12))
       
       if(input$logScale) 
         p <- p + scale_y_log10() 
@@ -249,7 +251,7 @@ function(input, output, session) {
 
     #全国细节 历史图 -------------------------------------------
     output$historicalChinaData <- renderPlotly({
-        
+      
         dl <- ChinaHistory %>%
             gather( type, count, c(confirm, heal, dead)) %>%
             mutate( type = recode_factor(type,
@@ -264,9 +266,9 @@ function(input, output, session) {
             theme_gray(base_size = 14) + #theme(legend.position='none') +
             xlab(NULL) + ylab(NULL)  +
             theme(legend.title = element_blank()) +
-            theme(plot.title = element_text(size = 13))
+            theme(plot.title = element_text(size = 11))
 
-            p <- p + ggtitle(paste( z("全国总数"), z("更新"), x$time) ) 
+            p <- p + ggtitle(paste( z("全国总数"),  x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -277,34 +279,29 @@ function(input, output, session) {
     
     #全国细节 历史图 增加-------------------------------------------
     output$historicalChinaDataAdd <- renderPlotly({
+        pc <- ChinaHistory
+        pc[2:nrow(pc), 2:4] <- (pc[2:nrow(pc), 2:4] / pc[1:(nrow(pc)-1), 2:4] -1 )*100
+        pc <- pc[-1, ] %>%
+          filter( heal <100) %>%
+          filter(time > "2020-1-28")
         
-        d2 <- ChinaHistory 
         
-        d3 <- d2[-1, ] %>%
-            mutate(confirm = diff(d2$confirm)) %>%     
-            mutate(dead = diff(d2$dead)) %>%
-            mutate(heal = diff(d2$heal))
-        
-        # add a row with zeros but with date; so that the two figures align
-        d3 <- rbind(d2[1, ], d3)
-        d3[1, 2:4] <- 0;
-        
-        dl <- d3 %>%
-            gather( type, count, c(confirm, heal, dead)) %>%
+        dl <- pc %>%
+            gather( type, percentage, c(confirm, heal, dead)) %>%
             mutate( type = recode_factor(type,
                                          confirm = z("确诊"),
                                          dead = z("死亡"),
-                                         heal = z("痊愈")))
-        p <- ggplot(dl,
-                    aes(time, count, group=type, color=type)) +
+                                         heal = z("痊愈"))) %>%
+            filter( type !=  z("痊愈") )
+        p <- ggplot(dl, aes(time, percentage, group=type, color=type)) +
             geom_point() + geom_line() +
             geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + #theme(legend.position='none') +
-            xlab(NULL) + ylab(NULL) +
+            ylab(NULL) + xlab(NULL) +
             theme(legend.title = element_blank()) +
-            theme(plot.title = element_text(size = 13))
+            theme(plot.title = element_text(size = 11))
         
-        p <- p + ggtitle(paste(z("全国每日新增"), z("更新"), x$time) ) 
+        p <- p + ggtitle(paste(z("全国每日新增百分比"),  x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -313,6 +310,44 @@ function(input, output, session) {
         
     })
 
+    #全国细节 历史图 增加-------------------------------------------
+    output$historicalChinaDataAddRaw <- renderPlotly({
+      
+      d2 <- ChinaHistory 
+      
+      d3 <- d2[-1, ] %>%
+        mutate(confirm = diff(d2$confirm)) %>%     
+        mutate(dead = diff(d2$dead)) %>%
+        mutate(heal = diff(d2$heal))
+      
+      # add a row with zeros but with date; so that the two figures align
+      d3 <- rbind(d2[1, ], d3)
+      d3[1, 2:4] <- 0;
+      
+      dl <- d3 %>%
+        gather( type, count, c(confirm, heal, dead)) %>%
+        mutate( type = recode_factor(type,
+                                     confirm = z("确诊"),
+                                     dead = z("死亡"),
+                                     heal = z("痊愈")))
+      p <- ggplot(dl,
+                  aes(time, count, group=type, color=type)) +
+        geom_point() + geom_line() +
+        geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
+        theme_gray(base_size = 14) + #theme(legend.position='none') +
+        xlab(NULL) + ylab(NULL) +
+        theme(legend.title = element_blank()) +
+        theme(plot.title = element_text(size = 13))
+      
+      p <- p + ggtitle(paste(z("全国每日新增"),  x$time) ) 
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      ggplotly(p, tooltip = c("y", "x")) %>% 
+        layout( width = plotWidth)
+      
+    })    
+    
     #省 历史图 新增-------------------------------------------
     output$provienceHistoricalAdd <- renderPlotly({
         d2 <- x[input$selectProvince0, ]  %>% 
@@ -353,7 +388,7 @@ function(input, output, session) {
             theme(legend.title = element_blank()) +
           theme(plot.title = element_text(size = 13))
         
-        p <- p + ggtitle(paste(z(input$selectProvince0), z("新增"), z("更新"), x$time) ) 
+        p <- p + ggtitle(paste(z(input$selectProvince0), z("新增"),  x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -393,7 +428,7 @@ function(input, output, session) {
             theme(legend.title = element_blank()) +
           theme(plot.title = element_text(size = 13))
         
-        p <- p + ggtitle(paste(z(input$selectProvince0), z("总数"), z("更新"), x$time) ) 
+        p <- p + ggtitle(paste(z(input$selectProvince0), z("总数"),  x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -476,7 +511,7 @@ function(input, output, session) {
             theme(legend.title = element_blank())+
             theme(plot.title = element_text(size = 13)) 
 
-            p <- p + ggtitle(paste( py1(input$selectCity), z("新增"), z("更新"), x$time ) )                   
+            p <- p + ggtitle(paste( py1(input$selectCity), z("新增"),  x$time ) )                   
 
         
         if(input$logScale) 
@@ -508,7 +543,7 @@ function(input, output, session) {
             theme_gray(base_size = 14)  + theme(legend.title = element_blank() ) +
             xlab(NULL) + ylab(NULL) 
 
-            p <- p + ggtitle(paste(input$selectCity, z("更新"), x$time ) )                   
+            p <- p + ggtitle(paste(input$selectCity,  x$time ) )                   
 
         
         if(input$logScale) 

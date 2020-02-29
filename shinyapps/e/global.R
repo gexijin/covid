@@ -49,6 +49,18 @@ py2 <- function (ChineseNames)
   }
 }
 
+py3 <- function (ChineseName) 
+  # Translate Chinese names into English based on the pinyin package
+  # The capitalize function is based the capitalize function in Hmsic package
+  # ""武汉"" --> "Wuhan"
+{
+
+    string <- as.character( py(ChineseName, sep = "", dic = mypy) )
+    capped <- grep("^[A-Z]", string, invert = TRUE)
+    substr(string[capped], 1, 1) <- toupper(substr(string[capped], 1, 1))
+    return(string)
+
+}
 entireCountry <- "全国"
 options(scipen=999) # turn off scientific notation like 1e+06
 #daysForcasted = 10
@@ -343,7 +355,7 @@ myDic = matrix( c(
   "腾迅", " from Tencent",
   "世界各国确诊 (死亡)", "Confirmed (dead) in countries outside China",
   "全国总数", "China total",
-  "全国每日新增", "New cases in China",
+  "全国每日新增百分比", "% daily increases in China",
   "总数", "Total",
   "新增", " New cases",
   "预期", "Prediction:",
@@ -361,7 +373,7 @@ myDic = matrix( c(
   "数据", "Data",
   "中国数据下载", "Download Data for China",
   "世界数据下载", "Download Data for the World",
-  "湖北以外", "without Hubei",
+  "湖北以外", " provinces without Hubei",
   "其他国家感染人数","Confirmed cases outside China",
   "武汉死亡率",  "Death rate in Wuhan: ",
   ", 其他城市: ", ", other cities: ",

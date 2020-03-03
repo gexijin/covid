@@ -173,8 +173,8 @@ tem2 <- xgithub$global %>%
   pull(country)
 
 contriesPrediction <- xgithub$global %>%
-  filter(country !='中国') %>%
-  filter(country !='China') %>%
+  #filter(country !='中国') %>%
+  #filter(country !='China') %>%
   filter(  country %in%  names(tem)[tem > 20]    ) %>% # only keep contries with 20 more data points.
   filter(  country %in%  tem2   ) %>%  # at least 20 cases
   filter (time > as.Date("2020-2-1")) %>%
@@ -399,6 +399,8 @@ myDic = matrix( c(
   "死亡人数"  ,"Deaths",
   "各主要城市确诊数", "Confirmed cases in affected cities",
   "天后确诊 ", "days later confirmed cases in ",
+  "死亡率(%)","Gross Death Rate (%)",
+  "中国详细预测", "Detailed forecast on Chinese cases",
   
   "last", "last"
 ),nrow=2)

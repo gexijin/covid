@@ -38,6 +38,9 @@ ui <- fluidPage(
     ,plotOutput("confirmedByProvincesHistorical")    
     , br()
     ,plotlyOutput("deathRatesCities")
+    ,br()
+    ,plotlyOutput("deathRatesCitiesCountries")
+
 
   
 
@@ -83,6 +86,8 @@ ui <- fluidPage(
               ,br()
               ,plotlyOutput("historicalWorld")
               ,br()
+              ,plotlyOutput("WorldDeathRate")
+              ,br()
               ,plotOutput("worldMap")            
               
               )#tab2 --------------------------------------------------
@@ -92,7 +97,13 @@ ui <- fluidPage(
                              min = 1, max = 7,
                              value = 10)
               ,h5(z("简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。") )
-              ,h5(z("先直接用全国的确诊总数的时间序列："))
+             ,selectInput("selectCountry", NULL, choices = unique(contriesPrediction$country))
+             ,plotOutput("forecastConfirmedChangeWorld")
+             ,br(),br()
+             
+             ,h4(z("中国详细预测"))
+              
+             ,h5(z("先直接用全国的确诊总数的时间序列："))
              ,plotOutput("forecastConfirmedRaw")
              ,br()   
              ,br() 
@@ -109,8 +120,7 @@ ui <- fluidPage(
              ,h5(z("把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：") )
              ,plotOutput("forecastDeadChange")
              ,br(),br()
-             ,selectInput("selectCountry", NULL, choices = unique(contriesPrediction$country))
-             ,plotOutput("forecastConfirmedChangeWorld")
+
              
 
     ) #tab2 --------------------------------------------------

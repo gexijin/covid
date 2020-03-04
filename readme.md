@@ -1,4 +1,4 @@
-# Coronavirus tracker
+# Coronavirus COVID-19 statistics and forecast
 
 This is a Shiny App based on the [nCov2019](https://github.com/GuangchuangYu/nCov2019) R package.
 

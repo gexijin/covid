@@ -398,7 +398,7 @@ myDic = matrix( c(
   "武汉以外主要城市确诊数",  "Confirmed cases in cities excluding Wuhan",
   "死亡人数"  ,"Deaths",
   "各主要城市确诊数", "Confirmed cases in affected cities",
-  "天后确诊 ", "days later confirmed cases in ",
+  "天后确诊 ", " days later confirmed cases in ",
   "死亡率(%)","Gross Death Rate (%)",
   "中国详细预测", "Detailed forecast on Chinese cases",
   

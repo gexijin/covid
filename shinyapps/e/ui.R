@@ -27,7 +27,7 @@ ui <- fluidPage(
       )
     
     #,plotlyOutput("historicalChinaDataPlotly")
-    ,img(src='ChinaMapAnimated2.gif', align = "center",width="600", height="450")
+    ,img(src='ChinaMapAnimated2.gif', align = "center",width="600", height="600")
      ,br(),br()
     ,plotOutput("realTimeProvinceConfirmed")
     ,br()

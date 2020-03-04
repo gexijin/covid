@@ -188,10 +188,11 @@ function(input, output, session) {
        # filter(cum_dead > 2)  %>%
         filter(cum_confirm > 200) %>%
         mutate(rate = 100*cum_dead/cum_confirm) %>%
-        arrange(desc(province), city) 
+        mutate(isHubei = (province == "Hubei" | province == "湖北")) %>%
+        arrange(desc(isHubei), desc(province), desc(cum_confirm) )
 
-      d <- rbind(d, d[1,]) # move Hunan to the end
-      d <- d[-1, ]
+      #d <- rbind(d, d[1,]) # move Hunan to the end
+      #d <- d[-1, ]
         
       
       if(isEnglish) d$province <- py2( d$province )  # translate into Pinyin      
@@ -199,7 +200,7 @@ function(input, output, session) {
       d$city <- py3( d$city )
       
       d <- d %>% 
-        mutate(name = paste(d$province, d$city) )  %>%
+        mutate(name = paste0(d$city, ", ", d$province) )  %>%
         mutate(name = factor(name, levels= rev(name)) )
       
       p <- ggplot(d, aes(x=name, y=rate, color = province)) +
@@ -213,7 +214,7 @@ function(input, output, session) {
       
 
       ggplotly(p, tooltip = c("y", "x")) %>% 
-        layout( width = plotWidth)
+        layout( width = plotWidth - 100)
       
     } ) 
     
@@ -238,7 +239,7 @@ function(input, output, session) {
       
       
       ggplotly(p, tooltip = c("y", "x")) %>% 
-        layout( width = plotWidth)
+        layout( width = plotWidth - 100)
       
       
 

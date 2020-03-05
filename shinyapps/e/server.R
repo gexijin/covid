@@ -188,11 +188,10 @@ function(input, output, session) {
        # filter(cum_dead > 2)  %>%
         filter(cum_confirm > 200) %>%
         mutate(rate = 100*cum_dead/cum_confirm) %>%
-        mutate(isHubei = (province == "Hubei" | province == "湖北")) %>%
-        arrange(desc(isHubei), desc(province), desc(cum_confirm) )
+        arrange(desc(province), city) 
 
-      #d <- rbind(d, d[1,]) # move Hunan to the end
-      #d <- d[-1, ]
+      d <- rbind(d, d[1,]) # move Hunan to the end
+      d <- d[-1, ]
         
       
       if(isEnglish) d$province <- py2( d$province )  # translate into Pinyin      
@@ -200,7 +199,7 @@ function(input, output, session) {
       d$city <- py3( d$city )
       
       d <- d %>% 
-        mutate(name = paste0(d$city, ", ", d$province) )  %>%
+        mutate(name = paste(d$province, d$city) )  %>%
         mutate(name = factor(name, levels= rev(name)) )
       
       p <- ggplot(d, aes(x=name, y=rate, color = province)) +
@@ -214,7 +213,7 @@ function(input, output, session) {
       
 
       ggplotly(p, tooltip = c("y", "x")) %>% 
-        layout( width = plotWidth - 100)
+        layout( width = plotWidth)
       
     } ) 
     
@@ -239,7 +238,7 @@ function(input, output, session) {
       
       
       ggplotly(p, tooltip = c("y", "x")) %>% 
-        layout( width = plotWidth - 100)
+        layout( width = plotWidth)
       
       
 
@@ -804,7 +803,7 @@ function(input, output, session) {
         # issues with Chinese characters solved
         # http://kevinushey.github.io/blog/2018/02/21/string-encoding-and-r/
         con <- file(file, open = "w+", encoding = "native.enc")
-        df <- x["global"]
+        df <- xgithub$global
         df$time <- as.character(format(df$time))
         writeLines( paste( colnames(df), collapse = "\t"), con = con, useBytes = TRUE)
         for(i in 1:nrow( df) )

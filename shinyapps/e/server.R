@@ -200,7 +200,7 @@ function(input, output, session) {
       d$city <- py3( d$city )
       
       d <- d %>% 
-        mutate(name = paste(d$city, ", ", d$province ) )  %>%
+        mutate(name = paste0(d$city, ", ", d$province ) )  %>%
         mutate(name = factor(name, levels= rev(name)) )
       
       p <- ggplot(d, aes(x=name, y=rate, color = province)) +

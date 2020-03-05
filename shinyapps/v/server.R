@@ -191,8 +191,8 @@ function(input, output, session) {
         mutate(isHubei = (province == "Hubei" | province == "湖北")) %>%
         arrange(desc(isHubei), desc(province), desc(cum_confirm) )
 
-      d <- rbind(d, d[1,]) # move Hunan to the end
-      d <- d[-1, ]
+      #d <- rbind(d, d[1,]) # move Hunan to the end
+      #d <- d[-1, ]
         
       
       if(isEnglish) d$province <- py2( d$province )  # translate into Pinyin      
@@ -214,7 +214,7 @@ function(input, output, session) {
       
 
       ggplotly(p, tooltip = c("y", "x")) %>% 
-        layout( width = plotWidth)
+        layout( width = plotWidth - 100)
       
     } ) 
     

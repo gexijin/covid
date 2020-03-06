@@ -181,6 +181,18 @@ contriesPrediction <- xgithub$global %>%
   rename(dead = cum_dead, confirm = cum_confirm, heal = cum_heal)
 
 
+# current statistcs of different countries based on data from Github
+worldCurrent <- xgithub$global %>%
+  arrange(country, desc(time)) %>%
+  group_by(country) %>%
+  filter(row_number() ==1) %>%
+  arrange( desc(cum_confirm)) %>%
+  rename(name = country, dead = cum_dead, confirm = cum_confirm, heal = cum_heal) %>%
+  as.data.frame()
+
+
+
+
 # missing data imput using the mean of n neighboring data points on both sides
 # if n = 1, then two neighbors, if n=2 then 2 neighbors on both sides
 meanImput <- function (x, n = 2) { 

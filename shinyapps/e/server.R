@@ -220,15 +220,17 @@ function(input, output, session) {
     
     #世界各国死亡率，现在的数据 -------------------------------------------
     output$WorldDeathRate <- renderPlotly({
-      d <- y['global',] %>%
+#      d <- y['global',] %>%
+      d <- worldCurrent %>%
         filter(!is.na(name)) %>%
         mutate( confirm =as.numeric(confirm) ) %>%
         #mutate (name = z2( name ) ) %>%
         mutate( name = fct_reorder(name, confirm)) %>% 
-        filter( confirm > 200) %>%
-        mutate(deadRate = as.numeric(deadRate))
+        filter( dead > 2 & confirm > 100) %>%
+        mutate( deadRate = round(dead / confirm *100,2) ) %>%
+        mutate (s = paste0(dead, " / ", confirm))
       
-      p <- ggplot(d, aes(x=name, y=deadRate)) +
+      p <- ggplot(d, aes(x=name, y=deadRate, text = s)) +
         geom_segment( aes(xend=name, yend=0)) +
         geom_point( size=4, color = "orange" ) +
         coord_flip() +
@@ -238,8 +240,8 @@ function(input, output, session) {
         theme(legend.position = "none")
       
       
-      ggplotly(p, tooltip = c("y", "x")) %>% 
-        layout( width = plotWidth)
+      ggplotly(p, tooltip = c("y", "x", "text")) %>% 
+        layout( width = plotWidth - 100)
       
       
 
@@ -250,38 +252,43 @@ function(input, output, session) {
     
     #世界各国分布图，现在的数据 -------------------------------------------
     output$realTimeCityConfirmedWorld <- renderPlot({
-        d <- y['global',] %>%
-          filter(!is.na(name)) %>%
-          mutate( confirm =as.numeric(confirm) ) %>%
-          mutate (name = z2( name ) ) %>%
-          mutate( name = fct_reorder(name, confirm))
-        
-        d <- d[-1, ] #remove the first row
-        d <- d[1:20, ]
-        
-        
-        # This is used to create spaces so the numbers on top of the bar shows up.
-        maxN <- max(d$confirm) *1.5
-        if(input$logScale) 
-            maxN <- max(d$confirm) *20
-        
-        p <- ggplot(d, aes(name, confirm)) + 
-            geom_col(fill='steelblue') + coord_flip() +
-            geom_text(aes(y = confirm+2, label= paste0( confirm, " (",dead,")")), hjust=0) +
-            theme_gray(base_size=14) + 
-            scale_y_continuous(expand=c(0,10)) +
-            xlab(NULL) + ylab(NULL) +
-            theme(text = element_text(size=17, family="SimSun"),
-                  axis.text.x = element_text(angle=0, hjust=1))  + 
-            #ggtitle(paste("Confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
-            ggtitle(paste(z("世界各国确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
-            expand_limits(y = maxN) + 
-            theme(plot.title = element_text(size = 15))
-        
-        if(input$logScale) 
-            p <- p + scale_y_log10() 
-        p
-        
+      
+     # d <- y['global',] %>%  # Tencent data
+      #  filter(!is.na(name)) %>%
+      #  mutate( confirm =as.numeric(confirm) ) 
+      
+      d <- worldCurrent # Github data
+      
+      d <- d %>%
+        mutate (name = z2( name ) ) %>%
+        mutate( name = fct_reorder(name, confirm))
+      
+      d <- d[-1, ] #remove the first row
+      d <- d[1:20, ]
+      
+      
+      # This is used to create spaces so the numbers on top of the bar shows up.
+      maxN <- max(d$confirm) *1.5
+      if(input$logScale) 
+        maxN <- max(d$confirm) *20
+      
+      p <- ggplot(d, aes(name, confirm)) + 
+        geom_col(fill='steelblue') + coord_flip() +
+        geom_text(aes(y = confirm+2, label= paste0( confirm, " (",dead,")")), hjust=0) +
+        theme_gray(base_size=14) + 
+        scale_y_continuous(expand=c(0,10)) +
+        xlab(NULL) + ylab(NULL) +
+        theme(text = element_text(size=17, family="SimSun"),
+              axis.text.x = element_text(angle=0, hjust=1))  + 
+        #ggtitle(paste("Confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
+        ggtitle(paste(z("世界各国确诊 (死亡)"), gsub(" .*","", d$time[1]), z(" GitHub")) ) +            
+        expand_limits(y = maxN) + 
+        theme(plot.title = element_text(size = 15))
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      p
+      
     }, width = plotWidth - 100 ) 
     
     

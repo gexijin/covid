@@ -120,9 +120,9 @@ if(isEnglish)
   cityNamesList <- setNames(cityNames, py2( cityNames) )
 
 #Today's totals
-todayTotal <- do.call(rbind, Map(data.frame, total=y$chinaTotal,add=y$chinaAdd))
-colnames(todayTotal) <- c("总数","增加")
-rownames(todayTotal) <- c("确诊","疑似","死亡","痊愈","New Confirmed","NewSever")
+#todayTotal <- do.call(rbind, Map(data.frame, total=y$chinaTotal,add=y$chinaAdd))
+#colnames(todayTotal) <- c("总数","增加")
+#rownames(todayTotal) <- c("确诊","疑似","死亡","痊愈","New Confirmed","NewSever")
 
 # Use data from Tencent for historical China data
 #ChinaHistory <- summary(y) %>%

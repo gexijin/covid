@@ -9,8 +9,7 @@ library(plotly)
 library(chinamap)
 library(maps)
 
-library(shadowtext)
-library(conflicted)
+
 
 function(input, output, session) {
     
@@ -827,7 +826,8 @@ function(input, output, session) {
     #世界细节 历史图 -------------------------------------------
     output$historicalWorldDirect <- renderPlotly({
       
-
+      library(shadowtext)
+      library(conflicted)
       
       conflict_prefer("filter", "dplyr")
       conflict_prefer("layout", "plotly")   
@@ -878,7 +878,8 @@ function(input, output, session) {
     #世界细节 历史图 -------------------------------------------
     output$historicalWorldDirect2 <- renderPlot({
       
-
+      library(shadowtext)
+      library(conflicted)
       
       conflict_prefer("filter", "dplyr")
       conflict_prefer("layout", "graphics")   

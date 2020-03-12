@@ -6,4 +6,5 @@ install.packages(c("sp","mapproj","maps","sf"))
 remotes::install_github("pzhaonet/pinyin")
 install.packages("shadowtext")
 install.packages("conflicted")
+# Get version 3.3.0 for ggplot2
 install.packages("ggplot2", repos = "http://cran.us.r-project.org")

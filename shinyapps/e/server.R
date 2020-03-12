@@ -9,6 +9,8 @@ library(plotly)
 library(chinamap)
 library(maps)
 
+
+
 function(input, output, session) {
     
     observe({  
@@ -820,6 +822,111 @@ function(input, output, session) {
         close(con)
       }
     )
+    
+    #世界细节 历史图 -------------------------------------------
+    output$historicalWorldDirect <- renderPlotly({
+      
+      library(shadowtext)
+      library(conflicted)
+      
+      conflict_prefer("filter", "dplyr")
+      conflict_prefer("layout", "plotly")   
+      
+      d <- xgithub
+      dd <- d['global'] %>% 
+        as_tibble %>%
+        rename(confirm=cum_confirm) %>%
+        filter(confirm > 100) %>%
+       # filter(confirm <50000) %>%
+        filter(country != "Diamond Princess") %>%
+        group_by(country) %>%
+        mutate(days_since_100 = as.numeric(time - min(time))) %>%
+        ungroup 
+      
+      breaks=c(100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000)
+      
+      
+      p <- ggplot(dd, aes(days_since_100, confirm, color = country)) +
+        # geom_smooth(method='lm', aes(group=1),
+        #            data = . %>% filter(!country %in% c("China", "Japan", "Singapore")), 
+        #             color='grey10', linetype='dashed') +
+        geom_line(size = 0.8) +
+        geom_point(pch = 21, size = 1) +
+        scale_y_log10(expand = expansion(add = c(0,0.1)), 
+                      breaks = breaks, labels = breaks) +
+        scale_x_continuous(expand = expansion(add = c(0,1))) +
+        theme_gray(base_size = 12) +
+        theme(
+          panel.grid.minor = element_blank(),
+         # legend.position = "none",
+         legend.spacing.y = unit(0.2, 'cm'),
+          #plot.margin = margin(3,15,3,3,"mm")
+        ) +
+        coord_cartesian(clip = "off") +
+        geom_shadowtext(aes(label = paste0(" ",country)), hjust=0, vjust = 0, 
+                        data = . %>% group_by(country) %>% top_n(1, days_since_100), 
+                        bg.color = "white") +
+        labs(x = "Number of days since 100th case", y = "", 
+             subtitle = paste0("Confirmed COVID-19 cases as of ", xgithub$time) ) #+
+        #xlim(c(0,25))
+      
+      ggplotly(p, tooltip = c("y", "x","country")) %>% 
+        layout( width = plotWidth)
+      
+    })
+    
+    #世界细节 历史图 -------------------------------------------
+    output$historicalWorldDirect2 <- renderPlot({
+      
+      library(shadowtext)
+      library(conflicted)
+      
+      conflict_prefer("filter", "dplyr")
+      conflict_prefer("layout", "graphics")   
+      
+      d <- xgithub
+      dd <- d['global'] %>% 
+        as_tibble %>%
+        rename(confirm=cum_confirm) %>%
+        filter(confirm > 100) %>%
+         filter(confirm <50000) %>%
+        filter(country != "Diamond Princess") %>%
+        group_by(country) %>%
+        mutate(days_since_100 = as.numeric(time - min(time))) %>%
+        ungroup 
+      
+      breaks=c(100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000)
+      
+      
+      p <- ggplot(dd, aes(days_since_100, confirm, color = country)) +
+        # geom_smooth(method='lm', aes(group=1),
+        #            data = . %>% filter(!country %in% c("China", "Japan", "Singapore")), 
+        #             color='grey10', linetype='dashed') +
+        geom_line(size = 0.8) +
+        geom_point(pch = 21, size = 1) +
+        scale_y_log10(expand = expansion(add = c(0,0.1)), 
+                      breaks = breaks, labels = breaks) +
+        scale_x_continuous(expand = expansion(add = c(0,1))) +
+        theme_gray(base_size = 14) +
+        theme(
+          panel.grid.minor = element_blank(),
+           legend.position = "none",
+          #legend.spacing.y = unit(0.2, 'cm'),
+          #plot.margin = margin(3,15,3,3,"mm")
+        ) +
+        coord_cartesian(clip = "off") +
+        geom_shadowtext(aes(label = paste0(" ",country)), hjust=0, vjust = 0, 
+                        data = . %>% group_by(country) %>% top_n(1, days_since_100), 
+                        bg.color = "white") +
+        labs(x = "Number of days since 100th case", y = "", 
+             subtitle = paste0("Confirmed COVID-19 cases as of ", xgithub$time, " (static version)") ) +
+      xlim(c(0,25))
+      
+      p
+      
+    }, width = plotWidth - 100)
+    
+    
     
 
 }

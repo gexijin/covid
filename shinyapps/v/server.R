@@ -39,7 +39,11 @@ function(input, output, session) {
                 geom_text_repel(aes(label=province),  family="SimSun",data=d2[d2$time == time(x), ], hjust=1) +
                 theme_gray(base_size = 14) + theme(legend.position='none') +
                 xlab(NULL) + ylab(NULL) + 
-                ggtitle(paste( z(entireCountry),  z("湖北以外"),  xgithub$time ) )         
+                ggtitle(paste( z(entireCountry),  z("湖北以外"),  xgithub$time ) ) +
+                geom_vline(xintercept= as.Date("2020-1-23"), 
+                           linetype = "dashed", color = "red", size = 1) +
+                 annotate(geom="text", x=as.Date("2020-1-24"), y=1000, label=z("1月23号封城"),
+                       color="black", hjust = 0)
 
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -343,7 +347,11 @@ function(input, output, session) {
             theme_gray(base_size = 14) + #theme(legend.position='none') +
             xlab(NULL) + ylab(NULL)  +
             theme(legend.title = element_blank()) +
-            theme(plot.title = element_text(size = 11))
+            theme(plot.title = element_text(size = 11)) +
+            geom_vline(xintercept= as.Date("2020-1-23"), 
+                   linetype = "dashed", color = "red", size = 1) +
+            annotate(geom="text", x=as.Date("2020-1-24"), y=60000, label=z("1月23号封城"),
+                   color="black", hjust = 0.5)
 
             p <- p + ggtitle(paste( z("全国总数"),  x$time) ) 
         

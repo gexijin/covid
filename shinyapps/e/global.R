@@ -413,6 +413,7 @@ myDic = matrix( c(
   "天后确诊 ", " days later confirmed cases in ",
   "死亡率(%)","Gross Death Rate (%)",
   "中国详细预测", "Detailed forecast on Chinese cases",
+  "1月23号封城","Lockdown on 1/23",
   
   "last", "last"
 ),nrow=2)

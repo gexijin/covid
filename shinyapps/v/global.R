@@ -414,8 +414,8 @@ myDic = matrix( c(
   "死亡率(%)","Gross Death Rate (%)",
   "中国详细预测", "Detailed forecast on Chinese cases",
   "封城","Lockdown",
-  "1月23日","Feb. 23",  
-  "1月23号封城", "Feb. 23 Lockdown",
+  "1月23日","Jan. 23",  
+  "1月23号封城", "Jan. 23 Lockdown",
   "last", "last"
 ),nrow=2)
 # make a vector value is English, Name is chinese

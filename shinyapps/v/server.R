@@ -42,7 +42,9 @@ function(input, output, session) {
                 ggtitle(paste( z(entireCountry),  z("湖北以外"),  xgithub$time ) ) +
                 geom_vline(xintercept= as.Date("2020-1-23"), 
                            linetype = "dashed", color = "red", size = 1) +
-                 annotate(geom="text", x=as.Date("2020-1-24"), y=1000, label=z("1月23号封城"),
+                annotate(geom="text", x=as.Date("2020-1-24"), y=1000, label=z("封城"),
+                       color="black", hjust = 0) +
+                annotate(geom="text", x=as.Date("2020-1-24"), y=800, label=z("1月23日"),
                        color="black", hjust = 0)
 
         if(input$logScale) 

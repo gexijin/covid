@@ -8,7 +8,7 @@
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")
 
-
+npMax <- 21  # only use last 3 weeks of data for forecast
 plotWidth = 800
 
 #--------------English version or Chinese version
@@ -449,3 +449,5 @@ provinceNamesList <- setNames(provinceNames, z2(provinceNames) )
 
 if(packageVersion("ggplot2") <= "3.3.0")
   expansion <- ggplot2::expand_scale
+
+legends <- readLines("narrated.txt")

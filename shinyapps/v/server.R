@@ -643,6 +643,10 @@ function(input, output, session) {
         if(nRep > 3) 
           d2 <- d2[-(1:(nRep-3)),]
         
+        np <- nrow(d2) # number of time points
+        if(np > npMax)
+          d2 <- d2[(np-npMax+1):np,]
+        
         par(mar = c(4, 3, 0, 2))
         # missing data with average of neighbors
         d2$confirm<- meanImput(d2$confirm, 2)
@@ -652,7 +656,7 @@ function(input, output, session) {
         forecasted <- forecast(ets(confirm), input$daysForcasted)
         plot(forecasted, xaxt="n", main="", 
              ylab = z("全国确诊"),
-             xlab = paste0(z("预期"), input$daysForcasted, z("天后确诊 "),input$selectCountry, " ", round(forecasted$mean[input$daysForcasted],0), z(", 区间["),
+             xlab = paste0(gsub("2020-","", xgithub$time), " ", z("预期"), input$daysForcasted, z("天后确诊 "),input$selectCountry, " ", round(forecasted$mean[input$daysForcasted],0), z(", 区间["),
                            round(forecasted$lower[input$daysForcasted],0), "-",round(forecasted$upper[input$daysForcasted],0),"]")            
         )
         a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
@@ -666,7 +670,10 @@ function(input, output, session) {
         par(mar = c(4, 3, 0, 2)) 
         # missing data with average of neighbors
         d2$confirm<- meanImput(d2$confirm, 2)
-        d2 <- d2[-(1:20), ] # remove the first 10 days as % change is huge
+        
+        np <- nrow(d2) # number of time points
+        if(np > npMax)
+          d2 <- d2[(np-npMax+1):np,]
         
         confirm <- ts(diff(d2$confirm)/(10 + d2$confirm[1:(nrow(d2)-1)])*100, # percent change
                         start = c(year(min(d2$time)), yday(min(d2$time)) + 1 ), frequency=365  )
@@ -690,6 +697,10 @@ function(input, output, session) {
         # missing data with average of neighbors
         d2$confirm<- meanImput(d2$confirm, 2)
         
+        np <- nrow(d2) # number of time points
+        if(np > npMax)
+          d2 <- d2[(np-npMax+1):np,]
+        
         confirm <- ts(d2$confirm, # percent change
                         start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
         forecasted <- forecast(ets(confirm), input$daysForcasted)
@@ -710,7 +721,9 @@ function(input, output, session) {
         # missing data with average of neighbors
         d2$dead <- meanImput(d2$dead, 2)
         
-        d2 <- d2[-(1:20), ] # remove the first 10 days as % change is huge
+        np <- nrow(d2) # number of time points
+        if(np > npMax)
+          d2 <- d2[(np-npMax+1):np,]
         
         # Note that 5 is added to the denominator for stablize the %
         dead <- ts(diff(d2$dead)/(5 + d2$dead[1:(nrow(d2)-1)])*100, # percent change
@@ -737,6 +750,10 @@ function(input, output, session) {
         par(mar = c(4, 3, 0, 2))        
         # missing data with average of neighbors
         d2$dead <- meanImput(d2$dead, 2)
+        
+        np <- nrow(d2) # number of time points
+        if(np > npMax)
+          d2 <- d2[(np-npMax+1):np,]
         
         deaded <- ts(d2$dead, # percent change
                      start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )

@@ -28,19 +28,25 @@ ui <- fluidPage(
     
     #,plotlyOutput("historicalChinaDataPlotly")
     ,img(src='ChinaMapAnimated2.gif', align = "center",width="600", height="600")
+     ,h5(legends[1])
      ,br(),br()
     ,plotOutput("realTimeProvinceConfirmed")
-    ,br()
+     ,h5(legends[2])
+     ,br()
     ,plotlyOutput("historicalChinaData")
+    ,h5(legends[3])
      ,br()
     ,plotlyOutput("historicalChinaDataAdd")
+     ,h5(legends[4])
     ,br()
     ,plotOutput("confirmedByProvincesHistorical")    
+    ,h5(legends[5])
     , br()
     ,plotlyOutput("deathRatesCities")
+    ,h5(legends[6])
     ,br()
     ,plotlyOutput("deathRatesCitiesCountries")
-
+    ,h5(legends[7])
 
   
 
@@ -83,14 +89,19 @@ ui <- fluidPage(
     
     ,tabPanel(z("世界")
               ,plotOutput("realTimeCityConfirmedWorld")
+              ,h5(legends[8])
               ,br()
               ,plotlyOutput("historicalWorld")
+              ,h5(legends[9])
               ,br()
               ,plotlyOutput("historicalWorldDirect")
+              ,h5(legends[10])
               ,br()
               ,plotOutput("historicalWorldDirect2")
+              ,h5(legends[11])
               ,br()
               ,plotlyOutput("WorldDeathRate")
+              ,h5(legends[12])
               ,br()
               ,plotOutput("worldMap")            
               

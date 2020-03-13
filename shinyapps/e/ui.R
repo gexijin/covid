@@ -173,6 +173,7 @@ ui <- fluidPage(
     ,h5("2/9/20 Version 0.2 ")
     ,h5("2/12/20 V 0.3 English version")
     ,h5("2/23/20 v. 0.4 Interactive plots.")
+    ,h5("3/12/20 v. 0.5 Historical trend among countries.")
     )
   )
     ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics      

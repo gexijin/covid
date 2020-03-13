@@ -445,3 +445,5 @@ z2 <- function (ChineseNames)
 }
 provinceNamesList <- setNames(provinceNames, z2(provinceNames) )
 
+if(packageVersion("ggplot2") <= "3.3.0")
+  expansion <- ggplot2::expand_scale

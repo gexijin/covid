@@ -174,8 +174,9 @@ function(input, output, session) {
         ggtitle(deathRate) +
         theme(plot.title = element_text(size = 10))
       
-      ggplotly(p, tooltip = c("y", "x","text")) %>% 
-        layout( width = plotWidth)
+     # ggplotly(p, tooltip = c("y", "x","text") ) %>% 
+    #    layout( width = plotWidth)
+      ggplotly(p, tooltip = c("y", "x","text"),width = plotWidth )
       
     } ) 
     
@@ -215,8 +216,7 @@ function(input, output, session) {
       theme(legend.position = "none")
       
 
-      ggplotly(p, tooltip = c("y", "x")) %>% 
-        layout( width = plotWidth - 100)
+      ggplotly(p, tooltip = c("y", "x"), width = plotWidth - 100) 
       
     } ) 
     
@@ -242,9 +242,7 @@ function(input, output, session) {
         theme(legend.position = "none")
       
       
-      ggplotly(p, tooltip = c("y", "x", "text")) %>% 
-        layout( width = plotWidth - 100)
-      
+      ggplotly(p, tooltip = c("y", "x", "text"), width = plotWidth - 100)
       
 
       
@@ -324,8 +322,7 @@ function(input, output, session) {
       if(input$logScale) 
         p <- p + scale_y_log10() 
       
-      ggplotly(p, tooltip = c("y", "x","country")) %>% 
-        layout( width = plotWidth)
+      ggplotly(p, tooltip = c("y", "x","country"), width = plotWidth) 
       
     })
 
@@ -352,8 +349,7 @@ function(input, output, session) {
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth) 
         
     })
     
@@ -385,8 +381,7 @@ function(input, output, session) {
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth) 
         
     })
 
@@ -423,8 +418,7 @@ function(input, output, session) {
       
       if(input$logScale) 
         p <- p + scale_y_log10() 
-      ggplotly(p, tooltip = c("y", "x")) %>% 
-        layout( width = plotWidth)
+      ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
       
     })    
     
@@ -472,8 +466,7 @@ function(input, output, session) {
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
         
     })
     
@@ -513,8 +506,7 @@ function(input, output, session) {
         if(input$logScale) 
             p <- p + scale_y_log10() 
         
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
         
     })
             
@@ -549,8 +541,7 @@ function(input, output, session) {
         if(input$logScale) 
             p <- p + scale_y_log10() 
             
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
         
     })
     
@@ -596,9 +587,7 @@ function(input, output, session) {
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
-        
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth) 
     })
 
     
@@ -628,8 +617,7 @@ function(input, output, session) {
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x"))%>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
         
     })
     
@@ -870,8 +858,7 @@ function(input, output, session) {
              subtitle = paste0("Confirmed COVID-19 cases as of ", xgithub$time) ) #+
         #xlim(c(0,25))
       
-      ggplotly(p, tooltip = c("y", "x","country")) %>% 
-        layout( width = plotWidth)
+      ggplotly(p, tooltip = c("y", "x","country"), width = plotWidth) 
       
     })
     
@@ -924,7 +911,7 @@ function(input, output, session) {
       
       p
       
-    }, width = plotWidth - 100)
+    }, width = plotWidth - 100 )
     
     
     

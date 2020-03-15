@@ -178,7 +178,17 @@ contriesPrediction <- xgithub$global %>%
   filter(  country %in%  names(tem)[tem > 20]    ) %>% # only keep contries with 20 more data points.
   filter(  country %in%  tem2   ) %>%  # at least 20 cases
   filter (time > as.Date("2020-2-1")) %>%
-  rename(dead = cum_dead, confirm = cum_confirm, heal = cum_heal)
+  rename(dead = cum_dead, confirm = cum_confirm, heal = cum_heal) %>% 
+  arrange(country, time)
+
+
+countryNames <- contriesPrediction %>% 
+  arrange(country, desc(confirm) ) %>%
+  group_by(country) %>%
+  filter(row_number() ==1) %>%
+  arrange(desc(confirm)) %>% 
+  pull(country)
+
 
 
 # current statistcs of different countries based on data from Github
@@ -339,6 +349,7 @@ myDic = matrix( c(
   "预测", "Forecast",
   
   "确诊", "Confirmed",
+  "确诊人数", "Confirmed cases",
   "死亡", "Death",
   "痊愈", "Discharged",
   
@@ -346,7 +357,7 @@ myDic = matrix( c(
   ",   疑似:",  ",   suspected:",
   ",   死亡:",  ",   death:",
   ",   痊愈:", ",   discharaged:", 
-  "一天之内数字会有多次更新。", "Updated serveral times a day. May not be final count for the day.",
+  "一天之内数字会有多次更新。", "New cases may not be final count for the day. Not optimized for mobile phones.",
   "01月", "Jan.",
   "02月", "Feb.",
   "03月", "March",
@@ -364,7 +375,7 @@ myDic = matrix( c(
   "北京时间", "Beijing time",
   "所有的图对数坐标 log10", "log10 scale for all plots",
   "(稍等几秒钟，地图下载)。", "Downloading map......",
-  "选择预测天数", "Choose how many days to forecast",
+  "选择预测天数", "Choose # of days to forecast from ",
   "简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。",
        "We used a simple time series data forecasting model provided by the forecast package in R and the exponential smoothing method. We did not do rigrious testing of the models.",
 
@@ -391,7 +402,8 @@ myDic = matrix( c(
   "预期", "Prediction:",
   "全国确诊", "Total confirmed cases in China",
   "天后全国确诊 ", " days later, total confirmed in China will be ",
-  "预期全国确诊每天增加", "Predicted % daily increase/decrease  ",
+  "预期全国确诊每天增加", "Predicted % daily increase  ",
+  "确诊增加百分比(%)", " % daily increase  ",
   ", 区间[", ", 95% CI [",
   "死亡人数增加百分比(%)","% increase in death",
   "预期全国死亡累计每天增加", "Predicted % daily increase in death",
@@ -416,6 +428,7 @@ myDic = matrix( c(
   "封城","Lockdown",
   "1月23日","Jan. 23",  
   "1月23号封城", "Jan. 23 Lockdown",
+  "各国死亡人数", "COVID-19 Deaths",
   "last", "last"
 ),nrow=2)
 # make a vector value is English, Name is chinese

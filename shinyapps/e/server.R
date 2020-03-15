@@ -323,7 +323,47 @@ function(input, output, session) {
         theme_gray(base_size = 12) + #theme(legend.position='none') +
         xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
         ggtitle (z("其他国家感染人数")) +
-        theme(plot.title = element_text(size = 12))
+        theme(plot.title = element_text(size = 12)) + 
+        theme(legend.title = element_blank()) + 
+        theme(legend.text=element_text(size=9))   
+        #+guides(shape = guide_legend(override.aes = list(size = 2)))
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      
+      ggplotly(p, tooltip = c("y", "x","country"), width = plotWidth) 
+      
+    })
+    
+    
+    #Deaths across the world -------------------------------------------
+    output$historicalWorldDead <- renderPlotly({
+      
+      tem <- table(xgithub$global$country)
+      
+      tem2 <- xgithub$global %>%
+        group_by(country) %>%
+        summarise(max = max(cum_dead)) %>%
+        filter(max > 20) %>%
+        pull(country)
+      
+        
+      d <- xgithub$global %>%
+        #filter(country !=z('中国')) %>%
+        filter(  country %in%  names(tem)[tem > 10]    ) %>% # only keep contries with 20 more data points.
+        filter(  country %in%  tem2   ) %>%  # at least 20 cases
+        filter (time > as.Date("2020-2-1"))
+      
+      p <- ggplot(d,
+                  aes(time, cum_dead, group=country, color=country)) +
+        geom_point() + geom_line() +
+        geom_text_repel(aes(label=country), data=d[d$time == time(x), ], hjust=1) +
+        theme_gray(base_size = 12) + #theme(legend.position='none') +
+        xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
+        ggtitle (z("各国死亡人数")) +
+        theme(plot.title = element_text(size = 12)) + 
+        theme(legend.title = element_blank()) + 
+        theme(legend.text=element_text(size=9)) 
       
       if(input$logScale) 
         p <- p + scale_y_log10() 
@@ -647,22 +687,108 @@ function(input, output, session) {
         if(np > npMax)
           d2 <- d2[(np-npMax+1):np,]
         
-        par(mar = c(4, 3, 0, 2))
+        par(mar = c(4, 4, 0, 2))
         # missing data with average of neighbors
         d2$confirm<- meanImput(d2$confirm, 2)
         
         confirm <- ts(d2$confirm, # percent change
                       start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
-        forecasted <- forecast(ets(confirm), input$daysForcasted)
+        forecasted <- forecast(ets(confirm, model="AAN", damped=FALSE), input$daysForcasted)
         plot(forecasted, xaxt="n", main="", 
-             ylab = z("全国确诊"),
-             xlab = paste0(gsub("2020-","", xgithub$time), " ", z("预期"), input$daysForcasted, z("天后确诊 "),input$selectCountry, " ", round(forecasted$mean[input$daysForcasted],0), z(", 区间["),
-                           round(forecasted$lower[input$daysForcasted],0), "-",round(forecasted$upper[input$daysForcasted],0),"]")            
+             ylab = z("确诊人数"),
+             xlab = paste0(input$selectCountry, 
+                           " is expected to have ",
+                           round(forecasted$mean[input$daysForcasted],0), 
+                           " confirmed cases by ", 
+                           format( as.Date(xgithub$time) + input$daysForcasted, "%b %d"  ),  
+                           z(". 95% CI ["),
+                           round(forecasted$lower[input$daysForcasted],0), "-",
+                           round(forecasted$upper[input$daysForcasted],0),"]."
+                           )            
         )
         a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
         axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
       }, width = plotWidth - 100 ) 
     
+    #世界 各国确诊人数预测, 百分比预测-------------------------------------------      
+    output$forecastConfirmedChangeWP <- renderPlot ({
+      d2 <- contriesPrediction %>%
+        arrange(time) %>%
+        filter( country == input$selectCountry)
+      nRep = sum( d2$confirm == d2$confirm[2]) 
+      if(nRep > 3) 
+        d2 <- d2[-(1:(nRep-3)),]
+      
+      np <- nrow(d2) # number of time points
+      if(np > npMax)
+        d2 <- d2[(np-npMax+1):np,]
+      
+      par(mar = c(4, 4, 0, 2)) 
+      # missing data with average of neighbors
+      d2$confirm<- meanImput(d2$confirm, 2)
+      
+      np <- nrow(d2) # number of time points
+      if(np > npMax)
+        d2 <- d2[(np-npMax+1):np,]
+      
+      confirm <- ts(diff(d2$confirm)/(10 + d2$confirm[1:(nrow(d2)-1)])*100, # percent change
+                    start = c(year(min(d2$time)), yday(min(d2$time)) + 1 ), frequency=365  )
+      
+      forecasted <- forecast(ets(confirm), input$daysForcasted)
+      
+      predictedNconfirm = d2$confirm[nrow(d2)]* increasesByPercentages(forecasted$mean)       
+      plot(forecasted, xaxt="n", main="", 
+           ylab = z("确诊增加百分比(%)"),
+           xlab = paste0("Total cases in ", input$selectCountry, 
+                         " is expected to increase by ", 
+                         round( mean( forecasted$mean ), 1 ),"% on average daily, reaching ", 
+                         round(predictedNconfirm,0), " by ",
+                         format( as.Date(xgithub$time) + input$daysForcasted, "%b %d"  ), "." 
+                         )            
+      )
+      a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
+      axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
+    }, width = plotWidth - 100 )
+    
+    #世界 各国确诊人数预测, 预测-------------------------------------------    
+    
+    output$forecastConfirmedChangeWorldDeath <- renderPlot ({
+      d2 <- contriesPrediction %>%
+        arrange(time) %>%
+        filter( country == input$selectCountry)
+      nRep = sum( d2$dead == d2$dead[2]) 
+      if(nRep > 3) 
+        d2 <- d2[-(1:(nRep-3)),]
+      
+      np <- nrow(d2) # number of time points
+      if(np > npMax)
+        d2 <- d2[(np-npMax+1):np,]
+      
+    #  if(sum( d2$dead > 5) <10)
+     #   return(NULL)
+      
+      par(mar = c(4, 4, 0, 2))
+      # missing data with average of neighbors
+      d2$confirm<- meanImput(d2$dead, 2)
+      
+      confirm <- ts(d2$dead, # percent change
+                    start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
+      forecasted <- forecast(ets(confirm, model="AAN", damped=FALSE), input$daysForcasted)
+      plot(forecasted, xaxt="n", main="", 
+           ylab = z("COVID-19 Deaths"),
+           xlab = paste0(input$selectCountry, 
+                         " is expected to have ",
+                         round(forecasted$mean[input$daysForcasted],0), 
+                         "  deaths by ", 
+                         format( as.Date(xgithub$time) + input$daysForcasted, "%b %d"  ),  
+                         z(". 95% CI ["),
+                         round(forecasted$lower[input$daysForcasted],0), "-",
+                         round(forecasted$upper[input$daysForcasted],0),"]."
+           )            
+      )
+      a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
+      axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
+    }, width = plotWidth - 100 )  
     
     #全国确诊人数预测, 百分比预测-------------------------------------------    
     output$forecastConfirmedChange <- renderPlot ({
@@ -775,7 +901,7 @@ function(input, output, session) {
              continuous_scale=FALSE,
              palette='Blues')
         })
-    }, height = 800, width = 800)  
+    }, height = 1400, width = 1400)  
 
     #中国地图---------------------------------------------------
     output$ChinaMap <- renderPlot ({
@@ -881,8 +1007,10 @@ function(input, output, session) {
         geom_shadowtext(aes(label = paste0(" ",country)), hjust=0, vjust = 0, 
                         data = . %>% group_by(country) %>% top_n(1, days_since_100), 
                         bg.color = "white") +
-        labs(x = "Number of days since 100th case", y = "", 
-             subtitle = paste0("Confirmed COVID-19 cases as of ", xgithub$time) ) #+
+        labs(x = "Number of days since 100th case", y = "" ) + 
+        ggtitle (paste0("Confirmed COVID-19 cases as of ", xgithub$time) ) +
+        theme(plot.title = element_text(size = 10)) + 
+        theme(legend.title = element_blank()) #+
         #xlim(c(0,25))
       
       ggplotly(p, tooltip = c("y", "x","country"), width = plotWidth) 

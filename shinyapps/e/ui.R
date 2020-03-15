@@ -6,7 +6,7 @@ library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 # Define server logic required to draw a histogram
 ui <- fluidPage(
-  titlePanel(z("疫情统计和预测")),
+  titlePanel(paste0(z("疫情统计和预测")," v0.6")),
   tabsetPanel(
     tabPanel(z("全国")
     ,h4( paste0( 
@@ -19,6 +19,7 @@ ui <- fluidPage(
     ,h5(    z("更新"), "     ", z( paste0( gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
             gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日"),"  ", z("北京时间"), "  ", gsub(".* ","", y$lastUpdateTime),". ",
             z("一天之内数字会有多次更新。") )
+    
 
     ,fluidRow( 
       column(6, checkboxInput("logScale", z("所有的图对数坐标 log10"), value = FALSE) )
@@ -90,51 +91,42 @@ ui <- fluidPage(
     ,tabPanel(z("世界")
               ,plotOutput("realTimeCityConfirmedWorld")
               ,h5(legends[8])
-              ,br()
+              ,br(),br()
               ,plotlyOutput("historicalWorld")
               ,h5(legends[9])
-              ,br()
-              ,plotlyOutput("historicalWorldDirect")
+              ,br(),br()
+              ,plotlyOutput("historicalWorldDead")
               ,h5(legends[10])
-              ,br()
-              ,plotOutput("historicalWorldDirect2")
+              ,br(),br()
+              ,plotlyOutput("historicalWorldDirect")
               ,h5(legends[11])
-              ,br()
-              ,plotlyOutput("WorldDeathRate")
+              ,br(),br()
+              ,plotOutput("historicalWorldDirect2")
               ,h5(legends[12])
               ,br()
+              ,plotlyOutput("WorldDeathRate")
+              ,h5(legends[13])
+              ,br(),br()
+              ,h4("Scroll down to see world map.")
               ,plotOutput("worldMap")            
               
               )#tab2 --------------------------------------------------
     
     ,tabPanel(z("预测") 
-              ,sliderInput("daysForcasted", z("选择预测天数"),
-                             min = 1, max = 7,
-                             value = 10)
-              ,h5(z("简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。") )
-             ,selectInput("selectCountry", NULL, choices = unique(contriesPrediction$country))
+              ,sliderInput("daysForcasted", paste(z("选择预测天数"), gsub("2020-","", xgithub$time)),
+                             min = 1, max = 14,
+                             value = 7)
+             ,selectInput("selectCountry", NULL, choices = countryNames, selected= countryNames[2])
+             
              ,plotOutput("forecastConfirmedChangeWorld")
+             ,h5(legends[14])
              ,br(),br()
-             
-             ,h4(z("中国详细预测"))
-              
-             ,h5(z("先直接用全国的确诊总数的时间序列："))
-             ,plotOutput("forecastConfirmedRaw")
-             ,br()   
-             ,br() 
-             ,h5(z("把全国的确诊总数先换算成了每天比前一天增加的百分比，
-                 去除了前面10天不稳定的数据, 再预测："))
-             ,plotOutput("forecastConfirmedChange")
-             ,br()
-             ,br()
-             ,h5(z("直接用全国的死亡累计数预测："))
-             ,plotOutput("forecastDeadRaw")
-             ,br()
-             
-             ,br()
-             ,h5(z("把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：") )
-             ,plotOutput("forecastDeadChange")
-             ,br(),br()
+             ,plotOutput("forecastConfirmedChangeWP")
+             ,h5(legends[15])
+             ,br(),br()     
+             ,plotOutput("forecastConfirmedChangeWorldDeath")
+             ,h5(legends[16])
+             ,br(),br() 
 
              
 
@@ -185,6 +177,7 @@ ui <- fluidPage(
     ,h5("2/12/20 V 0.3 English version")
     ,h5("2/23/20 v. 0.4 Interactive plots.")
     ,h5("3/12/20 v. 0.5 Historical trend among countries.")
+    ,h5("3/15/20 V. 0.6 Changed forecasting parameters from default to ANN.")
     )
   )
     ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics      

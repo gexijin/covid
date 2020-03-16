@@ -9,4 +9,4 @@ install.packages("conflicted")
 # Get version 3.3.0 for ggplot2
 install.packages("ggplot2", repos = "http://cran.us.r-project.org")
 remotes::install_github("RamiKrispin/coronavirus")
-install.package("maps")
+install.packages("maps")

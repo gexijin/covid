@@ -140,217 +140,6 @@ ChinaHistory <- x$data %>%
 #  select( -country) %>%
 #  rename( confirm = cum_confirm, heal = cum_heal, dead = cum_dead)
 
-z <- function (ChineseName) {
-  # translate chinese Names and menu items to English
-  # it Uses a dictionary above
-  if(!isEnglish) { 
-    return(ChineseName) 
-  } else {
-    translated <- myDic2[ChineseName]
-    if(is.na(translated)) 
-      return( ChineseName ) else
-        return(translated)
-  }
-}
-
-z2 <- function (ChineseNames) 
-  # Translate a vector of Chinese strings into English
-  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
-{
-  if(!isEnglish) { 
-    return(ChineseNames) 
-  } else {
-    unlist( lapply(as.character( ChineseNames ), z) )
-  }
-}
-
-tem <- table(xgithub$global$country)
-tem2 <- xgithub$global %>%
-  group_by(country) %>%
-  summarise(max = max(cum_confirm)) %>% 
-  arrange(desc(max)) %>%
-  filter(max > 30) %>%
-  pull(country)
-
-contriesPrediction <- xgithub$global %>%
-  #filter(country !='中国') %>%
-  #filter(country !='China') %>%
-  filter(  country %in%  names(tem)[tem > 20]    ) %>% # only keep contries with 20 more data points.
-  filter(  country %in%  tem2   ) %>%  # at least 20 cases
-  filter (time > as.Date("2020-2-1")) %>%
-  rename(dead = cum_dead, confirm = cum_confirm, heal = cum_heal) %>% 
-  arrange(country, time)
-
-
-countryNames <- contriesPrediction %>% 
-  arrange(country, desc(confirm) ) %>%
-  group_by(country) %>%
-  filter(row_number() ==1) %>%
-  arrange(desc(confirm)) %>% 
-  pull(country)
-
-
-
-# current statistcs of different countries based on data from Github
-worldCurrent <- xgithub$global %>%
-  arrange(country, desc(time)) %>%
-  group_by(country) %>%
-  filter(row_number() ==1) %>%
-  arrange( desc(cum_confirm)) %>%
-  rename(name = country, dead = cum_dead, confirm = cum_confirm, heal = cum_heal) %>%
-  as.data.frame()
-
-
-
-
-# missing data imput using the mean of n neighboring data points on both sides
-# if n = 1, then two neighbors, if n=2 then 2 neighbors on both sides
-meanImput <- function (x, n = 2) { 
-  ix <- is.na(x)
-  x2 <- x
-  for( ixx in which(ix)) {
-    start <- ixx-n;
-    if(start < 1) 
-      start <- 1;
-    end <- ixx + n;
-    if(start > length(x)) 
-      start <- length(x);  
-    x2[ixx] <- mean( x[ start:end], na.rm = T  ) }
-  return( x2 )
-}
-
-#Given a set of percentage increase or decrease, calculate final
-# not 10% is represented as 10, not 0.1
-increasesByPercentages <- function(x ) {
-  increase = 1;
-  for (i in 1:length(x))
-    increase <- increase * (1 + x[i]/100)
-  increase
-}
-
-
-finc <- function(x) {
-  # format increases
-  # convert 235 -> "+235"
-  #         -235 -> "-235"
-  if(x > 0) {
-    return( paste0("+",x) )
-  } else{
-    return( as.character(x) )
-  } 
-}
-#  Below come from #https://shiny.rstudio.com/gallery/unicode-characters.html
-# for displaying Chinese characters
-# Cairo包的PNG设备似乎无法显示中文字符，强制使用R自身的png()设备
-options(shiny.usecairo = FALSE)
-
-# 请忽略以下代码，它只是为了解决ShinyApps上没有中文字体的问题
-font_home <- function(path = '') file.path('~', '.fonts', path)
-if (Sys.info()[['sysname']] == 'Linux' &&
-      system('locate wqy-zenhei.ttc') != 0 &&
-      !file.exists(font_home('wqy-zenhei.ttc'))) {
-  if (!file.exists('wqy-zenhei.ttc'))
-    curl::curl_download(
-      'https://github.com/rstudio/shiny-examples/releases/download/v0.10.1/wqy-zenhei.ttc',
-      'wqy-zenhei.ttc'
-    )
-  dir.create(font_home())
-  file.copy('wqy-zenhei.ttc', font_home())
-  system2('fc-cache', paste('-f', font_home()))
-}
-rm(font_home)
-
-
-if (.Platform$OS.type == "windows") {
-  if (!grepl("Chinese", Sys.getlocale())) {
-    warning(
-      "You probably want Chinese locale on Windows for this app",
-      "to render correctly. See ",
-      "https://github.com/rstudio/shiny/issues/1053#issuecomment-167011937"
-    )
-  }
-}
-
-
-
-# make a vector value is English, Name is chinese
-myDic2 <- myDic[2,]
-names(myDic2) <- myDic[1,]
-
-z <- function (ChineseName) {
-  # translate chinese Names and menu items to English
-  # it Uses a dictionary above
-  if(!isEnglish) { 
-    return(ChineseName) 
-  } else {
-    translated <- myDic2[ChineseName]
-    if(is.na(translated)) 
-      return( ChineseName ) else
-        return(translated)
-  }
-}
-
-z2 <- function (ChineseNames) 
-  # Translate a vector of Chinese strings into English
-  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
-{
-  if(!isEnglish) { 
-    return(ChineseNames) 
-  } else {
-    unlist( lapply(as.character( ChineseNames ), z) )
-  }
-}
-provinceNamesList <- setNames(provinceNames, z2(provinceNames) )
-
-if(packageVersion("ggplot2") <= "3.3.0")
-  expansion <- ggplot2::expand_scale
-
-legends <- readLines("narrated.txt")
-
-
-#----------US data based on https://github.com/RamiKrispin/coronavirus
-library(coronavirus)
-data("coronavirus")
-
-USdata <- coronavirus %>%
-  filter(Country.Region == "US") %>%
-  spread(type, cases) %>% # convert from long to wide format
-  arrange(Province.State, date) %>%
-  rename(province = Province.State, 
-         country = Country.Region,
-         time = date,
-         confirm = confirmed,
-         dead = death,
-         heal = recovered)
-
-rm(coronavirus)
-
-#Note that this data records new cases every day.
-UScurrent<- USdata %>% 
-  group_by(province) %>%
-  summarise(confirm = sum(confirm), 
-            dead = sum(dead), 
-            head = sum(heal),
-            time = max(time)) %>% 
-  filter(province != "Diamond Princess") %>%
-  arrange(desc(confirm))
-
-names(state.abb) <- state.name
-
-#convert to cumulative numbers
-UScumulative <- USdata %>% 
-  group_by(province) %>%
-  arrange(time) %>%
-  mutate( confirm = cumsum(confirm),
-          dead = cumsum(dead),
-          heal = cumsum(heal)) %>%
-  ungroup() %>%
-  arrange( province, time)
-
-UScumulative$ab <- state.abb[ UScumulative$province]
-
-rm(USdata)
-
 
 myDic = matrix( c( 
   #---------------------Countries
@@ -512,3 +301,219 @@ myDic = matrix( c(
   "美国", "US",
   "last", "last"
 ),nrow=2)
+
+
+
+
+z <- function (ChineseName) {
+  # translate chinese Names and menu items to English
+  # it Uses a dictionary above
+  if(!isEnglish) { 
+    return(ChineseName) 
+  } else {
+    translated <- myDic2[ChineseName]
+    if(is.na(translated)) 
+      return( ChineseName ) else
+        return(translated)
+  }
+}
+
+z2 <- function (ChineseNames) 
+  # Translate a vector of Chinese strings into English
+  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
+{
+  if(!isEnglish) { 
+    return(ChineseNames) 
+  } else {
+    unlist( lapply(as.character( ChineseNames ), z) )
+  }
+}
+
+tem <- table(xgithub$global$country)
+tem2 <- xgithub$global %>%
+  group_by(country) %>%
+  summarise(max = max(cum_confirm)) %>% 
+  arrange(desc(max)) %>%
+  filter(max > 30) %>%
+  pull(country)
+
+contriesPrediction <- xgithub$global %>%
+  #filter(country !='中国') %>%
+  #filter(country !='China') %>%
+  filter(  country %in%  names(tem)[tem > 20]    ) %>% # only keep contries with 20 more data points.
+  filter(  country %in%  tem2   ) %>%  # at least 20 cases
+  filter (time > as.Date("2020-2-1")) %>%
+  rename(dead = cum_dead, confirm = cum_confirm, heal = cum_heal) %>% 
+  arrange(country, time)
+
+
+countryNames <- contriesPrediction %>% 
+  arrange(country, desc(confirm) ) %>%
+  group_by(country) %>%
+  filter(row_number() ==1) %>%
+  arrange(desc(confirm)) %>% 
+  pull(country)
+
+
+
+# current statistcs of different countries based on data from Github
+worldCurrent <- xgithub$global %>%
+  arrange(country, desc(time)) %>%
+  group_by(country) %>%
+  filter(row_number() ==1) %>%
+  arrange( desc(cum_confirm)) %>%
+  rename(name = country, dead = cum_dead, confirm = cum_confirm, heal = cum_heal) %>%
+  as.data.frame()
+
+
+
+
+# missing data imput using the mean of n neighboring data points on both sides
+# if n = 1, then two neighbors, if n=2 then 2 neighbors on both sides
+meanImput <- function (x, n = 2) { 
+  ix <- is.na(x)
+  x2 <- x
+  for( ixx in which(ix)) {
+    start <- ixx-n;
+    if(start < 1) 
+      start <- 1;
+    end <- ixx + n;
+    if(start > length(x)) 
+      start <- length(x);  
+    x2[ixx] <- mean( x[ start:end], na.rm = T  ) }
+  return( x2 )
+}
+
+#Given a set of percentage increase or decrease, calculate final
+# not 10% is represented as 10, not 0.1
+increasesByPercentages <- function(x ) {
+  increase = 1;
+  for (i in 1:length(x))
+    increase <- increase * (1 + x[i]/100)
+  increase
+}
+
+
+finc <- function(x) {
+  # format increases
+  # convert 235 -> "+235"
+  #         -235 -> "-235"
+  if(x > 0) {
+    return( paste0("+",x) )
+  } else{
+    return( as.character(x) )
+  } 
+}
+#  Below come from #https://shiny.rstudio.com/gallery/unicode-characters.html
+# for displaying Chinese characters
+# Cairo包的PNG设备似乎无法显示中文字符，强制使用R自身的png()设备
+options(shiny.usecairo = FALSE)
+
+
+# 请忽略以下代码，它只是为了解决ShinyApps上没有中文字体的问题
+font_home <- function(path = '') file.path('~', '.fonts', path)
+if (Sys.info()[['sysname']] == 'Linux' &&
+      system('locate wqy-zenhei.ttc') != 0 &&
+      !file.exists(font_home('wqy-zenhei.ttc'))) {
+  if (!file.exists('wqy-zenhei.ttc'))
+    curl::curl_download(
+      'https://github.com/rstudio/shiny-examples/releases/download/v0.10.1/wqy-zenhei.ttc',
+      'wqy-zenhei.ttc'
+    )
+  dir.create(font_home())
+  file.copy('wqy-zenhei.ttc', font_home())
+  system2('fc-cache', paste('-f', font_home()))
+}
+rm(font_home)
+
+
+if (.Platform$OS.type == "windows") {
+  if (!grepl("Chinese", Sys.getlocale())) {
+    warning(
+      "You probably want Chinese locale on Windows for this app",
+      "to render correctly. See ",
+      "https://github.com/rstudio/shiny/issues/1053#issuecomment-167011937"
+    )
+  }
+}
+
+
+
+# make a vector value is English, Name is chinese
+myDic2 <- myDic[2,]
+names(myDic2) <- myDic[1,]
+
+z <- function (ChineseName) {
+  # translate chinese Names and menu items to English
+  # it Uses a dictionary above
+  if(!isEnglish) { 
+    return(ChineseName) 
+  } else {
+    translated <- myDic2[ChineseName]
+    if(is.na(translated)) 
+      return( ChineseName ) else
+        return(translated)
+  }
+}
+
+z2 <- function (ChineseNames) 
+  # Translate a vector of Chinese strings into English
+  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
+{
+  if(!isEnglish) { 
+    return(ChineseNames) 
+  } else {
+    unlist( lapply(as.character( ChineseNames ), z) )
+  }
+}
+provinceNamesList <- setNames(provinceNames, z2(provinceNames) )
+
+if(packageVersion("ggplot2") <= "3.3.0")
+  expansion <- ggplot2::expand_scale
+
+legends <- readLines("narrated.txt")
+
+
+#----------US data based on https://github.com/RamiKrispin/coronavirus
+library(coronavirus)
+data("coronavirus")
+
+USdata <- coronavirus %>%
+  filter(Country.Region == "US") %>%
+  spread(type, cases) %>% # convert from long to wide format
+  arrange(Province.State, date) %>%
+  rename(province = Province.State, 
+         country = Country.Region,
+         time = date,
+         confirm = confirmed,
+         dead = death,
+         heal = recovered)
+
+rm(coronavirus)
+
+#Note that this data records new cases every day.
+UScurrent<- USdata %>% 
+  group_by(province) %>%
+  summarise(confirm = sum(confirm), 
+            dead = sum(dead), 
+            head = sum(heal),
+            time = max(time)) %>% 
+  filter(province != "Diamond Princess") %>%
+  arrange(desc(confirm))
+
+names(state.abb) <- state.name
+
+#convert to cumulative numbers
+UScumulative <- USdata %>% 
+  group_by(province) %>%
+  arrange(time) %>%
+  mutate( confirm = cumsum(confirm),
+          dead = cumsum(dead),
+          heal = cumsum(heal)) %>%
+  ungroup() %>%
+  arrange( province, time)
+
+UScumulative$ab <- state.abb[ UScumulative$province]
+
+rm(USdata)
+

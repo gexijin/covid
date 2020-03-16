@@ -272,6 +272,86 @@ if (.Platform$OS.type == "windows") {
 }
 
 
+
+# make a vector value is English, Name is chinese
+myDic2 <- myDic[2,]
+names(myDic2) <- myDic[1,]
+
+z <- function (ChineseName) {
+  # translate chinese Names and menu items to English
+  # it Uses a dictionary above
+  if(!isEnglish) { 
+    return(ChineseName) 
+  } else {
+    translated <- myDic2[ChineseName]
+    if(is.na(translated)) 
+      return( ChineseName ) else
+        return(translated)
+  }
+}
+
+z2 <- function (ChineseNames) 
+  # Translate a vector of Chinese strings into English
+  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
+{
+  if(!isEnglish) { 
+    return(ChineseNames) 
+  } else {
+    unlist( lapply(as.character( ChineseNames ), z) )
+  }
+}
+provinceNamesList <- setNames(provinceNames, z2(provinceNames) )
+
+if(packageVersion("ggplot2") <= "3.3.0")
+  expansion <- ggplot2::expand_scale
+
+legends <- readLines("narrated.txt")
+
+
+#----------US data based on https://github.com/RamiKrispin/coronavirus
+library(coronavirus)
+data("coronavirus")
+
+USdata <- coronavirus %>%
+  filter(Country.Region == "US") %>%
+  spread(type, cases) %>% # convert from long to wide format
+  arrange(Province.State, date) %>%
+  rename(province = Province.State, 
+         country = Country.Region,
+         time = date,
+         confirm = confirmed,
+         dead = death,
+         heal = recovered)
+
+rm(coronavirus)
+
+#Note that this data records new cases every day.
+UScurrent<- USdata %>% 
+  group_by(province) %>%
+  summarise(confirm = sum(confirm), 
+            dead = sum(dead), 
+            head = sum(heal),
+            time = max(time)) %>% 
+  filter(province != "Diamond Princess") %>%
+  arrange(desc(confirm))
+
+names(state.abb) <- state.name
+
+#convert to cumulative numbers
+UScumulative <- USdata %>% 
+  group_by(province) %>%
+  arrange(time) %>%
+  mutate( confirm = cumsum(confirm),
+          dead = cumsum(dead),
+          heal = cumsum(heal)) %>%
+  ungroup() %>%
+  arrange( province, time)
+
+UScumulative$ab <- state.abb[ UScumulative$province]
+
+rm(USdata)
+
+
 myDic = matrix( c( 
   #---------------------Countries
   "中国", "China",
@@ -337,7 +417,7 @@ myDic = matrix( c(
   "西藏", "Tibet",
   
   #---------------------Menu items
-
+  
   
   "疫情统计和预测", "Coronavirus COVID-19 outbreak statistics and forecast",
   
@@ -377,10 +457,10 @@ myDic = matrix( c(
   "(稍等几秒钟，地图下载)。", "Downloading map......",
   "选择预测天数", "Choose # of days to forecast from ",
   "简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。",
-       "We used a simple time series data forecasting model provided by the forecast package in R and the exponential smoothing method. We did not do rigrious testing of the models.",
-
+  "We used a simple time series data forecasting model provided by the forecast package in R and the exponential smoothing method. We did not do rigrious testing of the models.",
+  
   "先直接用全国的确诊总数的时间序列：", 
-       "First we used the time series of the total confirmed cases in China to forecast:",
+  "First we used the time series of the total confirmed cases in China to forecast:",
   
   "把全国的确诊总数先换算成了每天比前一天增加的百分比，
                  去除了前面10天不稳定的数据, 再预测：",
@@ -389,7 +469,7 @@ myDic = matrix( c(
   "直接用全国的死亡累计数预测：", "Forecasting the total deathes in China directly:",
   
   "把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：",
-     "Forecasting the daily percent increase:",
+  "Forecasting the daily percent increase:",
   
   "各市", "Cities",
   "确诊 (死亡)", "Confirmed (dead)",
@@ -429,38 +509,6 @@ myDic = matrix( c(
   "1月23日","Jan. 23",  
   "1月23号封城", "Jan. 23 Lockdown",
   "各国死亡人数", "COVID-19 Deaths",
+  "美国", "US",
   "last", "last"
 ),nrow=2)
-# make a vector value is English, Name is chinese
-myDic2 <- myDic[2,]
-names(myDic2) <- myDic[1,]
-
-z <- function (ChineseName) {
-  # translate chinese Names and menu items to English
-  # it Uses a dictionary above
-  if(!isEnglish) { 
-    return(ChineseName) 
-  } else {
-    translated <- myDic2[ChineseName]
-    if(is.na(translated)) 
-      return( ChineseName ) else
-        return(translated)
-  }
-}
-
-z2 <- function (ChineseNames) 
-  # Translate a vector of Chinese strings into English
-  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
-{
-  if(!isEnglish) { 
-    return(ChineseNames) 
-  } else {
-    unlist( lapply(as.character( ChineseNames ), z) )
-  }
-}
-provinceNamesList <- setNames(provinceNames, z2(provinceNames) )
-
-if(packageVersion("ggplot2") <= "3.3.0")
-  expansion <- ggplot2::expand_scale
-
-legends <- readLines("narrated.txt")

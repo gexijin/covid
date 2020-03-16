@@ -111,7 +111,32 @@ ui <- fluidPage(
               ,plotOutput("worldMap")            
               
               )#tab2 --------------------------------------------------
-    
+     ,tabPanel(z("美国")
+               ,plotOutput("USCurrent")
+               ,h5(legends[17])
+               ,br(),br() 
+               
+               ,plotOutput("US.state.map")
+               ,h5(legends[18])
+               ,br(),br() 
+               
+               ,plotlyOutput("historicalUS")
+               ,h5(legends[19])
+               ,br(),br() 
+               
+               ,plotOutput("historicalUSDirect2")
+               ,h5(legends[20])
+               ,br(),br() 
+               
+               ,sliderInput("daysForcasted2", paste(z("选择预测天数"), gsub("2020-","", xgithub$time)),
+                            min = 1, max = 14,
+                            value = 7)
+               ,selectInput("selectProvince2", NULL, choices = UScurrent$province)
+               ,plotOutput("forecastUSstates")
+               ,h5(legends[21])
+               ,br(),br() 
+               
+     )
     ,tabPanel(z("预测") 
               ,sliderInput("daysForcasted", paste(z("选择预测天数"), gsub("2020-","", xgithub$time)),
                              min = 1, max = 14,

@@ -140,6 +140,171 @@ ChinaHistory <- x$data %>%
 #  select( -country) %>%
 #  rename( confirm = cum_confirm, heal = cum_heal, dead = cum_dead)
 
+
+myDic = matrix( c( 
+  #---------------------Countries
+  "中国", "China",
+  "日本", "Japan",
+  "新加坡","Singapore" ,
+  "泰国" , "Thailand",
+  "韩国" , "South Korea",
+  "马来西亚", "Malaysia",
+  "德国", "Germany",
+  "越南", "Vietnam",
+  "澳大利亚", "Australia",
+  "美国", "USA",
+  "法国", "France",
+  "英国", "UK",
+  "阿联酋", "UAE",
+  "加拿大", "Canada",
+  "印度" , "India",
+  "菲律宾", "philippines",
+  "意大利", "Italy",
+  "西班牙", "Spain",
+  "俄罗斯", "Russia",
+  "比利时", "Belgium",
+  "斯里兰卡", "Sri Lanka",
+  "瑞典", "Sweden",
+  "柬埔寨", "cambodia",
+  "尼泊尔", "Nepal",
+  "芬兰"  , "Finland",
+  
+  #---------------------Provinces
+  "湖北", "Hubei",
+  "广东", "Guangdong",
+  "浙江", "Zhejiang",
+  "河南", "Henan",
+  "湖南", "Hunan",
+  "安徽", "Anhui",
+  "江西", "Jiangxi",
+  "江苏", "Jiangsu",
+  "山东", "Shandong",
+  "重庆", "Chengqing",
+  "四川", "Sicuan",
+  "黑龙江", "Heilongjiang",
+  "北京", "Beijing",
+  "上海", "Shanghai",
+  "福建", "Fujian",
+  "河北" , "Hebei",
+  "陕西" , "Shangxi",
+  "广西", "Guangxi",
+  "云南", "Yunnan",
+  "海南", "Hainan",
+  "山西", "Shanxi",
+  "贵州", "Guizhou",
+  "辽宁", "Liaoning",
+  "天津", "Tianjin",
+  "甘肃", "Gansu",
+  "吉林", "Jilin",
+  "内蒙古", "Inner Mongolia",
+  "新疆", "Xinjiang",
+  "宁夏", "Ningxia",
+  "香港", "Hong Kong",
+  "台湾", "Taiwan",
+  "青海", "Qinghai",
+  "澳门", "Macau",
+  "西藏", "Tibet",
+  
+  #---------------------Menu items
+  
+  
+  "疫情统计和预测", "Coronavirus COVID-19 outbreak statistics and forecast",
+  
+  "全国", "China",
+  "地图", "Map",
+  "省", "Provinces",
+  "市", "Cities",
+  "世界", "World",
+  "预测", "Forecast",
+  
+  "确诊", "Confirmed",
+  "确诊人数", "Confirmed cases",
+  "死亡", "Death",
+  "痊愈", "Discharged",
+  
+  "全国确诊:", "China total confirmed: ",
+  ",   疑似:",  ",   suspected:",
+  ",   死亡:",  ",   death:",
+  ",   痊愈:", ",   discharaged:", 
+  "一天之内数字会有多次更新。", "New cases may not be final count for the day. Not optimized for mobile phones.",
+  "01月", "Jan.",
+  "02月", "Feb.",
+  "03月", "March",
+  "04月", "April",
+  "05月", "May",
+  "06月", "June",
+  "07月", "July",
+  "08月", "August",
+  "09月", "Sept.",
+  "10月", "Oct.",  
+  "11月", "Nov.", 
+  "12月", "Dec.", 
+  "日", " ",
+  "更新", "Updated",
+  "北京时间", "Beijing time",
+  "所有的图对数坐标 log10", "log10 scale for all plots",
+  "(稍等几秒钟，地图下载)。", "Downloading map......",
+  "选择预测天数", "Choose # of days to forecast from ",
+  "简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。",
+  "We used a simple time series data forecasting model provided by the forecast package in R and the exponential smoothing method. We did not do rigrious testing of the models.",
+  
+  "先直接用全国的确诊总数的时间序列：", 
+  "First we used the time series of the total confirmed cases in China to forecast:",
+  
+  "把全国的确诊总数先换算成了每天比前一天增加的百分比，
+                 去除了前面10天不稳定的数据, 再预测：",
+  "We transformed the data into daily increased percentage, and run the forecast:",
+  
+  "直接用全国的死亡累计数预测：", "Forecasting the total deathes in China directly:",
+  
+  "把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：",
+  "Forecasting the daily percent increase:",
+  
+  "各市", "Cities",
+  "确诊 (死亡)", "Confirmed (dead)",
+  "腾迅", " from Tencent",
+  "世界各国确诊 (死亡)", "Confirmed (dead) in countries outside China",
+  "全国总数", "China total",
+  "全国每日新增百分比", "% daily increases in China",
+  "总数", "Total",
+  "新增", " New cases",
+  "预期", "Prediction:",
+  "全国确诊", "Total confirmed cases in China",
+  "天后全国确诊 ", " days later, total confirmed in China will be ",
+  "预期全国确诊每天增加", "Predicted % daily increase  ",
+  "确诊增加百分比(%)", " % daily increase  ",
+  ", 区间[", ", 95% CI [",
+  "死亡人数增加百分比(%)","% increase in death",
+  "预期全国死亡累计每天增加", "Predicted % daily increase in death",
+  "天后达到 ", " days later will be ",
+  "全国死亡人数", "Total deathes in China",
+  "天后全国死亡累计", " days later total deathes in China will be ",
+  "全国各省", "Confirmed cases across provinces",
+  "英语","中文", 
+  "数据", "Data",
+  "中国数据下载", "Download Data for China",
+  "世界数据下载", "Download Data for the World",
+  "湖北以外", " provinces without Hubei",
+  "其他国家感染人数","Confirmed cases outside China",
+  "武汉死亡率",  "Death rate in Wuhan: ",
+  ", 其他城市: ", ", other cities: ",
+  "武汉以外主要城市确诊数",  "Confirmed cases in cities excluding Wuhan",
+  "死亡人数"  ,"Deaths",
+  "各主要城市确诊数", "Confirmed cases in affected cities",
+  "天后确诊 ", " days later confirmed cases in ",
+  "死亡率(%)","Gross Death Rate (%)",
+  "中国详细预测", "Detailed forecast on Chinese cases",
+  "封城","Lockdown",
+  "1月23日","Jan. 23",  
+  "1月23号封城", "Jan. 23 Lockdown",
+  "各国死亡人数", "COVID-19 Deaths",
+  "美国", "US",
+  "last", "last"
+),nrow=2)
+
+
+
+
 z <- function (ChineseName) {
   # translate chinese Names and menu items to English
   # it Uses a dictionary above
@@ -244,6 +409,7 @@ finc <- function(x) {
 # Cairo包的PNG设备似乎无法显示中文字符，强制使用R自身的png()设备
 options(shiny.usecairo = FALSE)
 
+
 # 请忽略以下代码，它只是为了解决ShinyApps上没有中文字体的问题
 font_home <- function(path = '') file.path('~', '.fonts', path)
 if (Sys.info()[['sysname']] == 'Linux' &&
@@ -272,165 +438,7 @@ if (.Platform$OS.type == "windows") {
 }
 
 
-myDic = matrix( c( 
-  #---------------------Countries
-  "中国", "China",
-  "日本", "Japan",
-  "新加坡","Singapore" ,
-  "泰国" , "Thailand",
-  "韩国" , "South Korea",
-  "马来西亚", "Malaysia",
-  "德国", "Germany",
-  "越南", "Vietnam",
-  "澳大利亚", "Australia",
-  "美国", "USA",
-  "法国", "France",
-  "英国", "UK",
-  "阿联酋", "UAE",
-  "加拿大", "Canada",
-  "印度" , "India",
-  "菲律宾", "philippines",
-  "意大利", "Italy",
-  "西班牙", "Spain",
-  "俄罗斯", "Russia",
-  "比利时", "Belgium",
-  "斯里兰卡", "Sri Lanka",
-  "瑞典", "Sweden",
-  "柬埔寨", "cambodia",
-  "尼泊尔", "Nepal",
-  "芬兰"  , "Finland",
-  
-  #---------------------Provinces
-  "湖北", "Hubei",
-  "广东", "Guangdong",
-  "浙江", "Zhejiang",
-  "河南", "Henan",
-  "湖南", "Hunan",
-  "安徽", "Anhui",
-  "江西", "Jiangxi",
-  "江苏", "Jiangsu",
-  "山东", "Shandong",
-  "重庆", "Chengqing",
-  "四川", "Sicuan",
-  "黑龙江", "Heilongjiang",
-  "北京", "Beijing",
-  "上海", "Shanghai",
-  "福建", "Fujian",
-  "河北" , "Hebei",
-  "陕西" , "Shangxi",
-  "广西", "Guangxi",
-  "云南", "Yunnan",
-  "海南", "Hainan",
-  "山西", "Shanxi",
-  "贵州", "Guizhou",
-  "辽宁", "Liaoning",
-  "天津", "Tianjin",
-  "甘肃", "Gansu",
-  "吉林", "Jilin",
-  "内蒙古", "Inner Mongolia",
-  "新疆", "Xinjiang",
-  "宁夏", "Ningxia",
-  "香港", "Hong Kong",
-  "台湾", "Taiwan",
-  "青海", "Qinghai",
-  "澳门", "Macau",
-  "西藏", "Tibet",
-  
-  #---------------------Menu items
 
-  
-  "疫情统计和预测", "Coronavirus COVID-19 outbreak statistics and forecast",
-  
-  "全国", "China",
-  "地图", "Map",
-  "省", "Provinces",
-  "市", "Cities",
-  "世界", "World",
-  "预测", "Forecast",
-  
-  "确诊", "Confirmed",
-  "确诊人数", "Confirmed cases",
-  "死亡", "Death",
-  "痊愈", "Discharged",
-  
-  "全国确诊:", "China total confirmed: ",
-  ",   疑似:",  ",   suspected:",
-  ",   死亡:",  ",   death:",
-  ",   痊愈:", ",   discharaged:", 
-  "一天之内数字会有多次更新。", "New cases may not be final count for the day. Not optimized for mobile phones.",
-  "01月", "Jan.",
-  "02月", "Feb.",
-  "03月", "March",
-  "04月", "April",
-  "05月", "May",
-  "06月", "June",
-  "07月", "July",
-  "08月", "August",
-  "09月", "Sept.",
-  "10月", "Oct.",  
-  "11月", "Nov.", 
-  "12月", "Dec.", 
-  "日", " ",
-  "更新", "Updated",
-  "北京时间", "Beijing time",
-  "所有的图对数坐标 log10", "log10 scale for all plots",
-  "(稍等几秒钟，地图下载)。", "Downloading map......",
-  "选择预测天数", "Choose # of days to forecast from ",
-  "简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。",
-       "We used a simple time series data forecasting model provided by the forecast package in R and the exponential smoothing method. We did not do rigrious testing of the models.",
-
-  "先直接用全国的确诊总数的时间序列：", 
-       "First we used the time series of the total confirmed cases in China to forecast:",
-  
-  "把全国的确诊总数先换算成了每天比前一天增加的百分比，
-                 去除了前面10天不稳定的数据, 再预测：",
-  "We transformed the data into daily increased percentage, and run the forecast:",
-  
-  "直接用全国的死亡累计数预测：", "Forecasting the total deathes in China directly:",
-  
-  "把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：",
-     "Forecasting the daily percent increase:",
-  
-  "各市", "Cities",
-  "确诊 (死亡)", "Confirmed (dead)",
-  "腾迅", " from Tencent",
-  "世界各国确诊 (死亡)", "Confirmed (dead) in countries outside China",
-  "全国总数", "China total",
-  "全国每日新增百分比", "% daily increases in China",
-  "总数", "Total",
-  "新增", " New cases",
-  "预期", "Prediction:",
-  "全国确诊", "Total confirmed cases in China",
-  "天后全国确诊 ", " days later, total confirmed in China will be ",
-  "预期全国确诊每天增加", "Predicted % daily increase  ",
-  "确诊增加百分比(%)", " % daily increase  ",
-  ", 区间[", ", 95% CI [",
-  "死亡人数增加百分比(%)","% increase in death",
-  "预期全国死亡累计每天增加", "Predicted % daily increase in death",
-  "天后达到 ", " days later will be ",
-  "全国死亡人数", "Total deathes in China",
-  "天后全国死亡累计", " days later total deathes in China will be ",
-  "全国各省", "Confirmed cases across provinces",
-  "英语","中文", 
-  "数据", "Data",
-  "中国数据下载", "Download Data for China",
-  "世界数据下载", "Download Data for the World",
-  "湖北以外", " provinces without Hubei",
-  "其他国家感染人数","Confirmed cases outside China",
-  "武汉死亡率",  "Death rate in Wuhan: ",
-  ", 其他城市: ", ", other cities: ",
-  "武汉以外主要城市确诊数",  "Confirmed cases in cities excluding Wuhan",
-  "死亡人数"  ,"Deaths",
-  "各主要城市确诊数", "Confirmed cases in affected cities",
-  "天后确诊 ", " days later confirmed cases in ",
-  "死亡率(%)","Gross Death Rate (%)",
-  "中国详细预测", "Detailed forecast on Chinese cases",
-  "封城","Lockdown",
-  "1月23日","Jan. 23",  
-  "1月23号封城", "Jan. 23 Lockdown",
-  "各国死亡人数", "COVID-19 Deaths",
-  "last", "last"
-),nrow=2)
 # make a vector value is English, Name is chinese
 myDic2 <- myDic[2,]
 names(myDic2) <- myDic[1,]
@@ -464,3 +472,48 @@ if(packageVersion("ggplot2") <= "3.3.0")
   expansion <- ggplot2::expand_scale
 
 legends <- readLines("narrated.txt")
+
+
+#----------US data based on https://github.com/RamiKrispin/coronavirus
+library(coronavirus)
+data("coronavirus")
+
+USdata <- coronavirus %>%
+  filter(Country.Region == "US") %>%
+  spread(type, cases) %>% # convert from long to wide format
+  arrange(Province.State, date) %>%
+  rename(province = Province.State, 
+         country = Country.Region,
+         time = date,
+         confirm = confirmed,
+         dead = death,
+         heal = recovered)
+
+rm(coronavirus)
+
+#Note that this data records new cases every day.
+UScurrent<- USdata %>% 
+  group_by(province) %>%
+  summarise(confirm = sum(confirm), 
+            dead = sum(dead), 
+            head = sum(heal),
+            time = max(time)) %>% 
+  filter(province != "Diamond Princess") %>%
+  arrange(desc(confirm))
+
+names(state.abb) <- state.name
+
+#convert to cumulative numbers
+UScumulative <- USdata %>% 
+  group_by(province) %>%
+  arrange(time) %>%
+  mutate( confirm = cumsum(confirm),
+          dead = cumsum(dead),
+          heal = cumsum(heal)) %>%
+  ungroup() %>%
+  arrange( province, time)
+
+UScumulative$ab <- state.abb[ UScumulative$province]
+
+rm(USdata)
+

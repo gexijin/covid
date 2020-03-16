@@ -106,40 +106,7 @@ function(input, output, session) {
     }, width = plotWidth - 100) 
     
  
-    output$USCurrent <- renderPlot({
-      
-      d <- UScurrent[1:20, ] 
-      d <- d %>%
-        rename(name = province)
-      
-      d$confirm=as.numeric(d$confirm)
-      if(isEnglish) d$name <- py2( d$name )  # translate into Pinyin
-      d$name = fct_reorder(d$name, d$confirm)        
-      
-      # This is used to create spaces so the numbers on top of the bar shows up.
-      maxN <- max(d$confirm) *1.5
-      if(input$logScale) 
-        maxN <- max(d$confirm) *10
-      
-      
-      p <- ggplot(d, aes(name, confirm)) + 
-        geom_col(fill='steelblue') + coord_flip() +
-        geom_text(aes(y = confirm+2, label= paste0( confirm, " (",dead,")")), hjust=0) +
-        theme_gray(base_size=14) + 
-        scale_y_continuous(expand=c(0,10)) +
-        xlab(NULL) + ylab(NULL) +
-        theme(text = element_text(size=17, family="SimSun"),
-              axis.text.x = element_text(angle=0, hjust=1))  + 
-        #ggtitle(paste("Confirmed (deaths) current data from Tencent", gsub(" .*","", y$lastUpdateTime)) ) +
-        ggtitle(paste( z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
-        expand_limits(y = maxN)+ 
-        theme(plot.title = element_text(size = 15))
-      
-      if(input$logScale) 
-        p <- p + scale_y_log10() 
-      p
-      
-    }, width = plotWidth - 100)    
+  
     
     
        
@@ -1105,6 +1072,45 @@ function(input, output, session) {
       
     }, width = plotWidth - 100 )
     
+    ####################################################################
+    #  U.S.A.
+    ####################################################################
+    
+    output$USCurrent <- renderPlot({
+      
+      d <- UScurrent[1:20, ] 
+      d <- d %>%
+        rename(name = province)
+      
+      d$confirm=as.numeric(d$confirm)
+      if(isEnglish) d$name <- py2( d$name )  # translate into Pinyin
+      d$name = fct_reorder(d$name, d$confirm)        
+      
+      # This is used to create spaces so the numbers on top of the bar shows up.
+      maxN <- max(d$confirm) *1.5
+      if(input$logScale) 
+        maxN <- max(d$confirm) *10
+      
+      
+      p <- ggplot(d, aes(name, confirm)) + 
+        geom_col(fill='steelblue') + coord_flip() +
+        geom_text(aes(y = confirm+2, label= paste0( confirm, " (",dead,")")), hjust=0) +
+        theme_gray(base_size=14) + 
+        scale_y_continuous(expand=c(0,10)) +
+        xlab(NULL) + ylab(NULL) +
+        theme(text = element_text(size=17, family="SimSun"),
+              axis.text.x = element_text(angle=0, hjust=1))  + 
+        ggtitle(paste("Confirmed (deaths) as of", format( as.Date(max(UScumulative$time)), "%b %d") ) ) +
+        #ggtitle(paste( z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
+        expand_limits(y = maxN)+ 
+        theme(plot.title = element_text(size = 15))
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      p
+      
+    }, width = plotWidth - 100)  
+    
     # us map
     output$US.state.map <- renderPlot({
       library(maps)
@@ -1167,7 +1173,7 @@ function(input, output, session) {
         geom_text_repel(aes(label=province), data=d[d$time == time(x), ], hjust=1) +
         theme_gray(base_size = 12) + #theme(legend.position='none') +
         xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
-        ggtitle (z("感染人数")) +
+        ggtitle (z("确诊人数")) +
         theme(plot.title = element_text(size = 12)) + 
         theme(legend.title = element_blank()) + 
         theme(legend.text=element_text(size=9))   
@@ -1257,7 +1263,7 @@ function(input, output, session) {
                          " is expected to have ",
                          round(forecasted$mean[input$daysForcasted],0), 
                          " confirmed cases by ", 
-                         format( as.Date(xgithub$time) + input$daysForcasted, "%b %d"  ),  
+                         format( as.Date(max(d2$time)) + input$daysForcasted, "%b %d"  ),  
                          z(". 95% CI ["),
                          round(forecasted$lower[input$daysForcasted],0), "-",
                          round(forecasted$upper[input$daysForcasted],0),"]."

@@ -112,6 +112,9 @@ ui <- fluidPage(
               
               )#tab2 --------------------------------------------------
      ,tabPanel(z("美国")
+               ,h5("All analyses on this page are based on data from this ", 
+                  a("R package",href="https://github.com/RamiKrispin/coronavirus"), 
+                  "by", a("Rami Krispin.",href="https://twitter.com/rami_krispin?lang=en"))
                ,plotOutput("USCurrent")
                ,h5(legends[17])
                ,br(),br() 
@@ -128,7 +131,7 @@ ui <- fluidPage(
                ,h5(legends[20])
                ,br(),br() 
                
-               ,sliderInput("daysForcasted2", paste(z("选择预测天数"), gsub("2020-","", xgithub$time)),
+               ,sliderInput("daysForcasted2", paste(z("选择预测天数"),format( as.Date(max(UScumulative$time)), "%b %d") ),
                             min = 1, max = 14,
                             value = 7)
                ,selectInput("selectProvince2", NULL, choices = UScurrent$province)
@@ -138,7 +141,7 @@ ui <- fluidPage(
                
      )
     ,tabPanel(z("预测") 
-              ,sliderInput("daysForcasted", paste(z("选择预测天数"), gsub("2020-","", xgithub$time)),
+              ,sliderInput("daysForcasted", paste(z("选择预测天数"), gsub("2020-","", xgithub$time))  ,
                              min = 1, max = 14,
                              value = 7)
              ,selectInput("selectCountry", NULL, choices = countryNames, selected= countryNames[2])

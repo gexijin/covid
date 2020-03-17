@@ -65,7 +65,14 @@ function(input, output, session) {
             geom_text_repel(aes(label=city), family="SimSun",data=d[d$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) + 
-            ggtitle(paste(z(input$selectProvince0), z("各市"),  x$time) )
+            ggtitle(paste(z(input$selectProvince0), z("各市"),  x$time) ) +
+            geom_vline(xintercept= as.Date("2020-1-23"), 
+                       linetype = "dashed", color = "red", size = 1) +
+            annotate(geom="text", x=as.Date("2020-1-24"), y=max(d$cum_confirm)*.8, label=z("封城"),
+                     color="black", hjust = 0) +
+            annotate(geom="text", x=as.Date("2020-1-24"), y=max(d$cum_confirm)*.7, label=z("1月23日"),
+                     color="black", hjust = 0)
+        
 
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -1067,7 +1074,7 @@ function(input, output, session) {
                         bg.color = "white") +
         labs(x = "Number of days since 100th case", y = "", 
              subtitle = paste0("Confirmed COVID-19 cases as of ", xgithub$time, " (static version)") ) +
-      xlim(c(0,25))
+      xlim(c(0,28))
       
       p
       

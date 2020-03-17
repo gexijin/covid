@@ -6,7 +6,7 @@ library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 # Define server logic required to draw a histogram
 ui <- fluidPage(
-  titlePanel(paste0(z("疫情统计和预测")," v0.6")),
+  titlePanel(paste0(z("疫情统计和预测")," v0.7")),
   tabsetPanel(
     tabPanel(z("全国")
     ,h4( paste0( 
@@ -210,6 +210,7 @@ ui <- fluidPage(
     ,h5("2/23/20 v. 0.4 Interactive plots.")
     ,h5("3/12/20 v. 0.5 Historical trend among countries.")
     ,h5("3/15/20 V. 0.6 Changed forecasting parameters from default to ANN.")
+    ,h5("3/16/20 V. 0.7 Add provincial level data for U.S. and other countries based on the coronavirus package.")
     )
   )
     ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics      

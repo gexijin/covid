@@ -87,7 +87,39 @@ ui <- fluidPage(
               ,plotlyOutput("cities_in_proviences_selected")        
               ,plotlyOutput("cities_in_proviences_selectedAdd")  
               )
-    
+        ,tabPanel(z("各国")
+          ,h5("All analyses on this page are based on data from this ", 
+              a("R package",href="https://github.com/RamiKrispin/coronavirus"), 
+              "by", a("Rami Krispin.",href="https://twitter.com/rami_krispin?lang=en"))
+          ,selectInput("selectCountryDetails", NULL, choices = countriesDetail, selected = countriesDetail[1])
+          ,plotOutput("USCurrent")
+          ,h5(legends[17])
+          ,br(),br() 
+          ,conditionalPanel("input.selectCountryDetails == 'US'"
+                            ,plotOutput("US.state.map")
+                            ,h5(legends[18])
+                            ,br(),br()               
+          )
+          
+          
+          ,plotlyOutput("historicalUS")
+          ,h5(legends[19])
+          ,br(),br() 
+          
+          ,plotOutput("historicalUSDirect2")
+          ,h5(legends[20])
+          ,br(),br() 
+          
+          ,sliderInput("daysForcasted2", paste(z("选择预测天数") ),
+                       min = 1, max = 14,
+                       value = 7)
+          ,selectInput("selectProvince2", NULL, NULL)
+          ,plotOutput("forecastUSstates")
+          ,h5(legends[21])
+          ,br(),br() 
+          
+          
+    )
     ,tabPanel(z("世界")
               ,plotOutput("realTimeCityConfirmedWorld")
               ,h5(legends[8])
@@ -111,35 +143,7 @@ ui <- fluidPage(
               ,plotOutput("worldMap")            
               
               )#tab2 --------------------------------------------------
-     ,tabPanel(z("美国")
-               ,h5("All analyses on this page are based on data from this ", 
-                  a("R package",href="https://github.com/RamiKrispin/coronavirus"), 
-                  "by", a("Rami Krispin.",href="https://twitter.com/rami_krispin?lang=en"))
-               ,plotOutput("USCurrent")
-               ,h5(legends[17])
-               ,br(),br() 
-               
-               ,plotOutput("US.state.map")
-               ,h5(legends[18])
-               ,br(),br() 
-               
-               ,plotlyOutput("historicalUS")
-               ,h5(legends[19])
-               ,br(),br() 
-               
-               ,plotOutput("historicalUSDirect2")
-               ,h5(legends[20])
-               ,br(),br() 
-               
-               ,sliderInput("daysForcasted2", paste(z("选择预测天数"),format( as.Date(max(UScumulative$time)), "%b %d") ),
-                            min = 1, max = 14,
-                            value = 7)
-               ,selectInput("selectProvince2", NULL, choices = UScurrent$province)
-               ,plotOutput("forecastUSstates")
-               ,h5(legends[21])
-               ,br(),br() 
-               
-     )
+
     ,tabPanel(z("预测") 
               ,sliderInput("daysForcasted", paste(z("选择预测天数"), gsub("2020-","", xgithub$time))  ,
                              min = 1, max = 14,

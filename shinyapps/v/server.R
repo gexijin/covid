@@ -20,6 +20,7 @@ function(input, output, session) {
         updateSelectInput(session, "selectCity", NULL, choices = cityNamesList[!is.na(ix)] ) 
         if( input$selectProvince == entireCountry ) 
             updateSelectInput(session, "selectCity", NULL, choices = NULL )    
+        updateSelectInput(session, "selectProvince2", NULL, choices = countriesData()$UScurrent$province )        
         
         })
     
@@ -1076,9 +1077,64 @@ function(input, output, session) {
     #  U.S.A.
     ####################################################################
     
+    countriesData <- reactive({
+      library(coronavirus)
+      data("coronavirus")
+
+      USdata1 <- coronavirus %>%
+        filter(Country.Region == input$selectCountryDetails) %>%
+        spread(type, cases) %>% # convert from long to wide format
+        arrange(Province.State, date) %>%
+        rename(province = Province.State, 
+               country = Country.Region,
+               time = date,
+               confirm = confirmed,
+               dead = death,
+               heal = recovered) 
+
+      
+      #Note that this data records new cases every day.
+      UScurrent<- USdata1 %>% 
+        drop_na(province) %>%
+        filter(province != "NA" ) %>%
+        group_by(province) %>%
+        summarise(confirm = sum(confirm), 
+                  dead = sum(dead), 
+                  head = sum(heal),
+                  time = max(time)) %>% 
+        filter(province != "Diamond Princess") %>%
+        arrange(desc(confirm))%>%
+        filter(confirm > 1)
+      
+      
+      #convert to cumulative numbers
+      UScumulative <- USdata1 %>% 
+        group_by(province) %>%
+        arrange(time) %>%
+        mutate( confirm = cumsum(confirm),
+                dead = cumsum(dead),
+                heal = cumsum(heal)) %>%
+        ungroup() %>%
+        arrange( province, time)
+      
+      if(input$selectCountryDetails == "US") { 
+          UScumulative$ab <- state.abb[ UScumulative$province] 
+      } else {
+        UScumulative$ab <- UScumulative$province      
+        
+      }
+      rm(USdata)
+      
+      return(list(UScurrent = UScurrent, UScumulative = UScumulative))
+      
+      
+    })
+
     output$USCurrent <- renderPlot({
       
-      d <- UScurrent[1:20, ] 
+      d <- countriesData()$UScurrent
+      if(nrow(d) > 20) 
+        d <- d[1:20, ] 
       d <- d %>%
         rename(name = province)
       
@@ -1100,7 +1156,7 @@ function(input, output, session) {
         xlab(NULL) + ylab(NULL) +
         theme(text = element_text(size=17, family="SimSun"),
               axis.text.x = element_text(angle=0, hjust=1))  + 
-        ggtitle(paste("Confirmed (deaths) as of", format( as.Date(max(UScumulative$time)), "%b %d") ) ) +
+        ggtitle(paste("Confirmed (deaths) as of", format( as.Date(max(countriesData()$UScumulative$time)), "%b %d") ) ) +
         #ggtitle(paste( z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
         expand_limits(y = maxN)+ 
         theme(plot.title = element_text(size = 15))
@@ -1115,6 +1171,8 @@ function(input, output, session) {
     output$US.state.map <- renderPlot({
       library(maps)
       statesData <- map_data("state") 
+      UScurrent <- countriesData()$UScurrent
+      
       UScurrent$region = tolower(UScurrent$province)
       
       
@@ -1147,21 +1205,22 @@ function(input, output, session) {
     }, width = plotWidth - 100 )
     
     #US historical by states -------------------------------------------
+
     output$historicalUS <- renderPlotly({
       
-      tem <- UScumulative %>%
+      tem <- countriesData()$UScumulative %>%
         filter(confirm > 0) %>%
         count(province) %>%
         filter( n > 10 ) %>% # only keep contries with 20 more data points.
         pull(province)
       
-      tem2 <- UScumulative %>%
+      tem2 <- countriesData()$UScumulative %>%
         group_by(province) %>%
         summarise(max = max(confirm)) %>%
         filter(max > 20) %>%  # at least 20 cases
         pull(province)
       
-      d <- UScumulative %>%
+      d <- countriesData()$UScumulative %>%
         filter(province !=z('Diamond Princess')) %>%
         filter(  province %in%  tem    ) %>% 
         filter(  province %in%  tem2   ) %>% 
@@ -1196,7 +1255,7 @@ function(input, output, session) {
       conflict_prefer("layout", "graphics")   
       
 
-      dd <- UScumulative %>% 
+      dd <- countriesData()$UScumulative %>% 
         as_tibble %>%
         filter(confirm > 20) %>%
         #filter(confirm <50000) %>%
@@ -1206,8 +1265,8 @@ function(input, output, session) {
         mutate(days_since_100 = as.numeric(time - min(time))) %>%
         ungroup 
       
-      breaks=c(20, 50, 100, 200, 500)
-      
+      breaks=c(20, 50, 100, 200, 500, 1000, 2000, 10000, 50000,100000)
+
       p <- ggplot(dd, aes(days_since_100, confirm, color = province)) +
         # geom_smooth(method='lm', aes(group=1),
         #            data = . %>% filter(!country %in% c("China", "Japan", "Singapore")), 
@@ -1230,7 +1289,7 @@ function(input, output, session) {
                         bg.color = "white") +
         labs(x = "Days since the 20th case", y = "", 
              subtitle = paste0("Confirmed COVID-19 cases as of ", 
-                               format(as.Date(max(UScumulative$time)),"%b. %d")) )+
+                               format(as.Date(max(countriesData()$UScumulative$time)),"%b. %d")) )+
         xlim(c(0,(floor(max(dd$days_since_100)/10) + 1)*10) )
       
       p
@@ -1239,12 +1298,12 @@ function(input, output, session) {
     
     # Prediction U.S. states
     output$forecastUSstates <- renderPlot ({
-      d2 <- UScumulative %>%
+      d2 <- countriesData()$UScumulative %>%
         arrange(time) %>%
         filter( province == input$selectProvince2)
-      nRep = sum( d2$confirm == d2$confirm[2]) 
-      if(nRep > 3) 
-        d2 <- d2[-(1:(nRep-3)),]
+      
+      if(nrow(d2) < 5) return(NULL)
+
       
       np <- nrow(d2) # number of time points
       if(np > npMax)
@@ -1261,12 +1320,12 @@ function(input, output, session) {
            ylab = z("确诊人数"),
            xlab = paste0(input$selectProvince2, 
                          " is expected to have ",
-                         round(forecasted$mean[input$daysForcasted],0), 
+                         round(forecasted$mean[input$daysForcasted2],0), 
                          " confirmed cases by ", 
-                         format( as.Date(max(d2$time)) + input$daysForcasted, "%b %d"  ),  
+                         format( as.Date(max(d2$time)) + input$daysForcasted2, "%b %d"  ),  
                          z(". 95% CI ["),
-                         round(forecasted$lower[input$daysForcasted],0), "-",
-                         round(forecasted$upper[input$daysForcasted],0),"]."
+                         round(forecasted$lower[input$daysForcasted2],0), "-",
+                         round(forecasted$upper[input$daysForcasted2],0),"]."
            )            
       )
       a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted2 + nrow(d2) -1 )

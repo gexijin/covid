@@ -211,7 +211,7 @@ myDic = matrix( c(
   "疫情统计和预测", "Coronavirus COVID-19 outbreak statistics and forecast",
   
   "全国", "China",
-  "地图", "Map",
+  "地图", "Maps",
   "省", "Provinces",
   "市", "Cities",
   "世界", "World",
@@ -298,7 +298,7 @@ myDic = matrix( c(
   "1月23日","Jan. 23",  
   "1月23号封城", "Jan. 23 Lockdown",
   "各国死亡人数", "COVID-19 Deaths",
-  "美国", "US",
+  "各国", "Countries",
   "last", "last"
 ),nrow=2)
 
@@ -473,47 +473,15 @@ if(packageVersion("ggplot2") <= "3.3.0")
 
 legends <- readLines("narrated.txt")
 
-
 #----------US data based on https://github.com/RamiKrispin/coronavirus
 library(coronavirus)
 data("coronavirus")
 
-USdata <- coronavirus %>%
-  filter(Country.Region == "US") %>%
-  spread(type, cases) %>% # convert from long to wide format
-  arrange(Province.State, date) %>%
-  rename(province = Province.State, 
-         country = Country.Region,
-         time = date,
-         confirm = confirmed,
-         dead = death,
-         heal = recovered)
-
-rm(coronavirus)
-
-#Note that this data records new cases every day.
-UScurrent<- USdata %>% 
-  group_by(province) %>%
-  summarise(confirm = sum(confirm), 
-            dead = sum(dead), 
-            head = sum(heal),
-            time = max(time)) %>% 
-  filter(province != "Diamond Princess") %>%
-  arrange(desc(confirm))
+countriesDetail <- sort(table(coronavirus$Country.Region), decreasing = T)
+countriesDetail <- countriesDetail[ countriesDetail > 5* median(countriesDetail) ]
+countriesDetail <- names( countriesDetail )
 
 names(state.abb) <- state.name
 
-#convert to cumulative numbers
-UScumulative <- USdata %>% 
-  group_by(province) %>%
-  arrange(time) %>%
-  mutate( confirm = cumsum(confirm),
-          dead = cumsum(dead),
-          heal = cumsum(heal)) %>%
-  ungroup() %>%
-  arrange( province, time)
 
-UScumulative$ab <- state.abb[ UScumulative$province]
-
-rm(USdata)
 

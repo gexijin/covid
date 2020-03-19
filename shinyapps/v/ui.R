@@ -91,7 +91,10 @@ ui <- fluidPage(
           ,conditionalPanel("input.selectCountryDetails == 'US'"
                             ,plotOutput("US.state.map")
                             ,h5(legends[18])
-                            ,br(),br()               
+                            ,br(),br()    
+                            ,plotOutput("US.state.map.Rate")
+                            ,h5(legends[24])
+                            ,br(),br()    
           )
           
           
@@ -102,7 +105,9 @@ ui <- fluidPage(
           ,plotOutput("historicalUSDirect2")
           ,h5(legends[20])
           ,br(),br() 
-          
+          ,plotOutput("CompareProvinces")
+          ,h5(legends[23])
+          ,br(),br()          
           ,sliderInput("daysForcasted2", paste(z("选择预测天数") ),
                        min = 1, max = 14,
                        value = 7)
@@ -114,6 +119,7 @@ ui <- fluidPage(
           
     )
     ,tabPanel(z("世界")
+              ,h4("Please wait while we crunch the numbers ...")
               ,plotOutput("ConfirmedWorld", height = 500)
               ,h5(legends[8])
               ,br(),br()

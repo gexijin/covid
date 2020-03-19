@@ -274,7 +274,7 @@ function(input, output, session) {
      # d <- y['global',] %>%  # Tencent data
       #  filter(!is.na(name)) %>%
       #  mutate( confirm =as.numeric(confirm) ) 
-      
+      withProgress(message = 'Making plot', value = 0, {
       d <- worldCurrent # Github data
       
       d <- d %>%
@@ -305,6 +305,7 @@ function(input, output, session) {
       
       if(input$logScale) 
         p <- p + scale_y_log10() 
+      }) # progress bar
       p
       
     }, width = plotWidth - 100 ) 
@@ -1036,11 +1037,12 @@ function(input, output, session) {
     
     #世界细节 历史图 -------------------------------------------
     output$historicalWorldDirect <- renderPlotly({
+      withProgress(message = 'Making plot', value = 0, {
       library(shadowtext)
       library(conflicted)
       conflict_prefer("filter", "dplyr")
       conflict_prefer("layout", "plotly")   
-      
+      incProgress(0.1, message = "loading data")
       d <- xgithub
       dd <- d['global'] %>% 
         as_tibble %>%
@@ -1054,6 +1056,7 @@ function(input, output, session) {
       
       breaks=c(100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000)
       
+      incProgress(0.3)
       
       p <- ggplot(dd, aes(days_since_100, confirm, color = country)) +
         # geom_smooth(method='lm', aes(group=1),
@@ -1080,7 +1083,7 @@ function(input, output, session) {
         theme(plot.title = element_text(size = 10)) + 
         theme(legend.title = element_blank()) #+
         #xlim(c(0,25))
-      
+      }) # progress bar
       ggplotly(p, tooltip = c("y", "x","country"), width = plotWidth) 
       
     })
@@ -1155,7 +1158,6 @@ function(input, output, session) {
                confirm = confirmed,
                dead = death,
                heal = recovered) 
-
       
       #Note that this data records new cases every day.
       UScurrent<- USdata1 %>% 
@@ -1268,6 +1270,43 @@ function(input, output, session) {
       
     }, width = plotWidth - 100 )
     
+    # us map growth rate
+    output$US.state.map.Rate <- renderPlot({
+      library(maps)
+      statesData <- map_data("state") 
+      
+      UScurrent <- provinceGrowthRate()
+      UScurrent$region = tolower(UScurrent$province)
+      
+      
+      map <- merge(statesData, UScurrent, by = "region", all.x = T)
+      map <- map[order(map$order), ]
+      
+      p <- ggplot(map, aes(x = long, y = lat, group = group)) +  
+        geom_polygon(aes(fill = growthPercent)) +   
+        geom_path() + 
+        #scale_fill_gradientn(colours = rev(heat.colors(10))) +
+        scale_fill_gradient2(low = "white", #mid = scales::muted("purple"), 
+                             high = "red", breaks = c(0,5,10,20,30,40,50,60,70,80,100)) +
+        coord_map() +
+        labs(x = "Longitude", y = "Latitude") +
+        guides(fill = guide_legend(title = paste0("Daily % increase (", 
+                                                  format(as.Date(UScurrent$time[1]), "%b. %d"), ")")) ) +  
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                           panel.grid.minor = element_blank()) +
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              axis.title.y=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks.y=element_blank()) 
+      # ggtitle("", subtitle = format(as.Date(UScurrent$time[1]), "%b. %d") )
+      
+      p
+      
+    }, width = plotWidth - 100 )
+    
     #US historical by states -------------------------------------------
 
     output$historicalUS <- renderPlotly({
@@ -1359,6 +1398,115 @@ function(input, output, session) {
       p
       
     }, width = plotWidth - 100 )
+    
+    provinceGrowthRate <- reactive({
+      nPoints = 7
+      minCases = 50 
+      tem <- table(countriesData()$UScumulative$province)
+      
+      tem2 <- countriesData()$UScumulative %>%
+        group_by(province) %>%
+        summarise(max = max(confirm)) %>%
+        filter(max > minCases) %>%
+        pull(province)
+      
+      d <- countriesData()$UScumulative %>%
+        filter(  province %in%  names(tem)[tem > nPoints]    ) %>% # only keep contries with 20 more data points.
+        filter(  province %in%  tem2   )   # at least 20 cases
+      
+      dfGroup <- d %>%
+        arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
+        mutate(confirm = log2(confirm + 1)) %>%
+        group_by(province) %>%
+        filter(row_number() %in% 1:nPoints) %>%
+        arrange(time) %>%
+        mutate( time1 =  time - last(time) + nPoints) %>% 
+        do(fitGroup = lm(confirm ~ time1, data = .))
+      
+      Coefs = tidy(dfGroup, fitGroup)
+      Coefs <- Coefs %>% 
+        filter(term == "time1") %>%
+        arrange(desc(estimate)) 
+      
+      maxConfirm <- d %>%
+        arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
+        group_by(province) %>%
+        filter(row_number() == 1) %>%
+        ungroup
+      
+      Coefs <- left_join(Coefs, maxConfirm, by = "province") %>%
+        filter(province != "Diamond Princess") %>%
+        mutate( Death.Rate = round(dead/confirm*100,2)) %>%
+        mutate ( growthPercent = round((2^estimate -1) *100,2) ) %>%
+        arrange(desc(confirm))
+      
+      return(Coefs)
+      
+      
+    })
+    
+    
+    
+    # compare Provinces
+    output$CompareProvinces <- renderPlot ({
+      nPoints = 7
+      minCases = 50
+      maxShow = 30
+      
+      tem <- table(countriesData()$UScumulative$province)
+      
+      tem2 <- countriesData()$UScumulative %>%
+        group_by(province) %>%
+        summarise(max = max(confirm)) %>%
+        filter(max > minCases) %>%
+        pull(province)
+      
+      d <- countriesData()$UScumulative %>%
+        filter(  province %in%  names(tem)[tem > nPoints]    ) %>% # only keep contries with 20 more data points.
+        filter(  province %in%  tem2   )   # at least 20 cases
+      
+      dfGroup <- d %>%
+        arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
+        mutate(confirm = log2(confirm + 1)) %>%
+        group_by(province) %>%
+        filter(row_number() %in% 1:nPoints) %>%
+        arrange(time) %>%
+        mutate( time1 =  time - last(time) + nPoints) %>% 
+        do(fitGroup = lm(confirm ~ time1, data = .))
+      
+      Coefs = tidy(dfGroup, fitGroup)
+      Coefs <- Coefs %>% 
+        filter(term == "time1") %>%
+        arrange(desc(estimate)) 
+      
+      maxConfirm <- d %>%
+        arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
+        group_by(province) %>%
+        filter(row_number() == 1) %>%
+        ungroup
+      
+      Coefs <- left_join(Coefs, maxConfirm, by = "province") %>%
+        filter(province != "Diamond Princess") %>%
+        mutate( Death.Rate = round(dead/confirm*100,2)) %>%
+        mutate ( growthPercent = round((2^estimate -1) *100,2) ) %>%
+        arrange(desc(confirm))
+      
+      Coefs <- Coefs[1:maxShow,]
+      
+      ggplot(Coefs, aes(x = confirm, y = growthPercent, color = Death.Rate, label = ab)) +
+        geom_point(size = 2) + 
+        scale_x_continuous(trans='log10') +
+        geom_text_repel(size = 6, hjust=1) +
+        scale_colour_gradient(low = "black", high = "red", na.value = NA) +
+        xlab(paste("Confirmed cases as of ", format(as.Date(xgithub$time), "%b. %d")) ) + 
+        ylab(paste("% daily increases in last",nPoints,"days" )) + 
+        labs(color = "Death Rate") +
+        theme_gray(base_size = 12) + 
+        theme(plot.title = element_text(size = 12)) + 
+        theme(legend.text=element_text(size=11))  +
+        theme(axis.text=element_text(size=12),
+             axis.title=element_text(size=12))
+    }, width = plotWidth  )  
     
     # Prediction U.S. states
     output$forecastUSstates <- renderPlot ({

@@ -1036,7 +1036,9 @@ function(input, output, session) {
     
     #世界细节 历史图 -------------------------------------------
     output$historicalWorldDirect <- renderPlotly({
-          conflict_prefer("filter", "dplyr")
+      library(shadowtext)
+      library(conflicted)
+      conflict_prefer("filter", "dplyr")
       conflict_prefer("layout", "plotly")   
       
       d <- xgithub

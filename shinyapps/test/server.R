@@ -20,6 +20,7 @@ function(input, output, session) {
         updateSelectInput(session, "selectCity", NULL, choices = cityNamesList[!is.na(ix)] ) 
         if( input$selectProvince == entireCountry ) 
             updateSelectInput(session, "selectCity", NULL, choices = NULL )    
+        updateSelectInput(session, "selectProvince2", NULL, choices = countriesData()$UScurrent$province )        
         
         })
     
@@ -39,7 +40,13 @@ function(input, output, session) {
                 geom_text_repel(aes(label=province),  family="SimSun",data=d2[d2$time == time(x), ], hjust=1) +
                 theme_gray(base_size = 14) + theme(legend.position='none') +
                 xlab(NULL) + ylab(NULL) + 
-                ggtitle(paste( z(entireCountry),  z("湖北以外"),  xgithub$time ) )         
+                ggtitle(paste( z(entireCountry),  z("湖北以外"),  xgithub$time ) ) +
+                geom_vline(xintercept= as.Date("2020-1-23"), 
+                           linetype = "dashed", color = "red", size = 1) +
+                annotate(geom="text", x=as.Date("2020-1-24"), y=1000, label=z("封城"),
+                       color="black", hjust = 0) +
+                annotate(geom="text", x=as.Date("2020-1-24"), y=800, label=z("1月23日"),
+                       color="black", hjust = 0)
 
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -58,7 +65,14 @@ function(input, output, session) {
             geom_text_repel(aes(label=city), family="SimSun",data=d[d$time == time(x), ], hjust=1) +
             theme_gray(base_size = 14) + theme(legend.position='none') +
             xlab(NULL) + ylab(NULL) + 
-            ggtitle(paste(z(input$selectProvince0), z("各市"),  x$time) )
+            ggtitle(paste(z(input$selectProvince0), z("各市"),  x$time) ) +
+            geom_vline(xintercept= as.Date("2020-1-23"), 
+                       linetype = "dashed", color = "red", size = 1) +
+            annotate(geom="text", x=as.Date("2020-1-24"), y=max(d$cum_confirm)*.8, label=z("封城"),
+                     color="black", hjust = 0) +
+            annotate(geom="text", x=as.Date("2020-1-24"), y=max(d$cum_confirm)*.7, label=z("1月23日"),
+                     color="black", hjust = 0)
+        
 
         if(input$logScale) 
             p <- p + scale_y_log10() 
@@ -99,7 +113,11 @@ function(input, output, session) {
         
     }, width = plotWidth - 100) 
     
+ 
+  
     
+    
+       
     #省内各个城市当天确诊数  -------------------------------------------
     output$realTimeCityConfirmed <- renderPlot({
         d = y[input$selectProvince0,] 
@@ -174,8 +192,9 @@ function(input, output, session) {
         ggtitle(deathRate) +
         theme(plot.title = element_text(size = 10))
       
-      ggplotly(p, tooltip = c("y", "x","text")) %>% 
-        layout( width = plotWidth)
+     # ggplotly(p, tooltip = c("y", "x","text") ) %>% 
+    #    layout( width = plotWidth)
+      ggplotly(p, tooltip = c("y", "x","text"),width = plotWidth )
       
     } ) 
     
@@ -215,8 +234,7 @@ function(input, output, session) {
       theme(legend.position = "none")
       
 
-      ggplotly(p, tooltip = c("y", "x")) %>% 
-        layout( width = plotWidth - 100)
+      ggplotly(p, tooltip = c("y", "x"), width = plotWidth - 100) 
       
     } ) 
     
@@ -242,9 +260,7 @@ function(input, output, session) {
         theme(legend.position = "none")
       
       
-      ggplotly(p, tooltip = c("y", "x", "text")) %>% 
-        layout( width = plotWidth - 100)
-      
+      ggplotly(p, tooltip = c("y", "x", "text"), width = plotWidth - 100)
       
 
       
@@ -253,12 +269,12 @@ function(input, output, session) {
     
     
     #世界各国分布图，现在的数据 -------------------------------------------
-    output$realTimeCityConfirmedWorld <- renderPlot({
+    output$ConfirmedWorld <- renderPlot({
       
      # d <- y['global',] %>%  # Tencent data
       #  filter(!is.na(name)) %>%
       #  mutate( confirm =as.numeric(confirm) ) 
-      
+      withProgress(message = 'Making plot', value = 0, {
       d <- worldCurrent # Github data
       
       d <- d %>%
@@ -266,7 +282,7 @@ function(input, output, session) {
         mutate( name = fct_reorder(name, confirm))
       
       d <- d[-1, ] #remove the first row
-      d <- d[1:20, ]
+      d <- d[1:30, ]
       
       
       # This is used to create spaces so the numbers on top of the bar shows up.
@@ -289,6 +305,7 @@ function(input, output, session) {
       
       if(input$logScale) 
         p <- p + scale_y_log10() 
+      }) # progress bar
       p
       
     }, width = plotWidth - 100 ) 
@@ -319,13 +336,52 @@ function(input, output, session) {
         theme_gray(base_size = 12) + #theme(legend.position='none') +
         xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
         ggtitle (z("其他国家感染人数")) +
-        theme(plot.title = element_text(size = 12))
+        theme(plot.title = element_text(size = 12)) + 
+        theme(legend.title = element_blank()) + 
+        theme(legend.text=element_text(size=9))   
+        #+guides(shape = guide_legend(override.aes = list(size = 2)))
       
       if(input$logScale) 
         p <- p + scale_y_log10() 
       
-      ggplotly(p, tooltip = c("y", "x","country")) %>% 
-        layout( width = plotWidth)
+      ggplotly(p, tooltip = c("y", "x","country"), width = plotWidth) 
+      
+    })
+    
+    
+    #Deaths across the world -------------------------------------------
+    output$historicalWorldDead <- renderPlotly({
+      
+      tem <- table(xgithub$global$country)
+      
+      tem2 <- xgithub$global %>%
+        group_by(country) %>%
+        summarise(max = max(cum_dead)) %>%
+        filter(max > 20) %>%
+        pull(country)
+      
+        
+      d <- xgithub$global %>%
+        #filter(country !=z('中国')) %>%
+        filter(  country %in%  names(tem)[tem > 10]    ) %>% # only keep contries with 20 more data points.
+        filter(  country %in%  tem2   ) %>%  # at least 20 cases
+        filter (time > as.Date("2020-2-1"))
+      
+      p <- ggplot(d,
+                  aes(time, cum_dead, group=country, color=country)) +
+        geom_point() + geom_line() +
+        geom_text_repel(aes(label=country), data=d[d$time == time(x), ], hjust=1) +
+        theme_gray(base_size = 12) + #theme(legend.position='none') +
+        xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
+        ggtitle (z("各国死亡人数")) +
+        theme(plot.title = element_text(size = 12)) + 
+        theme(legend.title = element_blank()) + 
+        theme(legend.text=element_text(size=9)) 
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      
+      ggplotly(p, tooltip = c("y", "x","country"), width = plotWidth) 
       
     })
 
@@ -346,14 +402,17 @@ function(input, output, session) {
             theme_gray(base_size = 14) + #theme(legend.position='none') +
             xlab(NULL) + ylab(NULL)  +
             theme(legend.title = element_blank()) +
-            theme(plot.title = element_text(size = 11))
+            theme(plot.title = element_text(size = 11)) #+
+            #geom_vline(xintercept= as.Date("2020-1-23"), 
+            #       linetype = "dashed", color = "red", size = 1) +
+            #annotate(geom="text", x=as.Date("2020-1-24"), y=60000, label=z("1月23号封城"),
+            #       color="black", hjust = 0.5)
 
             p <- p + ggtitle(paste( z("全国总数"),  x$time) ) 
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth) 
         
     })
     
@@ -385,8 +444,7 @@ function(input, output, session) {
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth) 
         
     })
 
@@ -423,8 +481,7 @@ function(input, output, session) {
       
       if(input$logScale) 
         p <- p + scale_y_log10() 
-      ggplotly(p, tooltip = c("y", "x")) %>% 
-        layout( width = plotWidth)
+      ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
       
     })    
     
@@ -472,8 +529,7 @@ function(input, output, session) {
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
         
     })
     
@@ -513,8 +569,7 @@ function(input, output, session) {
         if(input$logScale) 
             p <- p + scale_y_log10() 
         
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
         
     })
             
@@ -549,8 +604,7 @@ function(input, output, session) {
         if(input$logScale) 
             p <- p + scale_y_log10() 
             
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
         
     })
     
@@ -596,9 +650,7 @@ function(input, output, session) {
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x")) %>% 
-          layout( width = plotWidth)
-        
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth) 
     })
 
     
@@ -628,8 +680,7 @@ function(input, output, session) {
         
         if(input$logScale) 
             p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x"))%>% 
-          layout( width = plotWidth)
+        ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
         
     })
     
@@ -645,22 +696,170 @@ function(input, output, session) {
         if(nRep > 3) 
           d2 <- d2[-(1:(nRep-3)),]
         
-        par(mar = c(4, 3, 0, 2))
+        np <- nrow(d2) # number of time points
+        if(np > npMax)
+          d2 <- d2[(np-npMax+1):np,]
+        
+        par(mar = c(4, 4, 0, 2))
         # missing data with average of neighbors
         d2$confirm<- meanImput(d2$confirm, 2)
         
         confirm <- ts(d2$confirm, # percent change
                       start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
-        forecasted <- forecast(ets(confirm), input$daysForcasted)
+        forecasted <- forecast(ets(confirm, model="AAN", damped=FALSE), input$daysForcasted)
         plot(forecasted, xaxt="n", main="", 
-             ylab = z("全国确诊"),
-             xlab = paste0(z("预期"), input$daysForcasted, z("天后确诊 "),input$selectCountry, " ", round(forecasted$mean[input$daysForcasted],0), z(", 区间["),
-                           round(forecasted$lower[input$daysForcasted],0), "-",round(forecasted$upper[input$daysForcasted],0),"]")            
+             ylab = z("确诊人数"),
+             xlab = paste0(input$selectCountry, 
+                           " is expected to have ",
+                           round(forecasted$mean[input$daysForcasted],0), 
+                           " confirmed cases by ", 
+                           format( as.Date(xgithub$time) + input$daysForcasted, "%b %d"  ),  
+                           z(". 95% CI ["),
+                           round(forecasted$lower[input$daysForcasted],0), "-",
+                           round(forecasted$upper[input$daysForcasted],0),"]."
+                           )            
         )
         a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
         axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
       }, width = plotWidth - 100 ) 
     
+    #世界 各国确诊人数预测, 百分比预测-------------------------------------------      
+    output$forecastConfirmedChangeWP <- renderPlot ({
+      d2 <- contriesPrediction %>%
+        arrange(time) %>%
+        filter( country == input$selectCountry)
+      nRep = sum( d2$confirm == d2$confirm[2]) 
+      if(nRep > 3) 
+        d2 <- d2[-(1:(nRep-3)),]
+      
+      np <- nrow(d2) # number of time points
+      if(np > npMax)
+        d2 <- d2[(np-npMax+1):np,]
+      
+      par(mar = c(4, 4, 0, 2)) 
+      # missing data with average of neighbors
+      d2$confirm<- meanImput(d2$confirm, 2)
+      
+      np <- nrow(d2) # number of time points
+      if(np > npMax)
+        d2 <- d2[(np-npMax+1):np,]
+      
+      confirm <- ts(diff(d2$confirm)/(10 + d2$confirm[1:(nrow(d2)-1)])*100, # percent change
+                    start = c(year(min(d2$time)), yday(min(d2$time)) + 1 ), frequency=365  )
+      
+      forecasted <- forecast(ets(confirm), input$daysForcasted)
+      
+      predictedNconfirm = d2$confirm[nrow(d2)]* increasesByPercentages(forecasted$mean)       
+      plot(forecasted, xaxt="n", main="", 
+           ylab = z("确诊增加百分比(%)"),
+           xlab = paste0("Total cases in ", input$selectCountry, 
+                         " is expected to increase by ", 
+                         round( mean( forecasted$mean ), 1 ),"% on average daily, reaching ", 
+                         round(predictedNconfirm,0), " by ",
+                         format( as.Date(xgithub$time) + input$daysForcasted, "%b %d"  ), "." 
+                         )            
+      )
+      a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
+      axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
+    }, width = plotWidth - 100 )
+    
+    #世界 各国确诊人数预测, 预测-------------------------------------------    
+    
+    output$forecastConfirmedChangeWorldDeath <- renderPlot ({
+      d2 <- contriesPrediction %>%
+        arrange(time) %>%
+        filter( country == input$selectCountry)
+      nRep = sum( d2$dead == d2$dead[2]) 
+      if(nRep > 3) 
+        d2 <- d2[-(1:(nRep-3)),]
+      
+      np <- nrow(d2) # number of time points
+      if(np > npMax)
+        d2 <- d2[(np-npMax+1):np,]
+      
+    #  if(sum( d2$dead > 5) <10)
+     #   return(NULL)
+      
+      par(mar = c(4, 4, 0, 2))
+      # missing data with average of neighbors
+      d2$confirm<- meanImput(d2$dead, 2)
+      
+      confirm <- ts(d2$dead, # percent change
+                    start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
+      forecasted <- forecast(ets(confirm, model="AAN", damped=FALSE), input$daysForcasted)
+      plot(forecasted, xaxt="n", main="", 
+           ylab = z("COVID-19 Deaths"),
+           xlab = paste0(input$selectCountry, 
+                         " is expected to have ",
+                         round(forecasted$mean[input$daysForcasted],0), 
+                         "  deaths by ", 
+                         format( as.Date(xgithub$time) + input$daysForcasted, "%b %d"  ),  
+                         z(". 95% CI ["),
+                         round(forecasted$lower[input$daysForcasted],0), "-",
+                         round(forecasted$upper[input$daysForcasted],0),"]."
+           )            
+      )
+      a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2) -1 )
+      axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
+    }, width = plotWidth - 100 )  
+    
+    # compare countries
+    output$CompareCountries <- renderPlot ({
+      nPoints = 7
+      minCases = 200
+      maxShow = 30
+      tem <- table(xgithub$global$country)
+      
+      tem2 <- xgithub$global %>%
+        group_by(country) %>%
+        summarise(max = max(cum_confirm)) %>%
+        filter(max > minCases) %>%
+        pull(country)
+      
+      d <- xgithub$global %>%
+        filter(  country %in%  names(tem)[tem > nPoints]    ) %>% # only keep contries with 20 more data points.
+        filter(  country %in%  tem2   )   # at least 20 cases
+      
+      dfGroup <- d %>%
+        arrange(country, desc(time)) %>%  # only keep the most recent 10 data points
+        mutate(cum_confirm = log2(cum_confirm + 1)) %>%
+        group_by(country) %>%
+        filter(row_number() %in% 1:nPoints) %>%
+        arrange(time) %>%
+        mutate( time1 =  time - last(time) + nPoints) %>% 
+        do(fitGroup = lm(cum_confirm ~ time1, data = .))
+      
+      Coefs = tidy(dfGroup, fitGroup)
+      Coefs <- Coefs %>% 
+        filter(term == "time1") %>%
+        arrange(desc(estimate)) 
+      
+      maxConfirm <- d %>%
+        arrange(country, desc(time)) %>%  # only keep the most recent 10 data points
+        group_by(country) %>%
+        filter(row_number() == 1) %>%
+        ungroup
+      
+      Coefs <- left_join(Coefs, maxConfirm, by = "country") %>%
+        filter(country != "Diamond Princess") %>%
+        mutate( Death.Rate = round(cum_dead/cum_confirm*100,2)) %>%
+        mutate ( growthPercent = round((2^estimate -1) *100,2) ) %>%
+        arrange(desc(cum_confirm))
+      
+      Coefs <- Coefs[1:maxShow,]
+ 
+      ggplot(Coefs, aes(x = cum_confirm, y = growthPercent, color = Death.Rate, label = country)) +
+        geom_point(size = 2) + 
+        scale_x_continuous(trans='log10') +
+        geom_text_repel(size = 5, hjust=1) +
+        scale_colour_gradient(low = "black", high = "red", na.value = NA) +
+        xlab(paste("Confirmed cases as of ", format(as.Date(xgithub$time), "%b. %d")) ) + 
+        ylab(paste("% daily increases in last",nPoints,"days" )) + 
+        labs(color = "Death Rate") +
+        theme_gray(base_size = 12) + 
+        theme(plot.title = element_text(size = 12)) + 
+        theme(legend.text=element_text(size=11))   
+    }, width = plotWidth  )  
     
     #全国确诊人数预测, 百分比预测-------------------------------------------    
     output$forecastConfirmedChange <- renderPlot ({
@@ -668,7 +867,10 @@ function(input, output, session) {
         par(mar = c(4, 3, 0, 2)) 
         # missing data with average of neighbors
         d2$confirm<- meanImput(d2$confirm, 2)
-        d2 <- d2[-(1:20), ] # remove the first 10 days as % change is huge
+        
+        np <- nrow(d2) # number of time points
+        if(np > npMax)
+          d2 <- d2[(np-npMax+1):np,]
         
         confirm <- ts(diff(d2$confirm)/(10 + d2$confirm[1:(nrow(d2)-1)])*100, # percent change
                         start = c(year(min(d2$time)), yday(min(d2$time)) + 1 ), frequency=365  )
@@ -692,6 +894,10 @@ function(input, output, session) {
         # missing data with average of neighbors
         d2$confirm<- meanImput(d2$confirm, 2)
         
+        np <- nrow(d2) # number of time points
+        if(np > npMax)
+          d2 <- d2[(np-npMax+1):np,]
+        
         confirm <- ts(d2$confirm, # percent change
                         start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
         forecasted <- forecast(ets(confirm), input$daysForcasted)
@@ -712,7 +918,9 @@ function(input, output, session) {
         # missing data with average of neighbors
         d2$dead <- meanImput(d2$dead, 2)
         
-        d2 <- d2[-(1:20), ] # remove the first 10 days as % change is huge
+        np <- nrow(d2) # number of time points
+        if(np > npMax)
+          d2 <- d2[(np-npMax+1):np,]
         
         # Note that 5 is added to the denominator for stablize the %
         dead <- ts(diff(d2$dead)/(5 + d2$dead[1:(nrow(d2)-1)])*100, # percent change
@@ -740,6 +948,10 @@ function(input, output, session) {
         # missing data with average of neighbors
         d2$dead <- meanImput(d2$dead, 2)
         
+        np <- nrow(d2) # number of time points
+        if(np > npMax)
+          d2 <- d2[(np-npMax+1):np,]
+        
         deaded <- ts(d2$dead, # percent change
                      start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
         forecasted <- forecast(ets(deaded), input$daysForcasted)
@@ -760,7 +972,7 @@ function(input, output, session) {
              continuous_scale=FALSE,
              palette='Blues')
         })
-    }, height = 800, width = 800)  
+    }, height = 1400, width = 1400)  
 
     #中国地图---------------------------------------------------
     output$ChinaMap <- renderPlot ({
@@ -825,13 +1037,12 @@ function(input, output, session) {
     
     #世界细节 历史图 -------------------------------------------
     output$historicalWorldDirect <- renderPlotly({
-      
+      withProgress(message = 'Making plot', value = 0, {
       library(shadowtext)
       library(conflicted)
-      
       conflict_prefer("filter", "dplyr")
       conflict_prefer("layout", "plotly")   
-      
+      incProgress(0.1, message = "loading data")
       d <- xgithub
       dd <- d['global'] %>% 
         as_tibble %>%
@@ -845,6 +1056,7 @@ function(input, output, session) {
       
       breaks=c(100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000)
       
+      incProgress(0.3)
       
       p <- ggplot(dd, aes(days_since_100, confirm, color = country)) +
         # geom_smooth(method='lm', aes(group=1),
@@ -866,12 +1078,13 @@ function(input, output, session) {
         geom_shadowtext(aes(label = paste0(" ",country)), hjust=0, vjust = 0, 
                         data = . %>% group_by(country) %>% top_n(1, days_since_100), 
                         bg.color = "white") +
-        labs(x = "Number of days since 100th case", y = "", 
-             subtitle = paste0("Confirmed COVID-19 cases as of ", xgithub$time) ) #+
+        labs(x = "Number of days since 100th case", y = "" ) + 
+        ggtitle (paste0("Confirmed COVID-19 cases as of ", xgithub$time) ) +
+        theme(plot.title = element_text(size = 10)) + 
+        theme(legend.title = element_blank()) #+
         #xlim(c(0,25))
-      
-      ggplotly(p, tooltip = c("y", "x","country")) %>% 
-        layout( width = plotWidth)
+      }) # progress bar
+      ggplotly(p, tooltip = c("y", "x","country"), width = plotWidth) 
       
     })
     
@@ -889,7 +1102,7 @@ function(input, output, session) {
         as_tibble %>%
         rename(confirm=cum_confirm) %>%
         filter(confirm > 100) %>%
-         filter(confirm <50000) %>%
+         filter(confirm <60000) %>%
         filter(country != "Diamond Princess") %>%
         group_by(country) %>%
         mutate(days_since_100 = as.numeric(time - min(time))) %>%
@@ -920,13 +1133,415 @@ function(input, output, session) {
                         bg.color = "white") +
         labs(x = "Number of days since 100th case", y = "", 
              subtitle = paste0("Confirmed COVID-19 cases as of ", xgithub$time, " (static version)") ) +
-      xlim(c(0,25))
+      xlim(c(0,35))
       
       p
       
-    }, width = plotWidth - 100)
+    }, width = plotWidth - 100 )
+    
+    ####################################################################
+    #  U.S.A. and several other countries with provincal data 
+    # based on the coronavirus package from Rami Krispin
+    ####################################################################
+    
+    countriesData <- reactive({
+      library(coronavirus)
+      data("coronavirus")
+
+      USdata1 <- coronavirus %>%
+        filter(Country.Region == input$selectCountryDetails) %>%
+        spread(type, cases) %>% # convert from long to wide format
+        arrange(Province.State, date) %>%
+        rename(province = Province.State, 
+               country = Country.Region,
+               time = date,
+               confirm = confirmed,
+               dead = death,
+               heal = recovered) 
+      
+      #Note that this data records new cases every day.
+      UScurrent<- USdata1 %>% 
+        drop_na(province) %>%
+        filter(province != "NA" ) %>%
+        group_by(province) %>%
+        summarise(confirm = sum(confirm), 
+                  dead = sum(dead), 
+                  head = sum(heal),
+                  time = max(time)) %>% 
+        filter(province != "Diamond Princess") %>%
+        arrange(desc(confirm))%>%
+        filter(confirm > 1)
+      
+      
+      #convert to cumulative numbers
+      UScumulative <- USdata1 %>% 
+        group_by(province) %>%
+        arrange(time) %>%
+        mutate( confirm = cumsum(confirm),
+                dead = cumsum(dead),
+                heal = cumsum(heal)) %>%
+        ungroup() %>%
+        arrange( province, time)
+      
+      if(input$selectCountryDetails == "US") { 
+          UScumulative$ab <- state.abb[ UScumulative$province] 
+      } else {
+        UScumulative$ab <- UScumulative$province      
+        
+      }
+      rm(USdata)
+      
+      return(list(UScurrent = UScurrent, UScumulative = UScumulative))
+      
+      
+    })
+
+    output$USCurrent <- renderPlot({
+      
+      d <- countriesData()$UScurrent
+      if(nrow(d) > 20) 
+        d <- d[1:20, ] 
+      d <- d %>%
+        rename(name = province)
+      
+      d$confirm=as.numeric(d$confirm)
+      if(isEnglish) d$name <- py2( d$name )  # translate into Pinyin
+      d$name = fct_reorder(d$name, d$confirm)        
+      
+      # This is used to create spaces so the numbers on top of the bar shows up.
+      maxN <- max(d$confirm) *1.5
+      if(input$logScale) 
+        maxN <- max(d$confirm) *10
+      
+      
+      p <- ggplot(d, aes(name, confirm)) + 
+        geom_col(fill='steelblue') + coord_flip() +
+        geom_text(aes(y = confirm+2, label= paste0( confirm, " (",dead,")")), hjust=0) +
+        theme_gray(base_size=14) + 
+        scale_y_continuous(expand=c(0,10)) +
+        xlab(NULL) + ylab(NULL) +
+        theme(text = element_text(size=17, family="SimSun"),
+              axis.text.x = element_text(angle=0, hjust=1))  + 
+        ggtitle(paste("Confirmed (deaths) as of", format( as.Date(max(countriesData()$UScumulative$time)), "%b %d") ) ) +
+        #ggtitle(paste( z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
+        expand_limits(y = maxN)+ 
+        theme(plot.title = element_text(size = 15))
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      p
+      
+    }, width = plotWidth - 100)  
+    
+    # us map
+    output$US.state.map <- renderPlot({
+      library(maps)
+      statesData <- map_data("state") 
+      UScurrent <- countriesData()$UScurrent
+      
+      UScurrent$region = tolower(UScurrent$province)
+      
+      
+      map <- merge(statesData, UScurrent, by = "region", all.x = T)
+      map <- map[order(map$order), ]
+      
+      p <- ggplot(map, aes(x = long, y = lat, group = group)) +  
+        geom_polygon(aes(fill = confirm)) +   
+        geom_path() + 
+        #scale_fill_gradientn(colours = rev(heat.colors(10))) +
+        scale_fill_gradient2(low = "white", #mid = scales::muted("purple"), 
+                             high = "red", breaks = c(0,10,20,50,100,200,500)) +
+        coord_map() +
+        labs(x = "Longitude", y = "Latitude") +
+        guides(fill = guide_legend(title = paste0("Confirmed (", 
+                                                 format(as.Date(UScurrent$time[1]), "%b. %d"), ")")) ) +  
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                           panel.grid.minor = element_blank()) +
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              axis.title.y=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks.y=element_blank()) 
+       # ggtitle("", subtitle = format(as.Date(UScurrent$time[1]), "%b. %d") )
+
+      p
+      
+    }, width = plotWidth - 100 )
+    
+    # us map growth rate
+    output$US.state.map.Rate <- renderPlot({
+      library(maps)
+      statesData <- map_data("state") 
+      
+      UScurrent <- provinceGrowthRate()
+      UScurrent$region = tolower(UScurrent$province)
+      
+      
+      map <- merge(statesData, UScurrent, by = "region", all.x = T)
+      map <- map[order(map$order), ]
+      
+      p <- ggplot(map, aes(x = long, y = lat, group = group)) +  
+        geom_polygon(aes(fill = growthPercent)) +   
+        geom_path() + 
+        #scale_fill_gradientn(colours = rev(heat.colors(10))) +
+        scale_fill_gradient2(low = "white", #mid = scales::muted("purple"), 
+                             high = "red", breaks = c(0,5,10,20,30,40,50,60,70,80,100)) +
+        coord_map() +
+        labs(x = "Longitude", y = "Latitude") +
+        guides(fill = guide_legend(title = paste0("Daily % increase (", 
+                                                  format(as.Date(UScurrent$time[1]), "%b. %d"), ")")) ) +  
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                           panel.grid.minor = element_blank()) +
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              axis.title.y=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks.y=element_blank()) 
+      # ggtitle("", subtitle = format(as.Date(UScurrent$time[1]), "%b. %d") )
+      
+      p
+      
+    }, width = plotWidth - 100 )
+    
+    #US historical by states -------------------------------------------
+
+    output$historicalUS <- renderPlotly({
+      
+      tem <- countriesData()$UScumulative %>%
+        filter(confirm > 0) %>%
+        count(province) %>%
+        filter( n > 10 ) %>% # only keep contries with 20 more data points.
+        pull(province)
+      
+      tem2 <- countriesData()$UScumulative %>%
+        group_by(province) %>%
+        summarise(max = max(confirm)) %>%
+        filter(max > 20) %>%  # at least 20 cases
+        pull(province)
+      
+      d <- countriesData()$UScumulative %>%
+        filter(province !=z('Diamond Princess')) %>%
+        filter(  province %in%  tem    ) %>% 
+        filter(  province %in%  tem2   ) %>% 
+        filter (time > as.Date("2020-2-15"))
+      
+      p <- ggplot(d,
+                  aes(time, confirm, group=province, color=province)) +
+        geom_point() + geom_line() +
+        geom_text_repel(aes(label=province), data=d[d$time == time(x), ], hjust=1) +
+        theme_gray(base_size = 12) + #theme(legend.position='none') +
+        xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
+        ggtitle (z("确诊人数")) +
+        theme(plot.title = element_text(size = 12)) + 
+        theme(legend.title = element_blank()) + 
+        theme(legend.text=element_text(size=9))   
+      #+guides(shape = guide_legend(override.aes = list(size = 2)))
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      
+      ggplotly(p, tooltip = c("y", "x","province"), width = plotWidth) 
+      
+    })
+   
+    
+    output$historicalUSDirect2 <- renderPlot({
+      
+      library(shadowtext)
+      library(conflicted)
+      
+      conflict_prefer("filter", "dplyr")
+      conflict_prefer("layout", "graphics")   
+      
+
+      dd <- countriesData()$UScumulative %>% 
+        as_tibble %>%
+        filter(confirm > 20) %>%
+        #filter(confirm <50000) %>%
+        filter(province != "Diamond Princess") %>%
+        filter(province != "Grand Princess") %>%
+        group_by(province) %>%
+        mutate(days_since_100 = as.numeric(time - min(time))) %>%
+        ungroup 
+      
+      breaks=c(20, 50, 100, 200, 500, 1000, 2000, 10000, 50000,100000)
+
+      p <- ggplot(dd, aes(days_since_100, confirm, color = province)) +
+        # geom_smooth(method='lm', aes(group=1),
+        #            data = . %>% filter(!country %in% c("China", "Japan", "Singapore")), 
+        #             color='grey10', linetype='dashed') +
+        geom_line(size = 0.8) +
+        geom_point(pch = 21, size = 1) +
+        scale_y_log10(expand = expansion(add = c(0,0.1)), 
+                      breaks = breaks, labels = breaks) +
+        scale_x_continuous(expand = expansion(add = c(0,1))) +
+        theme_gray(base_size = 14) +
+        theme(
+          panel.grid.minor = element_blank(),
+          legend.position = "none",
+          #legend.spacing.y = unit(0.2, 'cm'),
+          #plot.margin = margin(3,15,3,3,"mm")
+        ) +
+        coord_cartesian(clip = "off") +
+        geom_shadowtext(aes(label = paste0(" ",ab)), hjust=0, vjust = 0, 
+                        data = . %>% group_by(province) %>% top_n(1, days_since_100), 
+                        bg.color = "white") +
+        labs(x = "Days since the 20th case", y = "", 
+             subtitle = paste0("Confirmed COVID-19 cases as of ", 
+                               format(as.Date(max(countriesData()$UScumulative$time)),"%b. %d")) )+
+        xlim(c(0,(floor(max(dd$days_since_100)/10) + 1)*10) )
+      
+      p
+      
+    }, width = plotWidth - 100 )
+    
+    provinceGrowthRate <- reactive({
+      nPoints = 7
+      minCases = 50 
+      tem <- table(countriesData()$UScumulative$province)
+      
+      tem2 <- countriesData()$UScumulative %>%
+        group_by(province) %>%
+        summarise(max = max(confirm)) %>%
+        filter(max > minCases) %>%
+        pull(province)
+      
+      d <- countriesData()$UScumulative %>%
+        filter(  province %in%  names(tem)[tem > nPoints]    ) %>% # only keep contries with 20 more data points.
+        filter(  province %in%  tem2   )   # at least 20 cases
+      
+      dfGroup <- d %>%
+        arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
+        mutate(confirm = log2(confirm + 1)) %>%
+        group_by(province) %>%
+        filter(row_number() %in% 1:nPoints) %>%
+        arrange(time) %>%
+        mutate( time1 =  time - last(time) + nPoints) %>% 
+        do(fitGroup = lm(confirm ~ time1, data = .))
+      
+      Coefs = tidy(dfGroup, fitGroup)
+      Coefs <- Coefs %>% 
+        filter(term == "time1") %>%
+        arrange(desc(estimate)) 
+      
+      maxConfirm <- d %>%
+        arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
+        group_by(province) %>%
+        filter(row_number() == 1) %>%
+        ungroup
+      
+      Coefs <- left_join(Coefs, maxConfirm, by = "province") %>%
+        filter(province != "Diamond Princess") %>%
+        mutate( Death.Rate = round(dead/confirm*100,2)) %>%
+        mutate ( growthPercent = round((2^estimate -1) *100,2) ) %>%
+        arrange(desc(confirm))
+      
+      return(Coefs)
+      
+      
+    })
     
     
     
+    # compare Provinces
+    output$CompareProvinces <- renderPlot ({
+      nPoints = 7
+      minCases = 50
+      maxShow = 30
+      
+      tem <- table(countriesData()$UScumulative$province)
+      
+      tem2 <- countriesData()$UScumulative %>%
+        group_by(province) %>%
+        summarise(max = max(confirm)) %>%
+        filter(max > minCases) %>%
+        pull(province)
+      
+      d <- countriesData()$UScumulative %>%
+        filter(  province %in%  names(tem)[tem > nPoints]    ) %>% # only keep contries with 20 more data points.
+        filter(  province %in%  tem2   )   # at least 20 cases
+      
+      dfGroup <- d %>%
+        arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
+        mutate(confirm = log2(confirm + 1)) %>%
+        group_by(province) %>%
+        filter(row_number() %in% 1:nPoints) %>%
+        arrange(time) %>%
+        mutate( time1 =  time - last(time) + nPoints) %>% 
+        do(fitGroup = lm(confirm ~ time1, data = .))
+      
+      Coefs = tidy(dfGroup, fitGroup)
+      Coefs <- Coefs %>% 
+        filter(term == "time1") %>%
+        arrange(desc(estimate)) 
+      
+      maxConfirm <- d %>%
+        arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
+        group_by(province) %>%
+        filter(row_number() == 1) %>%
+        ungroup
+      
+      Coefs <- left_join(Coefs, maxConfirm, by = "province") %>%
+        filter(province != "Diamond Princess") %>%
+        mutate( Death.Rate = round(dead/confirm*100,2)) %>%
+        mutate ( growthPercent = round((2^estimate -1) *100,2) ) %>%
+        arrange(desc(confirm))
+      
+      Coefs <- Coefs[1:maxShow,]
+      
+      ggplot(Coefs, aes(x = confirm, y = growthPercent, color = Death.Rate, label = ab)) +
+        geom_point(size = 2) + 
+        scale_x_continuous(trans='log10') +
+        geom_text_repel(size = 6, hjust=1) +
+        scale_colour_gradient(low = "black", high = "red", na.value = NA) +
+        xlab(paste("Confirmed cases as of ", format(as.Date(xgithub$time), "%b. %d")) ) + 
+        ylab(paste("% daily increases in last",nPoints,"days" )) + 
+        labs(color = "Death Rate") +
+        theme_gray(base_size = 12) + 
+        theme(plot.title = element_text(size = 12)) + 
+        theme(legend.text=element_text(size=11))  +
+        theme(axis.text=element_text(size=12),
+             axis.title=element_text(size=12))
+    }, width = plotWidth  )  
+    
+    # Prediction U.S. states
+    output$forecastUSstates <- renderPlot ({
+      d2 <- countriesData()$UScumulative %>%
+        arrange(time) %>%
+        filter( province == input$selectProvince2)
+      
+      if(nrow(d2) < 5) return(NULL)
+
+      
+      np <- nrow(d2) # number of time points
+      if(np > npMax)
+        d2 <- d2[(np-npMax+1):np,]
+      
+      par(mar = c(4, 4, 0, 2))
+      # missing data with average of neighbors
+      d2$confirm<- meanImput(d2$confirm, 2)
+      
+      confirm <- ts(d2$confirm, # percent change
+                    start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
+      forecasted <- forecast(ets(confirm, model="AAN", damped=FALSE), input$daysForcasted2)
+      plot(forecasted, xaxt="n", main="", 
+           ylab = z("确诊人数"),
+           xlab = paste0(input$selectProvince2, 
+                         " is expected to have ",
+                         round(forecasted$mean[input$daysForcasted2],0), 
+                         " confirmed cases by ", 
+                         format( as.Date(max(d2$time)) + input$daysForcasted2, "%b %d"  ),  
+                         z(". 95% CI ["),
+                         round(forecasted$lower[input$daysForcasted2],0), "-",
+                         round(forecasted$upper[input$daysForcasted2],0),"]."
+           )            
+      )
+      a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted2 + nrow(d2) -1 )
+      axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
+    }, width = plotWidth - 100 ) 
 
 }

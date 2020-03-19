@@ -4,11 +4,12 @@
 #install.packages(c("forcats","ggrepel","forecast","plotly","shinyBS","lubridate"))
 # install.packages("remotes")
 # remotes::install_github("GuangchuangYu/nCov2019")  # main data package
+# remotes::install_github("RamiKrispin/coronavirus")  # U.S. state level data
 # remotes::install_github("GuangchuangYu/chinamap")   #Chinese map
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")
 
-
+npMax <- 21  # only use last 3 weeks of data for forecast
 plotWidth = 800
 
 #--------------English version or Chinese version
@@ -69,6 +70,7 @@ options(warn=-1) #suppress warnings
 library(nCov2019)
 library(dplyr)
 library(tidyr) # for gather function 
+library(broom) # for regression by group in dplyr
 if(isEnglish) { 
   try( y <- get_nCov2019(lang="en"), silent = TRUE)  # load real time data from Tencent
   x <- load_nCov2019(lang="en", source = "dxy") #load historical data
@@ -140,127 +142,6 @@ ChinaHistory <- x$data %>%
 #  select( -country) %>%
 #  rename( confirm = cum_confirm, heal = cum_heal, dead = cum_dead)
 
-z <- function (ChineseName) {
-  # translate chinese Names and menu items to English
-  # it Uses a dictionary above
-  if(!isEnglish) { 
-    return(ChineseName) 
-  } else {
-    translated <- myDic2[ChineseName]
-    if(is.na(translated)) 
-      return( ChineseName ) else
-        return(translated)
-  }
-}
-
-z2 <- function (ChineseNames) 
-  # Translate a vector of Chinese strings into English
-  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
-{
-  if(!isEnglish) { 
-    return(ChineseNames) 
-  } else {
-    unlist( lapply(as.character( ChineseNames ), z) )
-  }
-}
-
-tem <- table(xgithub$global$country)
-tem2 <- xgithub$global %>%
-  group_by(country) %>%
-  summarise(max = max(cum_confirm)) %>% 
-  arrange(desc(max)) %>%
-  filter(max > 30) %>%
-  pull(country)
-
-contriesPrediction <- xgithub$global %>%
-  #filter(country !='中国') %>%
-  #filter(country !='China') %>%
-  filter(  country %in%  names(tem)[tem > 20]    ) %>% # only keep contries with 20 more data points.
-  filter(  country %in%  tem2   ) %>%  # at least 20 cases
-  filter (time > as.Date("2020-2-1")) %>%
-  rename(dead = cum_dead, confirm = cum_confirm, heal = cum_heal)
-
-
-# current statistcs of different countries based on data from Github
-worldCurrent <- xgithub$global %>%
-  arrange(country, desc(time)) %>%
-  group_by(country) %>%
-  filter(row_number() ==1) %>%
-  arrange( desc(cum_confirm)) %>%
-  rename(name = country, dead = cum_dead, confirm = cum_confirm, heal = cum_heal) %>%
-  as.data.frame()
-
-
-
-
-# missing data imput using the mean of n neighboring data points on both sides
-# if n = 1, then two neighbors, if n=2 then 2 neighbors on both sides
-meanImput <- function (x, n = 2) { 
-  ix <- is.na(x)
-  x2 <- x
-  for( ixx in which(ix)) {
-    start <- ixx-n;
-    if(start < 1) 
-      start <- 1;
-    end <- ixx + n;
-    if(start > length(x)) 
-      start <- length(x);  
-    x2[ixx] <- mean( x[ start:end], na.rm = T  ) }
-  return( x2 )
-}
-
-#Given a set of percentage increase or decrease, calculate final
-# not 10% is represented as 10, not 0.1
-increasesByPercentages <- function(x ) {
-  increase = 1;
-  for (i in 1:length(x))
-    increase <- increase * (1 + x[i]/100)
-  increase
-}
-
-
-finc <- function(x) {
-  # format increases
-  # convert 235 -> "+235"
-  #         -235 -> "-235"
-  if(x > 0) {
-    return( paste0("+",x) )
-  } else{
-    return( as.character(x) )
-  } 
-}
-#  Below come from #https://shiny.rstudio.com/gallery/unicode-characters.html
-# for displaying Chinese characters
-# Cairo包的PNG设备似乎无法显示中文字符，强制使用R自身的png()设备
-options(shiny.usecairo = FALSE)
-
-# 请忽略以下代码，它只是为了解决ShinyApps上没有中文字体的问题
-font_home <- function(path = '') file.path('~', '.fonts', path)
-if (Sys.info()[['sysname']] == 'Linux' &&
-      system('locate wqy-zenhei.ttc') != 0 &&
-      !file.exists(font_home('wqy-zenhei.ttc'))) {
-  if (!file.exists('wqy-zenhei.ttc'))
-    curl::curl_download(
-      'https://github.com/rstudio/shiny-examples/releases/download/v0.10.1/wqy-zenhei.ttc',
-      'wqy-zenhei.ttc'
-    )
-  dir.create(font_home())
-  file.copy('wqy-zenhei.ttc', font_home())
-  system2('fc-cache', paste('-f', font_home()))
-}
-rm(font_home)
-
-
-if (.Platform$OS.type == "windows") {
-  if (!grepl("Chinese", Sys.getlocale())) {
-    warning(
-      "You probably want Chinese locale on Windows for this app",
-      "to render correctly. See ",
-      "https://github.com/rstudio/shiny/issues/1053#issuecomment-167011937"
-    )
-  }
-}
-
 
 myDic = matrix( c( 
   #---------------------Countries
@@ -327,18 +208,19 @@ myDic = matrix( c(
   "西藏", "Tibet",
   
   #---------------------Menu items
-
+  
   
   "疫情统计和预测", "Coronavirus COVID-19 outbreak statistics and forecast",
   
   "全国", "China",
-  "地图", "Map",
+  "地图", "Maps",
   "省", "Provinces",
   "市", "Cities",
   "世界", "World",
   "预测", "Forecast",
   
   "确诊", "Confirmed",
+  "确诊人数", "Confirmed cases",
   "死亡", "Death",
   "痊愈", "Discharged",
   
@@ -346,7 +228,7 @@ myDic = matrix( c(
   ",   疑似:",  ",   suspected:",
   ",   死亡:",  ",   death:",
   ",   痊愈:", ",   discharaged:", 
-  "一天之内数字会有多次更新。", "Updated serveral times a day. May not be final count for the day.",
+  "一天之内数字会有多次更新。", "New cases may not be final count for the day. Not optimized for mobile phones.",
   "01月", "Jan.",
   "02月", "Feb.",
   "03月", "March",
@@ -364,12 +246,12 @@ myDic = matrix( c(
   "北京时间", "Beijing time",
   "所有的图对数坐标 log10", "log10 scale for all plots",
   "(稍等几秒钟，地图下载)。", "Downloading map......",
-  "选择预测天数", "Choose how many days to forecast",
+  "选择预测天数", "Choose # of days to forecast from ",
   "简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。",
-       "We used a simple time series data forecasting model provided by the forecast package in R and the exponential smoothing method. We did not do rigrious testing of the models.",
-
+  "We used a simple time series data forecasting model provided by the forecast package in R and the exponential smoothing method. We did not do rigrious testing of the models.",
+  
   "先直接用全国的确诊总数的时间序列：", 
-       "First we used the time series of the total confirmed cases in China to forecast:",
+  "First we used the time series of the total confirmed cases in China to forecast:",
   
   "把全国的确诊总数先换算成了每天比前一天增加的百分比，
                  去除了前面10天不稳定的数据, 再预测：",
@@ -378,7 +260,7 @@ myDic = matrix( c(
   "直接用全国的死亡累计数预测：", "Forecasting the total deathes in China directly:",
   
   "把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：",
-     "Forecasting the daily percent increase:",
+  "Forecasting the daily percent increase:",
   
   "各市", "Cities",
   "确诊 (死亡)", "Confirmed (dead)",
@@ -391,7 +273,8 @@ myDic = matrix( c(
   "预期", "Prediction:",
   "全国确诊", "Total confirmed cases in China",
   "天后全国确诊 ", " days later, total confirmed in China will be ",
-  "预期全国确诊每天增加", "Predicted % daily increase/decrease  ",
+  "预期全国确诊每天增加", "Predicted % daily increase  ",
+  "确诊增加百分比(%)", " % daily increase  ",
   ", 区间[", ", 95% CI [",
   "死亡人数增加百分比(%)","% increase in death",
   "预期全国死亡累计每天增加", "Predicted % daily increase in death",
@@ -413,9 +296,151 @@ myDic = matrix( c(
   "天后确诊 ", " days later confirmed cases in ",
   "死亡率(%)","Gross Death Rate (%)",
   "中国详细预测", "Detailed forecast on Chinese cases",
-  
+  "封城","Lockdown",
+  "1月23日","Jan. 23",  
+  "1月23号封城", "Jan. 23 Lockdown",
+  "各国死亡人数", "COVID-19 Deaths",
+  "各国", "Countries",
   "last", "last"
 ),nrow=2)
+
+
+
+
+z <- function (ChineseName) {
+  # translate chinese Names and menu items to English
+  # it Uses a dictionary above
+  if(!isEnglish) { 
+    return(ChineseName) 
+  } else {
+    translated <- myDic2[ChineseName]
+    if(is.na(translated)) 
+      return( ChineseName ) else
+        return(translated)
+  }
+}
+
+z2 <- function (ChineseNames) 
+  # Translate a vector of Chinese strings into English
+  #  c("武汉", "上海") --> c("Wuhan", "Shanghai")
+{
+  if(!isEnglish) { 
+    return(ChineseNames) 
+  } else {
+    unlist( lapply(as.character( ChineseNames ), z) )
+  }
+}
+
+tem <- table(xgithub$global$country)
+tem2 <- xgithub$global %>%
+  group_by(country) %>%
+  summarise(max = max(cum_confirm)) %>% 
+  arrange(desc(max)) %>%
+  filter(max > 30) %>%
+  pull(country)
+
+contriesPrediction <- xgithub$global %>%
+  #filter(country !='中国') %>%
+  #filter(country !='China') %>%
+  filter(  country %in%  names(tem)[tem > 20]    ) %>% # only keep contries with 20 more data points.
+  filter(  country %in%  tem2   ) %>%  # at least 20 cases
+  filter (time > as.Date("2020-2-1")) %>%
+  rename(dead = cum_dead, confirm = cum_confirm, heal = cum_heal) %>% 
+  arrange(country, time)
+
+
+countryNames <- contriesPrediction %>% 
+  arrange(country, desc(confirm) ) %>%
+  group_by(country) %>%
+  filter(row_number() ==1) %>%
+  arrange(desc(confirm)) %>% 
+  pull(country)
+
+
+
+# current statistcs of different countries based on data from Github
+worldCurrent <- xgithub$global %>%
+  arrange(country, desc(time)) %>%
+  group_by(country) %>%
+  filter(row_number() ==1) %>%
+  arrange( desc(cum_confirm)) %>%
+  rename(name = country, dead = cum_dead, confirm = cum_confirm, heal = cum_heal) %>%
+  as.data.frame()
+
+
+
+
+# missing data imput using the mean of n neighboring data points on both sides
+# if n = 1, then two neighbors, if n=2 then 2 neighbors on both sides
+meanImput <- function (x, n = 2) { 
+  ix <- is.na(x)
+  x2 <- x
+  for( ixx in which(ix)) {
+    start <- ixx-n;
+    if(start < 1) 
+      start <- 1;
+    end <- ixx + n;
+    if(start > length(x)) 
+      start <- length(x);  
+    x2[ixx] <- mean( x[ start:end], na.rm = T  ) }
+  return( x2 )
+}
+
+#Given a set of percentage increase or decrease, calculate final
+# not 10% is represented as 10, not 0.1
+increasesByPercentages <- function(x ) {
+  increase = 1;
+  for (i in 1:length(x))
+    increase <- increase * (1 + x[i]/100)
+  increase
+}
+
+
+finc <- function(x) {
+  # format increases
+  # convert 235 -> "+235"
+  #         -235 -> "-235"
+  if(x > 0) {
+    return( paste0("+",x) )
+  } else{
+    return( as.character(x) )
+  } 
+}
+#  Below come from #https://shiny.rstudio.com/gallery/unicode-characters.html
+# for displaying Chinese characters
+# Cairo包的PNG设备似乎无法显示中文字符，强制使用R自身的png()设备
+options(shiny.usecairo = FALSE)
+
+
+# 请忽略以下代码，它只是为了解决ShinyApps上没有中文字体的问题
+font_home <- function(path = '') file.path('~', '.fonts', path)
+if (Sys.info()[['sysname']] == 'Linux' &&
+      system('locate wqy-zenhei.ttc') != 0 &&
+      !file.exists(font_home('wqy-zenhei.ttc'))) {
+  if (!file.exists('wqy-zenhei.ttc'))
+    curl::curl_download(
+      'https://github.com/rstudio/shiny-examples/releases/download/v0.10.1/wqy-zenhei.ttc',
+      'wqy-zenhei.ttc'
+    )
+  dir.create(font_home())
+  file.copy('wqy-zenhei.ttc', font_home())
+  system2('fc-cache', paste('-f', font_home()))
+}
+rm(font_home)
+
+
+if (.Platform$OS.type == "windows") {
+  if (!grepl("Chinese", Sys.getlocale())) {
+    warning(
+      "You probably want Chinese locale on Windows for this app",
+      "to render correctly. See ",
+      "https://github.com/rstudio/shiny/issues/1053#issuecomment-167011937"
+    )
+  }
+}
+
+
+
 # make a vector value is English, Name is chinese
 myDic2 <- myDic[2,]
 names(myDic2) <- myDic[1,]
@@ -444,4 +469,21 @@ z2 <- function (ChineseNames)
   }
 }
 provinceNamesList <- setNames(provinceNames, z2(provinceNames) )
+
+if(packageVersion("ggplot2") <= "3.3.0")
+  expansion <- ggplot2::expand_scale
+
+legends <- readLines("narrated.txt")
+
+#----------US data based on https://github.com/RamiKrispin/coronavirus
+library(coronavirus)
+data("coronavirus")
+
+countriesDetail <- sort(table(coronavirus$Country.Region), decreasing = T)
+countriesDetail <- countriesDetail[ countriesDetail > 5* median(countriesDetail) ]
+countriesDetail <- names( countriesDetail )
+
+names(state.abb) <- state.name
+
+
 

@@ -6,7 +6,7 @@ library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 # Define server logic required to draw a histogram
 ui <- fluidPage(
-  titlePanel(z("疫情统计和预测")),
+  titlePanel(paste0(z("疫情统计和预测")," v0.7")),
   tabsetPanel(
     tabPanel(z("全国")
     ,h4( paste0( 
@@ -19,6 +19,7 @@ ui <- fluidPage(
     ,h5(    z("更新"), "     ", z( paste0( gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
             gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日"),"  ", z("北京时间"), "  ", gsub(".* ","", y$lastUpdateTime),". ",
             z("一天之内数字会有多次更新。") )
+    
 
     ,fluidRow( 
       column(6, checkboxInput("logScale", z("所有的图对数坐标 log10"), value = FALSE) )
@@ -28,19 +29,25 @@ ui <- fluidPage(
     
     #,plotlyOutput("historicalChinaDataPlotly")
     ,img(src='ChinaMapAnimated2.gif', align = "center",width="600", height="600")
+     ,h5(legends[1])
      ,br(),br()
     ,plotOutput("realTimeProvinceConfirmed")
-    ,br()
+     ,h5(legends[2])
+     ,br()
     ,plotlyOutput("historicalChinaData")
+    ,h5(legends[3])
      ,br()
     ,plotlyOutput("historicalChinaDataAdd")
+     ,h5(legends[4])
     ,br()
     ,plotOutput("confirmedByProvincesHistorical")    
+    ,h5(legends[5])
     , br()
     ,plotlyOutput("deathRatesCities")
+    ,h5(legends[6])
     ,br()
     ,plotlyOutput("deathRatesCitiesCountries")
-
+    ,h5(legends[7])
 
   
 
@@ -49,13 +56,6 @@ ui <- fluidPage(
 
     ) #tab1 --------------------------------------------------
     
-    ,tabPanel(z("地图")
-              ,h4(paste0( z(paste0(gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
-                      gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日")), z("(稍等几秒钟，地图下载)。"))
-              ,plotOutput("ChinaMap")
-
-              
-    )
 
     ,tabPanel(z("省")
               ,selectInput("selectProvince0", NULL, choices = provinceNamesList)
@@ -80,54 +80,98 @@ ui <- fluidPage(
               ,plotlyOutput("cities_in_proviences_selected")        
               ,plotlyOutput("cities_in_proviences_selectedAdd")  
               )
-    
+        ,tabPanel(z("各国")
+          ,h5("All analyses on this page are based on data from this ", 
+              a("R package",href="https://github.com/RamiKrispin/coronavirus"), 
+              "by", a("Rami Krispin.",href="https://twitter.com/rami_krispin?lang=en"))
+          ,selectInput("selectCountryDetails", NULL, choices = countriesDetail, selected = countriesDetail[1])
+          ,plotOutput("USCurrent")
+          ,h5(legends[17])
+          ,br(),br() 
+          ,conditionalPanel("input.selectCountryDetails == 'US'"
+                            ,plotOutput("US.state.map")
+                            ,h5(legends[18])
+                            ,br(),br()    
+                            ,plotOutput("US.state.map.Rate")
+                            ,h5(legends[24])
+                            ,br(),br()    
+          )
+          
+          
+          ,plotlyOutput("historicalUS")
+          ,h5(legends[19])
+          ,br(),br() 
+          
+          ,plotOutput("historicalUSDirect2")
+          ,h5(legends[20])
+          ,br(),br() 
+          ,plotOutput("CompareProvinces")
+          ,h5(legends[23])
+          ,br(),br()          
+          ,sliderInput("daysForcasted2", paste(z("选择预测天数") ),
+                       min = 1, max = 14,
+                       value = 7)
+          ,selectInput("selectProvince2", NULL, NULL)
+          ,plotOutput("forecastUSstates")
+          ,h5(legends[21])
+          ,br(),br() 
+          
+          
+    )
     ,tabPanel(z("世界")
-              ,plotOutput("realTimeCityConfirmedWorld")
-              ,br()
+              ,h4("Please wait while we crunch the numbers ...")
+              ,plotOutput("ConfirmedWorld", height = 500)
+              ,h5(legends[8])
+              ,br(),br()
               ,plotlyOutput("historicalWorld")
-              ,br()
+              ,h5(legends[9])
+              ,br(),br()
+              ,plotlyOutput("historicalWorldDead")
+              ,h5(legends[10])
+              ,br(),br()
               ,plotlyOutput("historicalWorldDirect")
-              ,br()
+              ,h5(legends[11])
+              ,br(),br()
               ,plotOutput("historicalWorldDirect2")
+              ,h5(legends[12])
               ,br()
-              ,plotlyOutput("WorldDeathRate")
-              ,br()
-              ,plotOutput("worldMap")            
+              ,plotOutput("CompareCountries")
+              ,h5(legends[22])
+              ,br(),br()
+              ,plotlyOutput("WorldDeathRate", height = 500)
+              ,h5(legends[13])
+              ,br(),br()
+
+        
               
               )#tab2 --------------------------------------------------
-    
+
     ,tabPanel(z("预测") 
-              ,sliderInput("daysForcasted", z("选择预测天数"),
-                             min = 1, max = 7,
-                             value = 10)
-              ,h5(z("简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。") )
-             ,selectInput("selectCountry", NULL, choices = unique(contriesPrediction$country))
+              ,sliderInput("daysForcasted", paste(z("选择预测天数"), gsub("2020-","", xgithub$time))  ,
+                             min = 1, max = 14,
+                             value = 7)
+             ,selectInput("selectCountry", NULL, choices = countryNames, selected= countryNames[2])
+             
              ,plotOutput("forecastConfirmedChangeWorld")
+             ,h5(legends[14])
              ,br(),br()
-             
-             ,h4(z("中国详细预测"))
-              
-             ,h5(z("先直接用全国的确诊总数的时间序列："))
-             ,plotOutput("forecastConfirmedRaw")
-             ,br()   
-             ,br() 
-             ,h5(z("把全国的确诊总数先换算成了每天比前一天增加的百分比，
-                 去除了前面10天不稳定的数据, 再预测："))
-             ,plotOutput("forecastConfirmedChange")
-             ,br()
-             ,br()
-             ,h5(z("直接用全国的死亡累计数预测："))
-             ,plotOutput("forecastDeadRaw")
-             ,br()
-             
-             ,br()
-             ,h5(z("把全国的死亡累计数先换算成了每天比前一天增加的百分比，去除了前面10天不稳定的数据,再预测：") )
-             ,plotOutput("forecastDeadChange")
-             ,br(),br()
+             ,plotOutput("forecastConfirmedChangeWP")
+             ,h5(legends[15])
+             ,br(),br()     
+             ,plotOutput("forecastConfirmedChangeWorldDeath")
+             ,h5(legends[16])
+             ,br(),br() 
 
              
 
     ) #tab2 --------------------------------------------------
+,tabPanel(z("地图")
+          ,h4(paste0( z(paste0(gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
+                      gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日")), z("(稍等几秒钟，地图下载)。"))
+          ,plotOutput("ChinaMap", height = 800, width = 800)
+          ,h4("Scroll down to see world map.")
+          ,plotOutput("worldMap", height = 1400, width = 1400)    
+)
     ,tabPanel(z("数据") 
               ,br()
               , downloadButton('dataDownload', z('中国数据下载')	)
@@ -173,6 +217,9 @@ ui <- fluidPage(
     ,h5("2/9/20 Version 0.2 ")
     ,h5("2/12/20 V 0.3 English version")
     ,h5("2/23/20 v. 0.4 Interactive plots.")
+    ,h5("3/12/20 v. 0.5 Historical trend among countries.")
+    ,h5("3/15/20 V. 0.6 Changed forecasting parameters from default to ANN.")
+    ,h5("3/16/20 V. 0.7 Add provincial level data for U.S. and other countries based on the coronavirus package.")
     )
   )
     ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics      

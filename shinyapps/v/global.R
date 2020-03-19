@@ -4,6 +4,7 @@
 #install.packages(c("forcats","ggrepel","forecast","plotly","shinyBS","lubridate"))
 # install.packages("remotes")
 # remotes::install_github("GuangchuangYu/nCov2019")  # main data package
+# remotes::install_github("RamiKrispin/coronavirus")  # U.S. state level data
 # remotes::install_github("GuangchuangYu/chinamap")   #Chinese map
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")
@@ -69,6 +70,7 @@ options(warn=-1) #suppress warnings
 library(nCov2019)
 library(dplyr)
 library(tidyr) # for gather function 
+library(broom) # for regression by group in dplyr
 if(isEnglish) { 
   try( y <- get_nCov2019(lang="en"), silent = TRUE)  # load real time data from Tencent
   x <- load_nCov2019(lang="en", source = "dxy") #load historical data

@@ -1081,7 +1081,8 @@ function(input, output, session) {
     }, width = plotWidth - 100 )
     
     ####################################################################
-    #  U.S.A.
+    #  U.S.A. and several other countries with provincal data 
+    # based on the coronavirus package from Rami Krispin
     ####################################################################
     
     countriesData <- reactive({

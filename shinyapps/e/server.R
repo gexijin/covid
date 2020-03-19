@@ -269,7 +269,7 @@ function(input, output, session) {
     
     
     #世界各国分布图，现在的数据 -------------------------------------------
-    output$realTimeCityConfirmedWorld <- renderPlot({
+    output$ConfirmedWorld <- renderPlot({
       
      # d <- y['global',] %>%  # Tencent data
       #  filter(!is.na(name)) %>%
@@ -282,7 +282,7 @@ function(input, output, session) {
         mutate( name = fct_reorder(name, confirm))
       
       d <- d[-1, ] #remove the first row
-      d <- d[1:20, ]
+      d <- d[1:30, ]
       
       
       # This is used to create spaces so the numbers on top of the bar shows up.
@@ -802,6 +802,64 @@ function(input, output, session) {
       axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
     }, width = plotWidth - 100 )  
     
+    # compare countries
+    output$CompareCountries <- renderPlot ({
+      nPoints = 7
+      minCases = 200
+      maxShow = 30
+      tem <- table(xgithub$global$country)
+      
+      tem2 <- xgithub$global %>%
+        group_by(country) %>%
+        summarise(max = max(cum_confirm)) %>%
+        filter(max > minCases) %>%
+        pull(country)
+      
+      d <- xgithub$global %>%
+        filter(  country %in%  names(tem)[tem > nPoints]    ) %>% # only keep contries with 20 more data points.
+        filter(  country %in%  tem2   )   # at least 20 cases
+      
+      dfGroup <- d %>%
+        arrange(country, desc(time)) %>%  # only keep the most recent 10 data points
+        mutate(cum_confirm = log2(cum_confirm + 1)) %>%
+        group_by(country) %>%
+        filter(row_number() %in% 1:nPoints) %>%
+        arrange(time) %>%
+        mutate( time1 =  time - last(time) + nPoints) %>% 
+        do(fitGroup = lm(cum_confirm ~ time1, data = .))
+      
+      Coefs = tidy(dfGroup, fitGroup)
+      Coefs <- Coefs %>% 
+        filter(term == "time1") %>%
+        arrange(desc(estimate)) 
+      
+      maxConfirm <- d %>%
+        arrange(country, desc(time)) %>%  # only keep the most recent 10 data points
+        group_by(country) %>%
+        filter(row_number() == 1) %>%
+        ungroup
+      
+      Coefs <- left_join(Coefs, maxConfirm, by = "country") %>%
+        filter(country != "Diamond Princess") %>%
+        mutate( Death.Rate = round(cum_dead/cum_confirm*100,2)) %>%
+        mutate ( growthPercent = round((2^estimate -1) *100,2) ) %>%
+        arrange(desc(cum_confirm))
+      
+      Coefs <- Coefs[1:maxShow,]
+ 
+      ggplot(Coefs, aes(x = cum_confirm, y = growthPercent, color = Death.Rate, label = country)) +
+        geom_point(size = 2) + 
+        scale_x_continuous(trans='log10') +
+        geom_text_repel(size = 5, hjust=1) +
+        scale_colour_gradient(low = "black", high = "red", na.value = NA) +
+        xlab(paste("Confirmed cases as of ", format(as.Date(xgithub$time), "%b. %d")) ) + 
+        ylab(paste("% daily increases in last",nPoints,"days" )) + 
+        labs(color = "Death Rate") +
+        theme_gray(base_size = 12) + 
+        theme(plot.title = element_text(size = 12)) + 
+        theme(legend.text=element_text(size=11))   
+    }, width = plotWidth  )  
+    
     #全国确诊人数预测, 百分比预测-------------------------------------------    
     output$forecastConfirmedChange <- renderPlot ({
         d2 <- ChinaHistory
@@ -978,11 +1036,7 @@ function(input, output, session) {
     
     #世界细节 历史图 -------------------------------------------
     output$historicalWorldDirect <- renderPlotly({
-      
-      library(shadowtext)
-      library(conflicted)
-      
-      conflict_prefer("filter", "dplyr")
+          conflict_prefer("filter", "dplyr")
       conflict_prefer("layout", "plotly")   
       
       d <- xgithub
@@ -1043,7 +1097,7 @@ function(input, output, session) {
         as_tibble %>%
         rename(confirm=cum_confirm) %>%
         filter(confirm > 100) %>%
-         filter(confirm <50000) %>%
+         filter(confirm <60000) %>%
         filter(country != "Diamond Princess") %>%
         group_by(country) %>%
         mutate(days_since_100 = as.numeric(time - min(time))) %>%
@@ -1074,7 +1128,7 @@ function(input, output, session) {
                         bg.color = "white") +
         labs(x = "Number of days since 100th case", y = "", 
              subtitle = paste0("Confirmed COVID-19 cases as of ", xgithub$time, " (static version)") ) +
-      xlim(c(0,28))
+      xlim(c(0,35))
       
       p
       

@@ -56,13 +56,6 @@ ui <- fluidPage(
 
     ) #tab1 --------------------------------------------------
     
-    ,tabPanel(z("地图")
-              ,h4(paste0( z(paste0(gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
-                      gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日")), z("(稍等几秒钟，地图下载)。"))
-              ,plotOutput("ChinaMap")
-
-              
-    )
 
     ,tabPanel(z("省")
               ,selectInput("selectProvince0", NULL, choices = provinceNamesList)
@@ -121,7 +114,7 @@ ui <- fluidPage(
           
     )
     ,tabPanel(z("世界")
-              ,plotOutput("realTimeCityConfirmedWorld")
+              ,plotOutput("ConfirmedWorld", height = 500)
               ,h5(legends[8])
               ,br(),br()
               ,plotlyOutput("historicalWorld")
@@ -136,11 +129,14 @@ ui <- fluidPage(
               ,plotOutput("historicalWorldDirect2")
               ,h5(legends[12])
               ,br()
-              ,plotlyOutput("WorldDeathRate")
+              ,plotOutput("CompareCountries")
+              ,h5(legends[22])
+              ,br(),br()
+              ,plotlyOutput("WorldDeathRate", height = 500)
               ,h5(legends[13])
               ,br(),br()
-              ,h4("Scroll down to see world map.")
-              ,plotOutput("worldMap")            
+
+        
               
               )#tab2 --------------------------------------------------
 
@@ -163,6 +159,13 @@ ui <- fluidPage(
              
 
     ) #tab2 --------------------------------------------------
+,tabPanel(z("地图")
+          ,h4(paste0( z(paste0(gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
+                      gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日")), z("(稍等几秒钟，地图下载)。"))
+          ,plotOutput("ChinaMap", height = 800, width = 800)
+          ,h4("Scroll down to see world map.")
+          ,plotOutput("worldMap", height = 1400, width = 1400)    
+)
     ,tabPanel(z("数据") 
               ,br()
               , downloadButton('dataDownload', z('中国数据下载')	)

@@ -8,7 +8,8 @@
 # remotes::install_github("GuangchuangYu/chinamap")   #Chinese map
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")
-
+library(shadowtext)
+library(conflicted)
 npMax <- 21  # only use last 3 weeks of data for forecast
 plotWidth = 800
 
@@ -70,6 +71,7 @@ options(warn=-1) #suppress warnings
 library(nCov2019)
 library(dplyr)
 library(tidyr) # for gather function 
+library(broom) # for regression by group in dplyr
 if(isEnglish) { 
   try( y <- get_nCov2019(lang="en"), silent = TRUE)  # load real time data from Tencent
   x <- load_nCov2019(lang="en", source = "dxy") #load historical data

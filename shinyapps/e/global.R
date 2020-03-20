@@ -5,7 +5,6 @@
 # install.packages("remotes")
 # remotes::install_github("GuangchuangYu/nCov2019")  # main data package
 # remotes::install_github("RamiKrispin/coronavirus")  # U.S. state level data
-# remotes::install_github("RamiKrispin/covid19Italy")
 # remotes::install_github("GuangchuangYu/chinamap")   #Chinese map
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")

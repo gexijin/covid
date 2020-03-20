@@ -165,6 +165,10 @@ ui <- fluidPage(
              
 
     ) #tab2 --------------------------------------------------
+
+   ,tabPanel(z("意大利")
+             ,plotlyOutput("ItalyActiveCases")
+   )
 ,tabPanel(z("地图")
           ,h4(paste0( z(paste0(gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
                       gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日")), z("(稍等几秒钟，地图下载)。"))

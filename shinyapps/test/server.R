@@ -1543,5 +1543,38 @@ function(input, output, session) {
       a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted2 + nrow(d2) -1 )
       axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
     }, width = plotWidth - 100 ) 
+    
+    
+#----------------------------------
+    #Italy
+    output$ItalyActiveCases <- renderPlotly({
+      library(covid19italy)
+      
+      update_data()
+      plot_ly(data = italy_total,
+              x = ~ date,
+              y = ~home_confinement, 
+              name = 'Home Confinement', 
+              fillcolor = '#FDBBBC',
+              type = 'scatter',
+              mode = 'none', 
+              stackgroup = 'one') %>%
+        add_trace( y = ~ hospitalized_with_symptoms, 
+                   name = "Hospitalized with Symptoms",
+                   fillcolor = '#E41317') %>%
+        add_trace(y = ~intensive_care, 
+                  name = 'Intensive Care', 
+                  fillcolor = '#9E0003') %>%
+        layout(title = "Italy - Distribution of Active Covid19 Cases" ,
+               legend = list(x = 0.1, y = 0.9),
+               yaxis = list(title = "Number of Cases"),
+               xaxis = list(title = "Source: Italy Department of Civil Protection"))
+      
+
+      
+    })
+    
+    
+    
 
 }

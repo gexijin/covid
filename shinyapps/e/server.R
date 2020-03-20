@@ -1280,7 +1280,7 @@ function(input, output, session) {
         geom_path() + 
         #scale_fill_gradientn(colours = rev(heat.colors(10))) +
         scale_fill_gradient2(low = "white", #mid = scales::muted("purple"), 
-                             high = "red", breaks = c(0,10,20,50,100,200,500)) +
+                             high = "red", breaks = c(10,100,1000,5000,10000)) +
         coord_map() +
         labs(x = "Longitude", y = "Latitude") +
         guides(fill = guide_legend(title = paste0("Confirmed (", 

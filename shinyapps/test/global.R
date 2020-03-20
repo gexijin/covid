@@ -486,5 +486,10 @@ countriesDetail <- names( countriesDetail )
 
 names(state.abb) <- state.name
 
-
+library(covid19italy)
+update_data()
+ItalyRegions <- italy_region %>% 
+  filter(date == max(date)) %>%
+  arrange(desc(total_currently_positive)) %>%
+  pull(region_name)
 

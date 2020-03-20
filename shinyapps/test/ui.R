@@ -80,6 +80,18 @@ ui <- fluidPage(
               ,plotlyOutput("cities_in_proviences_selected")        
               ,plotlyOutput("cities_in_proviences_selectedAdd")  
               )
+    ,tabPanel(z("意大利")
+          ,h5("All analyses on this page are based on code and data from this ", 
+              a("R package",href="https://github.com/RamiKrispin/covid19Italy"), 
+              "by", a("Rami Krispin.",href="https://twitter.com/rami_krispin?lang=en"))
+          ,plotlyOutput("ItalyActiveCases") 
+          ,br(),br() 
+          ,plotlyOutput("ItalyByRegion") 
+          ,br(),br() 
+          ,selectInput("ItalyRegion", NULL, choices = ItalyRegions )
+          ,plotlyOutput("ItalyProvinceDist")
+          ,br(),br() 
+)
         ,tabPanel(z("各国")
           ,h5("All analyses on this page are based on data from this ", 
               a("R package",href="https://github.com/RamiKrispin/coronavirus"), 
@@ -166,9 +178,7 @@ ui <- fluidPage(
 
     ) #tab2 --------------------------------------------------
 
-   ,tabPanel(z("意大利")
-             ,plotlyOutput("ItalyActiveCases")
-   )
+
 ,tabPanel(z("地图")
           ,h4(paste0( z(paste0(gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月")),
                       gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日")), z("(稍等几秒钟，地图下载)。"))

@@ -1548,17 +1548,15 @@ function(input, output, session) {
 #----------------------------------
     #Italy
     output$ItalyActiveCases <- renderPlotly({
-      library(covid19italy)
-      
-      update_data()
-      plot_ly(data = italy_total,
+      p <- plot_ly(data = italy_total,
               x = ~ date,
               y = ~home_confinement, 
               name = 'Home Confinement', 
               fillcolor = '#FDBBBC',
               type = 'scatter',
               mode = 'none', 
-              stackgroup = 'one') %>%
+              stackgroup = 'one',
+              width = plotWidth) %>%
         add_trace( y = ~ hospitalized_with_symptoms, 
                    name = "Hospitalized with Symptoms",
                    fillcolor = '#E41317') %>%
@@ -1570,11 +1568,73 @@ function(input, output, session) {
                yaxis = list(title = "Number of Cases"),
                xaxis = list(title = "Source: Italy Department of Civil Protection"))
       
+      if(input$logScale) 
+        p <- layout(p, yaxis = list(type = "log"))
+
+        p
 
       
     })
     
+    output$ItalyByRegion <- renderPlotly({
+
+      p <- italy_region %>% 
+        filter(date == max(date)) %>% 
+        select(region_name, total_currently_positive, recovered, death, total_positive_cases) %>%
+        arrange(-total_positive_cases) %>%
+        mutate(region = factor(region_name, levels = region_name)) %>%
+        plot_ly(y = ~ region, 
+                x = ~ total_currently_positive, 
+                orientation = 'h',
+                text =  ~ total_currently_positive,
+                textposition = 'auto',
+                type = "bar", 
+                name = "Active",
+                marker = list(color = "#1f77b4"), 
+                width = plotWidth ) %>%
+        add_trace(x = ~ recovered,
+                  text =  ~ recovered,
+                  textposition = 'auto',
+                  name = "Recovered",
+                  marker = list(color = "forestgreen")) %>%
+        add_trace(x = ~ death, 
+                  text =  ~ death,
+                  textposition = 'auto',
+                  name = "Death",
+                  marker = list(color = "red")) %>%
+        layout(title = "Cases Distribution by Region",
+               barmode = 'stack',
+               yaxis = list(title = "Region"),
+               xaxis = list(title = "Number of Cases"),
+               hovermode = "compare",
+               legend = list(x = 0.65, y = 0.9),
+               margin =  list(
+                 l = 20,
+                 r = 10,
+                 b = 10,
+                 t = 30,
+                 pad = 2
+               ))
+      if(input$logScale) 
+        p <- layout(p, yaxis = list(type = "log"))
+
+        p
+
+    }) 
     
+    output$ItalyProvinceDist <- renderPlotly({
+
+      italy_province %>% 
+        filter(date == max(date), region_name == input$ItalyRegion) %>%
+        plot_ly(labels = ~province_name, values = ~total_cases, 
+                textinfo="label+percent",
+                type = 'pie',
+                width = plotWidth) %>%
+        layout(title = "Lombardia - Cases Distribution by Province") %>% 
+        hide_legend()
+      
+      
+    }) 
     
 
 }

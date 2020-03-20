@@ -483,13 +483,16 @@ data("coronavirus")
 countriesDetail <- sort(table(coronavirus$Country.Region), decreasing = T)
 countriesDetail <- countriesDetail[ countriesDetail > 5* median(countriesDetail) ]
 countriesDetail <- names( countriesDetail )
+countriesDetail <- c( countriesDetail[1],"Italy", countriesDetail[-1])
 
 names(state.abb) <- state.name
 
 library(covid19italy)
-update_data()
+#update_data()
 ItalyRegions <- italy_region %>% 
   filter(date == max(date)) %>%
   arrange(desc(total_currently_positive)) %>%
   pull(region_name)
+
+
 

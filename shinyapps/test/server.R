@@ -1148,7 +1148,35 @@ function(input, output, session) {
       library(coronavirus)
       data("coronavirus")
 
+      if(input$selectCountryDetails == "Italy") {
+        # If Italy use the Italy package to retrieve data. 
+        UScurrent <- italy_region %>%
+          select(region_name, date, total_currently_positive, death, recovered) %>%
+          rename(province = region_name, 
+                 confirm = total_currently_positive,
+                 dead = death,
+                 heal = recovered,
+                 time = date) %>%
+          arrange(province, desc(time)) %>%
+          group_by(province) %>%
+          filter(row_number() ==1) %>%
+          arrange(desc(confirm))%>%
+          filter(confirm > 1)
+        
+        UScumulative <- italy_region %>%
+          select(region_name, date, total_currently_positive, death, recovered) %>%
+          rename(province = region_name, 
+                 confirm = total_currently_positive,
+                 dead = death,
+                 heal = recovered,
+                 time = date) %>%
+          mutate(country = "Italy") %>%
+          arrange( province, time)
+        
+
+      } else { 
       USdata1 <- coronavirus %>%
+         #filter(Country.Region == "US") %>%
         filter(Country.Region == input$selectCountryDetails) %>%
         spread(type, cases) %>% # convert from long to wide format
         arrange(Province.State, date) %>%
@@ -1166,7 +1194,7 @@ function(input, output, session) {
         group_by(province) %>%
         summarise(confirm = sum(confirm), 
                   dead = sum(dead), 
-                  head = sum(heal),
+                  heal = sum(heal),
                   time = max(time)) %>% 
         filter(province != "Diamond Princess") %>%
         arrange(desc(confirm))%>%
@@ -1182,6 +1210,8 @@ function(input, output, session) {
                 heal = cumsum(heal)) %>%
         ungroup() %>%
         arrange( province, time)
+      
+      }
       
       if(input$selectCountryDetails == "US") { 
           UScumulative$ab <- state.abb[ UScumulative$province] 

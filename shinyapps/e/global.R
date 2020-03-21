@@ -12,6 +12,7 @@
 
 npMax <- 21  # only use last 3 weeks of data for forecast
 plotWidth = 800
+nPoints = 7
 
 #--------------English version or Chinese version
 if (file.exists("English_version"))
@@ -493,6 +494,15 @@ ItalyRegions <- italy_region %>%
   filter(date == max(date)) %>%
   arrange(desc(total_currently_positive)) %>%
   pull(region_name)
+
+# add provincal data from nCov2019
+nCov2019_countries <- unique(xgithub$province$country)
+# remove the U.S.
+ix <- match( "United States", nCov2019_countries)
+
+nCov2019_countries <- nCov2019_countries[-ix]
+countriesDetail <- c(countriesDetail, nCov2019_countries)
+
 
 
 

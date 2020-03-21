@@ -9,8 +9,6 @@ library(plotly)
 library(chinamap)
 library(maps)
 
-
-
 function(input, output, session) {
     
     observe({  
@@ -1149,7 +1147,8 @@ function(input, output, session) {
     countriesData <- reactive({
       library(coronavirus)
       data("coronavirus")
-
+      
+      # Italy data from covid19Italy package by Rami
       if(input$selectCountryDetails == "Italy") {
         # If Italy use the Italy package to retrieve data. 
         UScurrent <- italy_region %>%
@@ -1175,7 +1174,31 @@ function(input, output, session) {
           mutate(country = "Italy") %>%
           arrange( province, time)
         
-
+    
+      } else if( input$selectCountryDetails %in% nCov2019_countries) {
+        # Different countries data from nCov2019 
+        UScurrent <- xgithub$province %>%
+          filter(country == input$selectCountryDetails)  %>% 
+          select(province, time, cum_confirm, cum_dead, cum_heal) %>%
+          rename(confirm = cum_confirm,
+                 dead = cum_dead,
+                 heal = cum_heal) %>%
+          arrange(province, desc(time)) %>%
+          group_by(province) %>%
+          filter(row_number() ==1) %>%
+          arrange(desc(confirm))%>%
+          filter(confirm > 1)      
+        
+        UScumulative <- xgithub$province %>%
+          filter(country == input$selectCountryDetails)  %>% 
+          select(province, time, cum_confirm, cum_dead, cum_heal) %>%
+          rename(confirm = cum_confirm,
+                 dead = cum_dead,
+                 heal = cum_heal) %>%
+          arrange(province, time)
+     
+        
+        
       } else { 
       USdata1 <- coronavirus %>%
          #filter(Country.Region == "US") %>%
@@ -1346,8 +1369,12 @@ function(input, output, session) {
       tem <- countriesData()$UScumulative %>%
         filter(confirm > 0) %>%
         count(province) %>%
-        filter( n > 10 ) %>% # only keep contries with 20 more data points.
+        filter( n >= 3 ) %>% # only keep contries with 20 more data points.
         pull(province)
+      
+      # if no province left return NULL
+      if(length(tem) == 0) 
+        return(NULL)
       
       tem2 <- countriesData()$UScumulative %>%
         group_by(province) %>%
@@ -1387,10 +1414,10 @@ function(input, output, session) {
       library(conflicted)
       
       conflict_prefer("filter", "dplyr")
-      conflict_prefer("layout", "graphics")   
+      conflict_prefer("layout", "graphics")  
       
 
-      dd <- countriesData()$UScumulative %>% 
+     dd <- countriesData()$UScumulative %>% 
         as_tibble %>%
         filter(confirm > 20) %>%
         #filter(confirm <50000) %>%
@@ -1399,6 +1426,8 @@ function(input, output, session) {
         group_by(province) %>%
         mutate(days_since_100 = as.numeric(time - min(time))) %>%
         ungroup 
+      
+      if(nrow(dd) <10 ) return(NULL)
       
       breaks=c(20, 50, 100, 200, 500, 1000, 2000, 10000, 50000,100000)
 
@@ -1432,19 +1461,27 @@ function(input, output, session) {
     }, width = plotWidth - 100 )
     
     provinceGrowthRate <- reactive({
-      nPoints = 7
       minCases = 50 
-      tem <- table(countriesData()$UScumulative$province)
       
-      tem2 <- countriesData()$UScumulative %>%
+      UScumulative <- countriesData()$UScumulative
+      tem <- table(UScumulative$province)
+      
+      tem2 <- UScumulative %>%
         group_by(province) %>%
         summarise(max = max(confirm)) %>%
         filter(max > minCases) %>%
         pull(province)
       
-      d <- countriesData()$UScumulative %>%
-        filter(  province %in%  names(tem)[tem > nPoints]    ) %>% # only keep contries with 20 more data points.
+      # if no province left return NULL
+      if(length(tem2) == 0) 
+        return(NULL)
+      
+      d <- UScumulative %>%
+        filter(  province %in%  names(tem)[tem >= nPoints]    ) %>% # only keep contries with 20 more data points.
         filter(  province %in%  tem2   )   # at least 20 cases
+      
+      if(nrow(d) == 0) 
+        return(NULL)
       
       dfGroup <- d %>%
         arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
@@ -1481,48 +1518,13 @@ function(input, output, session) {
     
     # compare Provinces
     output$CompareProvinces <- renderPlot ({
-      nPoints = 7
       minCases = 50
       maxShow = 30
       
-      tem <- table(countriesData()$UScumulative$province)
-      
-      tem2 <- countriesData()$UScumulative %>%
-        group_by(province) %>%
-        summarise(max = max(confirm)) %>%
-        filter(max > minCases) %>%
-        pull(province)
-      
-      d <- countriesData()$UScumulative %>%
-        filter(  province %in%  names(tem)[tem > nPoints]    ) %>% # only keep contries with 20 more data points.
-        filter(  province %in%  tem2   )   # at least 20 cases
-      
-      dfGroup <- d %>%
-        arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
-        mutate(confirm = log2(confirm + 1)) %>%
-        group_by(province) %>%
-        filter(row_number() %in% 1:nPoints) %>%
-        arrange(time) %>%
-        mutate( time1 =  time - last(time) + nPoints) %>% 
-        do(fitGroup = lm(confirm ~ time1, data = .))
-      
-      Coefs = tidy(dfGroup, fitGroup)
-      Coefs <- Coefs %>% 
-        filter(term == "time1") %>%
-        arrange(desc(estimate)) 
-      
-      maxConfirm <- d %>%
-        arrange(province, desc(time)) %>%  # only keep the most recent 10 data points
-        group_by(province) %>%
-        filter(row_number() == 1) %>%
-        ungroup
-      
-      Coefs <- left_join(Coefs, maxConfirm, by = "province") %>%
-        filter(province != "Diamond Princess") %>%
-        mutate( Death.Rate = round(dead/confirm*100,2)) %>%
-        mutate ( growthPercent = round((2^estimate -1) *100,2) ) %>%
-        arrange(desc(confirm))
-      
+      Coefs <- provinceGrowthRate()
+      if(is.null(Coefs))
+        return(NULL)
+      if(nrow(Coefs) > maxShow)
       Coefs <- Coefs[1:maxShow,]
       
       ggplot(Coefs, aes(x = confirm, y = growthPercent, color = Death.Rate, label = ab)) +

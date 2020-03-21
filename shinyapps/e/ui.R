@@ -6,7 +6,7 @@ library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 # Define server logic required to draw a histogram
 ui <- fluidPage(
-  titlePanel(paste0(z("疫情统计和预测")," v0.81")),
+  titlePanel(paste0(z("疫情统计和预测")," v0.82")),
   tabsetPanel(
     tabPanel(z("世界")
              ,fluidRow( 
@@ -15,7 +15,7 @@ ui <- fluidPage(
              )
              ,img(src='worldMap.jpg', align = "center",width="700", height="400")
               ,br(),br()
-              ,h4("Please wait while we crunch the numbers ......")
+              ,h4("Download today's data ......")
               ,plotOutput("ConfirmedWorld", height = 500)
               ,h5(legends[8])
               ,br(),br()
@@ -202,14 +202,14 @@ ui <- fluidPage(
               
     ) #tab2 --------------------------------------------------
     ,tabPanel("About"
-    ,h4("Feedbacks or suggestions,  please contact me via "
+    ,h4("For feedbacks or suggestions  please contact me via "
         ,a("email ",href="mailto:xijin.ge@sdstate.edu?Subject=Coronavirus website" ), "or", 
         a("Twitter.", href="https://twitter.com/StevenXGe"),
         "My research interests are genomics, bioinformatics, and data science ",
         a("(lab homepage).", href="http://ge-lab.org/"), 
-        " I am not a epidemiologists or statistician, so take caution with my analysis. 
-        Just a college professor having fun in a basement during spring break. I am enjoying it more 
-        than my students who are vacationing on the Florida beach ...")
+        " I am not a epidemiologists or statistician, so be critical of my analyses. 
+        I am just a college professor having fun in a basement during spring break. But  I am enjoying it more 
+        than my students on the Florida beach ...")
      ,h4("Accuracy not guaranteed. Part of the data is not official statistics.", style = "color:red")   
     ,h4("For details on data sources see our", a("preprint.", href="https://www.medrxiv.org/content/10.1101/2020.02.25.20027433v1"))
     #,h5("All rights reserved.") 

@@ -205,9 +205,11 @@ ui <- fluidPage(
     ,h4("Feedbacks or suggestions,  please contact me via "
         ,a("email ",href="mailto:xijin.ge@sdstate.edu?Subject=Coronavirus website" ), "or", 
         a("Twitter.", href="https://twitter.com/StevenXGe"),
-        "I am bioinformatics researcher ",
-        a("(lab),", href="http://ge-lab.org/"), 
-        " not a epidemiologists or statistician. Just a college professor having fun during spring break.")
+        "My research interests are genomics, bioinformatics, and data science ",
+        a("(lab homepage).", href="http://ge-lab.org/"), 
+        " I am not a epidemiologists or statistician, so take caution with my analysis. 
+        Just a college professor having fun in a basement during spring break. I am enjoying it more 
+        than my students who are vacationing on the Florida beach ...")
      ,h4("Accuracy not guaranteed. Part of the data is not official statistics.", style = "color:red")   
     ,h4("For details on data sources see our", a("preprint.", href="https://www.medrxiv.org/content/10.1101/2020.02.25.20027433v1"))
     #,h5("All rights reserved.") 

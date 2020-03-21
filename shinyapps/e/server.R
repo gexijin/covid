@@ -248,7 +248,9 @@ function(input, output, session) {
         mutate( name = fct_reorder(name, confirm)) %>% 
         filter( dead > 2 & confirm > 100) %>%
         mutate( deadRate = round(dead / confirm *100,2) ) %>%
-        mutate (s = paste0(dead, " / ", confirm))
+        mutate (s = paste0(dead, " / ", confirm)) %>%
+        arrange( deadRate) %>%
+        mutate(name = factor(name, levels= rev(name)) )
       
       p <- ggplot(d, aes(x=name, y=deadRate, text = s)) +
         geom_segment( aes(xend=name, yend=0)) +
@@ -260,7 +262,7 @@ function(input, output, session) {
         theme(legend.position = "none")
       
       
-      ggplotly(p, tooltip = c("y", "x", "text"), width = plotWidth - 100)
+      ggplotly(p, tooltip = c("y", "x", "text"), width = plotWidth - 100, height = 700)
       
 
       
@@ -1102,7 +1104,7 @@ function(input, output, session) {
         as_tibble %>%
         rename(confirm=cum_confirm) %>%
         filter(confirm > 100) %>%
-         filter(confirm <60000) %>%
+         filter(confirm <70000) %>%
         filter(country != "Diamond Princess") %>%
         group_by(country) %>%
         mutate(days_since_100 = as.numeric(time - min(time))) %>%
@@ -1578,6 +1580,9 @@ function(input, output, session) {
 #----------------------------------
     #Italy
     output$ItalyActiveCases <- renderPlotly({
+      #library(conflicted)
+      #conflict_prefer("filter", "dplyr")
+      #conflict_prefer("layout", "plotly")  
       p <- plot_ly(data = italy_total,
               x = ~ date,
               y = ~home_confinement, 
@@ -1592,14 +1597,16 @@ function(input, output, session) {
                    fillcolor = '#E41317') %>%
         add_trace(y = ~intensive_care, 
                   name = 'Intensive Care', 
-                  fillcolor = '#9E0003') #%>%
-        #layout(title = "Italy - Distribution of Active Covid19 Cases" ,
-        #       legend = list(x = 0.1, y = 0.9),
-        #      yaxis = list(title = "Number of Cases"),
-        #       xaxis = list(title = "Source: Italy Department of Civil Protection"))
-      
+                  fillcolor = '#9E0003') %>%
+        plotly::layout(title = "Italy - Distribution of Active Covid19 Cases" ,
+               legend = list(x = 0.1, y = 0.9),
+              yaxis = list(title = "Number of Cases"),
+               xaxis = list(title = "Source: Italy Department of Civil Protection"))
+   
+      # plotly::layout to prevent error due to conflicting with the layout function in base graphics
+         
       if(input$logScale) 
-        p <- layout(p, yaxis = list(type = "log"))
+        p <- plotly::layout(p, yaxis = list(type = "log"))
 
         p
 
@@ -1632,22 +1639,22 @@ function(input, output, session) {
                   text =  ~ death,
                   textposition = 'auto',
                   name = "Death",
-                  marker = list(color = "red")) # %>%
-        #layout(title = "Cases Distribution by Region",
-        #       barmode = 'stack',
-        #       yaxis = list(title = "Region"),
-        #       xaxis = list(title = "Number of Cases"),
-        #     hovermode = "compare",
-        #       legend = list(x = 0.65, y = 0.9),
-        #   margin =  list(
-        #         l = 20,
-        #         r = 10,
-        #       b = 10,
-        #        t = 30,
-        #         pad = 2
-        #       ))
+                  marker = list(color = "red"))  %>%
+        plotly::layout(title = "Cases Distribution by Region",
+               barmode = 'stack',
+               yaxis = list(title = "Region"),
+               xaxis = list(title = "Number of Cases"),
+             hovermode = "compare",
+               legend = list(x = 0.65, y = 0.9),
+           margin =  list(
+                 l = 20,
+                 r = 10,
+               b = 10,
+                t = 30,
+                 pad = 2
+               ))
       if(input$logScale) 
-        p <- layout(p, yaxis = list(type = "log"))
+        p <- plotly::layout(p, yaxis = list(type = "log"))
 
         p
 
@@ -1661,7 +1668,7 @@ function(input, output, session) {
                 textinfo="label+percent",
                 type = 'pie',
                 width = plotWidth) %>%
-       # layout(title = input$ItalyRegion ) %>% 
+        #layout(title = input$ItalyRegion ) %>% 
         hide_legend()
       
       

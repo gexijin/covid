@@ -202,19 +202,22 @@ ui <- fluidPage(
               
     ) #tab2 --------------------------------------------------
     ,tabPanel("About"
-    ,h5("Feedbacks or suggestions please"
-        ,a("email me",href="mailto:xijin.ge@sdstate.edu?Subject=Coronavirus website" ),".",
-        "I am bioinformatics researcher (",
-        a("lab", href="http://ge-lab.org/"), ")."  )
-    #,h5("I am not a epidemiologists or statistician.")
-    
+    ,h4("Feedbacks or suggestions,  please contact me via "
+        ,a("email ",href="mailto:xijin.ge@sdstate.edu?Subject=Coronavirus website" ), "or", 
+        a("Twitter.", href="https://twitter.com/StevenXGe"),
+        "I am bioinformatics researcher ",
+        a("(lab),", href="http://ge-lab.org/"), 
+        " not a epidemiologists or statistician. Just a college professor having fun during spring break.")
+     ,h4("Accuracy not guaranteed. Part of the data is not official statistics.", style = "color:red")   
     ,h4("For details on data sources see our", a("preprint.", href="https://www.medrxiv.org/content/10.1101/2020.02.25.20027433v1"))
     #,h5("All rights reserved.") 
-    
-    ,h4("Accuracy not guaranteed. Part of the data is not official statistics.", style = "color:red")
-    ,h5("This website tracks the cases of the 2019-nCoV (SARS-Cov-2) coronavirus originated from Wuhan, China. Developed on Feb 5, 2020 by",a("Ge Xijin", href="https://twitter.com/StevenXGe"),
-        "based on the R package", a("nCov2019",href="https://github.com/GuangchuangYu/nCov2019"), 
-        "by", a("Dr. Guangchuang Yu.", href="https://twitter.com/guangchuangyu"))
+    ,h4("This website visualizes the data and trend of the 2019-nCoV (SARS-Cov-2) coronavirus pandemic. Developed",
+        "based on these R packages:", a("nCov2019",href="https://github.com/GuangchuangYu/nCov2019"), 
+        "by", a("Dr. Guangchuang Yu,", href="https://twitter.com/guangchuangyu"), 
+        a("coronavirus",href="https://github.com/RamiKrispin/coronavirus"), "and",
+        a("covid19Italy",href="https://github.com/RamiKrispin/covid19Italy"),
+        "by", a("Rami Krispin.",href="https://twitter.com/rami_krispin?lang=en")
+        )    
 
     
     ,h4("不保证数据和分析的可靠性，仅供参考。", style = "color:red")

@@ -6,7 +6,7 @@ library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 # Define server logic required to draw a histogram
 ui <- fluidPage(
-  titlePanel(paste0(z("疫情统计和预测")," v0.81")),
+  titlePanel(paste0(z("疫情统计和预测")," v0.82")),
   tabsetPanel(
     tabPanel(z("世界")
              ,fluidRow( 
@@ -15,7 +15,7 @@ ui <- fluidPage(
              )
              ,img(src='worldMap.jpg', align = "center",width="700", height="400")
               ,br(),br()
-              ,h4("Please wait while we crunch the numbers ......")
+              ,h4("Download today's data ......")
               ,plotOutput("ConfirmedWorld", height = 500)
               ,h5(legends[8])
               ,br(),br()

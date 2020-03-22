@@ -44,7 +44,7 @@ function(input, output, session) {
                            linetype = "dashed", color = "red", size = 1) +
                 annotate(geom="text", x=as.Date("2020-1-24"), y=max(d2$cum_confirm)*.8, label=z("封城"),
                        color="black", hjust = 0) +
-                annotate(geom="text", x=as.Date("2020-1-24"), y=max(d2$cum_confirm)*.4, label=z("1月23日"),
+                annotate(geom="text", x=as.Date("2020-1-24"), y=max(d2$cum_confirm)*.5, label=z("1月23日"),
                        color="black", hjust = 0)
 
         if(input$logScale) 
@@ -69,7 +69,7 @@ function(input, output, session) {
                        linetype = "dashed", color = "red", size = 1) +
             annotate(geom="text", x=as.Date("2020-1-24"), y=max(d$cum_confirm)*.8, label=z("封城"),
                      color="black", hjust = 0) +
-            annotate(geom="text", x=as.Date("2020-1-24"), y=max(d$cum_confirm)*.4, label=z("1月23日"),
+            annotate(geom="text", x=as.Date("2020-1-24"), y=max(d$cum_confirm)*.5, label=z("1月23日"),
                      color="black", hjust = 0)
         
 

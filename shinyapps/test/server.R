@@ -29,7 +29,8 @@ function(input, output, session) {
 
             d2 <- xgithub$province %>%
               filter( province != "湖北") %>%
-              filter( province != "Hubei") 
+              filter( province != "Hubei") %>%
+              filter( country == z("中国")) # after provincal data is added for other countries
             
             if(isEnglish) d2$province <- py2( d2$province )  # translate into Pinyin
             p <- ggplot(d2,
@@ -41,9 +42,9 @@ function(input, output, session) {
                 ggtitle(paste( z(entireCountry),  z("湖北以外"),  xgithub$time ) ) +
                 geom_vline(xintercept= as.Date("2020-1-23"), 
                            linetype = "dashed", color = "red", size = 1) +
-                annotate(geom="text", x=as.Date("2020-1-24"), y=1000, label=z("封城"),
+                annotate(geom="text", x=as.Date("2020-1-24"), y=max(d2$cum_confirm)*.8, label=z("封城"),
                        color="black", hjust = 0) +
-                annotate(geom="text", x=as.Date("2020-1-24"), y=800, label=z("1月23日"),
+                annotate(geom="text", x=as.Date("2020-1-24"), y=max(d2$cum_confirm)*.4, label=z("1月23日"),
                        color="black", hjust = 0)
 
         if(input$logScale) 
@@ -68,7 +69,7 @@ function(input, output, session) {
                        linetype = "dashed", color = "red", size = 1) +
             annotate(geom="text", x=as.Date("2020-1-24"), y=max(d$cum_confirm)*.8, label=z("封城"),
                      color="black", hjust = 0) +
-            annotate(geom="text", x=as.Date("2020-1-24"), y=max(d$cum_confirm)*.7, label=z("1月23日"),
+            annotate(geom="text", x=as.Date("2020-1-24"), y=max(d$cum_confirm)*.4, label=z("1月23日"),
                      color="black", hjust = 0)
         
 

@@ -1656,7 +1656,7 @@ function(input, output, session) {
                  pad = 2
                ))
       if(input$logScale) 
-        p <- plotly::layout(p, yaxis = list(type = "log"))
+        p <- plotly::layout(p, xaxis = list(type = "log"))
 
         p
 

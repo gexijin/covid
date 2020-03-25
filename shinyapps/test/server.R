@@ -658,6 +658,8 @@ function(input, output, session) {
     #城市细节 历史图 Plotly-------------------------------------------
     output$cities_in_proviences_selected_plotly <- renderPlotly({
             d2 <- subset(x[input$selectProvince,], city == input$selectCity)  %>% 
+             # d2 <- subset(x["Hubei",], city == "Wuhan") %>% 
+                rename(confirmed = cum_confirm, heal = cum_heal, dead = cum_dead) %>%
                 mutate(dead = as.integer(dead)) %>%
                 select( time, confirmed, dead, heal) 
 

@@ -51,11 +51,13 @@ ui <- fluidPage(
              ,plotOutput("USCurrent")
               ,h5(legends[17])
               ,br(),br() 
-              ,conditionalPanel("input.selectCountryDetails == 'US'"
-                                ,plotOutput("US.state.map")
+              ,conditionalPanel("input.selectCountryDetails == 'United States'"
+                                #,plotOutput("US.state.map")
+                                ,img(src='US_March22_total.jpg', align = "center",width="770", height="440")
                                 ,h5(legends[18])
                                 ,br(),br()    
-                                ,plotOutput("US.state.map.Rate")
+                                ,img(src='US_March22_rate.jpg', align = "center",width="770", height="440")
+                                #,plotOutput("US.state.map.Rate")
                                 ,h5(legends[24])
                                 ,br(),br()    
               )

@@ -34,7 +34,7 @@ ui <- fluidPage(
               ,plotOutput("CompareCountries")
               ,h5(legends[22])
               ,br(),br()
-              ,plotlyOutput("WorldDeathRate", height = 700)
+              ,plotlyOutput("WorldDeathRate", height = 900)
               ,h5(legends[13])
               ,br(),br()
               
@@ -44,18 +44,20 @@ ui <- fluidPage(
     ,tabPanel(z("各国")
 
 
-              ,selectInput("selectCountryDetails", NULL, choices = countriesDetail, selected = countriesDetail[1])
+              ,selectInput("selectCountryDetails", NULL, choices = countriesDetail, selected = "United States")
               ,h5("Please wait while we retrieve today's data. All analyses on this page are based on data from this ", 
                   a("R package",href="https://github.com/RamiKrispin/coronavirus"), 
                   "by", a("Rami Krispin.",href="https://twitter.com/rami_krispin?lang=en"))
              ,plotOutput("USCurrent")
               ,h5(legends[17])
               ,br(),br() 
-              ,conditionalPanel("input.selectCountryDetails == 'US'"
-                                ,plotOutput("US.state.map")
+              ,conditionalPanel("input.selectCountryDetails == 'United States'"
+                                #,plotOutput("US.state.map")
+                                ,img(src='US_March22_total.jpg', align = "center",width="770", height="440")
                                 ,h5(legends[18])
                                 ,br(),br()    
-                                ,plotOutput("US.state.map.Rate")
+                                ,img(src='US_March22_rate.jpg', align = "center",width="770", height="440")
+                                #,plotOutput("US.state.map.Rate")
                                 ,h5(legends[24])
                                 ,br(),br()    
               )

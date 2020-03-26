@@ -253,7 +253,7 @@ function(input, output, session) {
       
       p <- ggplot(d, aes(x=name, y=deadRate, text = s)) +
         geom_segment( aes(xend=name, yend=0)) +
-        geom_point( size=4, color = "orange" ) +
+        geom_point( size=3, color = "orange" ) +
         coord_flip() +
         theme_bw() +
         ylab(z("死亡率(%)")) + 
@@ -261,7 +261,7 @@ function(input, output, session) {
         theme(legend.position = "none")
       
       
-      ggplotly(p, tooltip = c("y", "x", "text"), width = plotWidth - 100, height = 700)
+      ggplotly(p, tooltip = c("y", "x", "text"), width = plotWidth - 100, height = 900)
       
 
       
@@ -654,38 +654,7 @@ function(input, output, session) {
         ggplotly(p, tooltip = c("y", "x"), width = plotWidth) 
     })
 
-    
-    #城市细节 历史图 Plotly-------------------------------------------
-    output$cities_in_proviences_selected_plotly <- renderPlotly({
-            d2 <- subset(x[input$selectProvince,], city == input$selectCity)  %>% 
-             # d2 <- subset(x["Hubei",], city == "Wuhan") %>% 
-                rename(confirmed = cum_confirm, heal = cum_heal, dead = cum_dead) %>%
-                mutate(dead = as.integer(dead)) %>%
-                select( time, confirmed, dead, heal) 
 
-        
-        dl <- d2 %>%
-            gather( type, count, confirmed:heal) %>%
-            mutate( type = recode_factor(type,
-                                         confirmed = z("确诊"),
-                                         dead = z("死亡"),
-                                         heal = z("痊愈")))
-       
-        p <- ggplot(dl,
-                    aes(time, count, group=type, color=type)) +
-            geom_point() + geom_line() +
-            #geom_text_repel(aes(label=type), family="SimSun",data=dl[dl$time == time(x), ], hjust=1) +
-            theme_gray(base_size = 14)  + theme(legend.title = element_blank() ) +
-            xlab(NULL) + ylab(NULL) 
-
-            p <- p + ggtitle(paste(input$selectCity,  x$time ) )                   
-
-        
-        if(input$logScale) 
-            p <- p + scale_y_log10() 
-        ggplotly(p, tooltip = c("y", "x"), width = plotWidth)
-        
-    })
     
     
       
@@ -694,7 +663,7 @@ function(input, output, session) {
       output$forecastConfirmedChangeWorld <- renderPlot ({
         d2 <- contriesPrediction %>%
           arrange(time) %>%
-          filter( country == input$selectCountry)
+          dplyr::filter( country == input$selectCountry)
         nRep = sum( d2$confirm == d2$confirm[2]) 
         if(nRep > 3) 
           d2 <- d2[-(1:(nRep-3)),]
@@ -785,7 +754,7 @@ function(input, output, session) {
       
       par(mar = c(4, 4, 0, 2))
       # missing data with average of neighbors
-      d2$confirm<- meanImput(d2$dead, 2)
+      d2$dead<- meanImput(d2$dead, 2)
       
       confirm <- ts(d2$dead, # percent change
                     start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
@@ -1179,7 +1148,15 @@ function(input, output, session) {
         
     
       } else if( input$selectCountryDetails %in% nCov2019_countries) {
+        # data from nCov-2019 
         # Different countries data from nCov2019 
+        if(input$selectCountryDetails == "United States"){
+          xgithub$province$province <- gsub("New York state", "New York", xgithub$province$province)
+          xgithub$province$province <- gsub("Washington State", "Washington", xgithub$province$province)          
+          xgithub$province$province <- gsub("the state of Wisconsin", "Wisconsin", xgithub$province$province)            
+          
+        }
+        
         UScurrent <- xgithub$province %>%
           filter(country == input$selectCountryDetails)  %>% 
           select(province, time, cum_confirm, cum_dead, cum_heal) %>%
@@ -1199,6 +1176,7 @@ function(input, output, session) {
                  dead = cum_dead,
                  heal = cum_heal) %>%
           arrange(province, time)
+        
      
         
         
@@ -1212,8 +1190,7 @@ function(input, output, session) {
                country = Country.Region,
                time = date,
                confirm = confirmed,
-               dead = death,
-               heal = recovered) 
+               dead = death) 
       
       #Note that this data records new cases every day.
       UScurrent<- USdata1 %>% 
@@ -1222,7 +1199,7 @@ function(input, output, session) {
         group_by(province) %>%
         summarise(confirm = sum(confirm), 
                   dead = sum(dead), 
-                  heal = sum(heal),
+                 # heal = sum(heal),
                   time = max(time)) %>% 
         filter(province != "Diamond Princess") %>%
         arrange(desc(confirm))%>%
@@ -1235,7 +1212,8 @@ function(input, output, session) {
         arrange(time) %>%
         mutate( confirm = cumsum(confirm),
                 dead = cumsum(dead),
-                heal = cumsum(heal)) %>%
+                #heal = cumsum(heal)
+                ) %>%
         ungroup() %>%
         arrange( province, time)
       

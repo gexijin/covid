@@ -498,9 +498,8 @@ ItalyRegions <- italy_region %>%
 # add provincal data from nCov2019
 nCov2019_countries <- unique(xgithub$province$country)
 # remove the U.S.
-ix <- match( "United States", nCov2019_countries)
-
-nCov2019_countries <- nCov2019_countries[-ix]
+#ix <- match( "United States", nCov2019_countries)
+#nCov2019_countries <- nCov2019_countries[-ix]
 countriesDetail <- c(countriesDetail, nCov2019_countries)
 
 

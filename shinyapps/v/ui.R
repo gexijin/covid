@@ -15,7 +15,7 @@ ui <- fluidPage(
              )
              ,img(src='worldMap.jpg', align = "center",width="700", height="400")
               ,br(),br()
-              ,h4("Download today's data ......")
+              ,h4("Most plots are updated daily. Downloading the latest data ......")
               ,plotOutput("ConfirmedWorld", height = 500)
               ,h5(legends[8])
               ,br(),br()

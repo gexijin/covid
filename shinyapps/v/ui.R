@@ -28,7 +28,7 @@ ui <- fluidPage(
               ,plotlyOutput("historicalWorldDirect")
               ,h5(legends[11])
               ,br(),br()
-              ,plotOutput("historicalWorldDirect2")
+              ,plotOutput("historicalWorldDirect2", height = 600)
               ,h5(legends[12])
               ,br()
               ,plotOutput("CompareCountries")

@@ -1026,7 +1026,18 @@ function(input, output, session) {
         mutate(days_since_100 = as.numeric(time - min(time))) %>%
         ungroup 
       
-      breaks=c(100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000)
+      tem <- dd %>%
+        group_by(country) %>%
+        summarise(maxDays = max(days_since_100) ) %>%
+        arrange(desc(maxDays)) %>%
+        as.data.frame()
+      
+      dd <- dd %>% 
+        filter( days_since_100 <= tem[2,2]) %>%  # China has too many days
+        filter( country %in% as.character(tem[1:20, 1]) )  # too many countries
+      
+      
+      breaks=c(100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 500000)
       
       incProgress(0.3)
       
@@ -1047,7 +1058,7 @@ function(input, output, session) {
           #plot.margin = margin(3,15,3,3,"mm")
         ) +
         coord_cartesian(clip = "off") +
-        geom_shadowtext(aes(label = paste0(" ",country)), hjust=0, vjust = 0, 
+        geom_shadowtext(aes(label = paste0(" ",country)), hjust=1, vjust = 0, 
                         data = . %>% group_by(country) %>% top_n(1, days_since_100), 
                         bg.color = "white") +
         labs(x = "Number of days since 100th case", y = "" ) + 
@@ -1074,13 +1085,24 @@ function(input, output, session) {
         as_tibble %>%
         rename(confirm=cum_confirm) %>%
         filter(confirm > 100) %>%
-         filter(confirm <70000) %>%
+       #  filter(confirm <70000) %>%
         filter(country != "Diamond Princess") %>%
         group_by(country) %>%
         mutate(days_since_100 = as.numeric(time - min(time))) %>%
         ungroup 
       
-      breaks=c(100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000)
+      tem <- dd %>%
+        group_by(country) %>%
+        summarise(maxDays = max(days_since_100) ) %>%
+        arrange(desc(maxDays)) %>%
+        as.data.frame()
+
+      dd <- dd %>% 
+        filter( days_since_100 <= tem[2,2]) %>%  # China has too many days
+        filter( country %in% as.character(tem[1:20, 1]) )  # too many countries
+      
+      
+      breaks=c(100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 500000)
       
       
       p <- ggplot(dd, aes(days_since_100, confirm, color = country)) +
@@ -1100,16 +1122,15 @@ function(input, output, session) {
           #plot.margin = margin(3,15,3,3,"mm")
         ) +
         coord_cartesian(clip = "off") +
-        geom_shadowtext(aes(label = paste0(" ",country)), hjust=0, vjust = 0, 
+        geom_shadowtext(aes(label = paste0(" ",country)), hjust=1, vjust = 0, 
                         data = . %>% group_by(country) %>% top_n(1, days_since_100), 
                         bg.color = "white") +
         labs(x = "Number of days since 100th case", y = "", 
-             subtitle = paste0("Confirmed COVID-19 cases as of ", xgithub$time, " (static version)") ) +
-      xlim(c(0,35))
+             subtitle = paste0("Confirmed COVID-19 cases as of ", xgithub$time, " (static version)") ) 
       
       p
       
-    }, width = plotWidth - 100 )
+    }, width = plotWidth - 100, height = 600 )
     
     ####################################################################
     #  U.S.A. and several other countries with provincal data 

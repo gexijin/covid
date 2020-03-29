@@ -43,7 +43,6 @@ ui <- fluidPage(
     )#tab2 --------------------------------------------------
     ,tabPanel(z("各国")
 
-
               ,selectInput("selectCountryDetails", NULL, choices = countriesDetail, selected = "US")
               ,conditionalPanel("input.selectCountryDetails == 'US'"
                                 ,h5("Data from the New York Times.") )
@@ -107,7 +106,26 @@ ui <- fluidPage(
               
               
     ) #tab2 --------------------------------------------------
-    
+    ,tabPanel(z("美国")
+              ,selectInput("selectState", NULL, NULL)
+              ,plotOutput("USCountyDataNYT")
+              #,plotlyOutput("historicalUSCounty")
+              ,br(),br() 
+              
+              #,plotOutput("historicalUSDirect2")
+              ,br(),br() 
+              #,plotOutput("CompareProvinces")
+              ,br(),br()          
+              ,sliderInput("daysForcasted3", paste(z("选择预测天数") ),
+                           min = 1, max = 30,
+                           value = 7)
+              #,selectInput("selectProvince2", NULL, NULL)
+              #,plotOutput("forecastUSstates")
+              #,h5(legends[21])
+              #,br(),br() 
+              
+              
+    )
     ,tabPanel(z("意大利")
               ,h5("All analyses on this page are based on code and data from this ", 
                   a("R package",href="https://github.com/RamiKrispin/covid19Italy"), 

@@ -19,7 +19,7 @@ function(input, output, session) {
         if( input$selectProvince == entireCountry ) 
             updateSelectInput(session, "selectCity", NULL, choices = NULL )    
         updateSelectInput(session, "selectProvince2", NULL, choices = countriesData()$UScurrent$province )        
-        
+        updateSelectInput(session, "selectState", NULL, choices = USCountyData()$UScurrent$province )              
         })
     
     output$todayTotalTable <- renderTable(todayTotal,rownames = TRUE, colnames = TRUE, bordered = TRUE)
@@ -282,7 +282,7 @@ function(input, output, session) {
         mutate (name = z2( name ) ) %>%
         mutate( name = fct_reorder(name, confirm))
       
-      d <- d[-1, ] #remove the first row
+      #d <- d[-1, ] #remove the first row
       d <- d[1:30, ]
       
       
@@ -321,12 +321,12 @@ function(input, output, session) {
       tem2 <- xgithub$global %>%
         group_by(country) %>%
         summarise(max = max(cum_confirm)) %>%
-        filter(max > 20) %>%
+        filter(max > 200) %>%
         pull(country)
       
       d <- xgithub$global %>%
-        filter(country !=z('中国')) %>%
-        filter(  country %in%  names(tem)[tem > 10]    ) %>% # only keep contries with 20 more data points.
+        #filter(country !=z('中国')) %>%
+        filter(  country %in%  names(tem)[tem > 20]    ) %>% # only keep contries with 20 more data points.
         filter(  country %in%  tem2   ) %>%  # at least 20 cases
         filter (time > as.Date("2020-2-1"))
       
@@ -336,7 +336,7 @@ function(input, output, session) {
         geom_text_repel(aes(label=country), data=d[d$time == time(x), ], hjust=1) +
         theme_gray(base_size = 12) + #theme(legend.position='none') +
         xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
-        ggtitle (z("其他国家感染人数")) +
+        ggtitle ("Confirmed cases") +
         theme(plot.title = element_text(size = 12)) + 
         theme(legend.title = element_blank()) + 
         theme(legend.text=element_text(size=9))   
@@ -1138,6 +1138,7 @@ function(input, output, session) {
     ####################################################################
     
     countriesData <- reactive({
+      withProgress(message = "Downloading data.", value = 0, { 
       library(coronavirus)
       data("coronavirus")
       
@@ -1198,8 +1199,29 @@ function(input, output, session) {
                  heal = cum_heal) %>%
           arrange(province, time)
         
-     
+      } else if(input$selectCountryDetails == "US"  ){  # data from New York Times
+        NYTdata <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv")
+        NYTdata$date <- as.Date(NYTdata$date)
+        NYTdata$state <- as.character(NYTdata$state)
+        UScurrent <- NYTdata %>%
+          rename(province = state, 
+                 confirm = cases,
+                 dead = deaths,
+                 time = date) %>%
+          arrange(province, desc(time)) %>%
+          group_by(province) %>%
+          filter(row_number() ==1) %>%
+          arrange(desc(confirm))%>%
+          mutate(heal = 0) %>%
+          filter(confirm > 1)
         
+        UScumulative <- NYTdata %>%
+          rename(province = state, 
+                 confirm = cases,
+                 dead = deaths,
+                 time = date) %>%
+          mutate(country = "US") %>%
+          arrange( province, time)
         
       } else { 
       USdata1 <- coronavirus %>%
@@ -1247,6 +1269,8 @@ function(input, output, session) {
         
       }
       rm(USdata)
+      
+      }) #progress
       
       return(list(UScurrent = UScurrent, UScumulative = UScumulative))
       
@@ -1307,7 +1331,7 @@ function(input, output, session) {
         geom_path() + 
         #scale_fill_gradientn(colours = rev(heat.colors(10))) +
         scale_fill_gradient2(low = "white", #mid = scales::muted("purple"), 
-                             high = "red", breaks = c(10,100,1000,5000,10000)) +
+                             high = "red", breaks = c(10,100,1000,5000,10000,100000)) +
         coord_map() +
         labs(x = "Longitude", y = "Latitude") +
         guides(fill = guide_legend(title = paste0("Confirmed (", 
@@ -1429,6 +1453,18 @@ function(input, output, session) {
         mutate(days_since_100 = as.numeric(time - min(time))) %>%
         ungroup 
       
+     
+     tem <- dd %>%
+       group_by(province) %>%
+       summarise(maxDays = max(days_since_100) ) %>%
+       arrange(desc(maxDays)) %>%
+       as.data.frame()
+     
+     dd <- dd %>% 
+       filter( province %in% as.character(tem[1:20, 1]) )  # too many states
+     
+     
+     
       if(nrow(dd) <10 ) return(NULL)
       
       breaks=c(20, 50, 100, 200, 500, 1000, 2000, 10000, 50000,100000)
@@ -1677,6 +1713,151 @@ function(input, output, session) {
       
       
     }) 
+    
+    
+    #--------US county level------------------------
+    USCountyData <- reactive({
+      withProgress(message = "Downloading data.", value = 0, { 
+        library(coronavirus)
+        data("coronavirus")
+        
+          NYTdata <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
+          NYTdata$date <- as.Date(NYTdata$date)
+          NYTdata$state <- as.character(NYTdata$state)
+          UScurrent <- NYTdata %>%
+            rename(province = state, 
+                   confirm = cases,
+                   dead = deaths,
+                   time = date) %>%
+            arrange(province, county, desc(time)) %>%
+            group_by(province, county) %>%
+            filter(row_number() ==1) %>%
+            arrange(desc(confirm))%>%
+            mutate(heal = 0) %>%
+            filter(confirm > 1)
+          
+          UScumulative <- NYTdata %>%
+            rename(province = state, 
+                   confirm = cases,
+                   dead = deaths,
+                   time = date) %>%
+            mutate(country = "US") %>%
+            arrange( province, time)
+
+          UScumulative$ab <- state.abb[ UScumulative$province] 
+   
+        
+      }) #progress
+      
+      return(list(UScurrent = UScurrent, UScumulative = UScumulative))
+      
+    })
+    
+    
+    output$USCountyDataNYT <- renderPlot({
+    # The current US data at the county level from NYT
+      d <- USCountyData()$UScurrent %>%
+        filter(province == input$selectState)
+      if(nrow(d) > 20) 
+        d <- d[1:20, ] 
+      d <- d %>%
+        rename(name = county)
+      
+      d$confirm=as.numeric(d$confirm)
+      if(isEnglish) d$name <- py2( d$name )  # translate into Pinyin
+      d$name = fct_reorder(d$name, d$confirm)        
+      
+      # This is used to create spaces so the numbers on top of the bar shows up.
+      maxN <- max(d$confirm) *1.5
+      if(input$logScale) 
+        maxN <- max(d$confirm) *10
+      
+      
+      p <- ggplot(d, aes(name, confirm)) + 
+        geom_col(fill='steelblue') + coord_flip() +
+        geom_text(aes(y = confirm+2, label= paste0( confirm, " (",dead,")")), hjust=0) +
+        theme_gray(base_size=14) + 
+        scale_y_continuous(expand=c(0,10)) +
+        xlab(NULL) + ylab(NULL) +
+        theme(text = element_text(size=17, family="SimSun"),
+              axis.text.x = element_text(angle=0, hjust=1))  + 
+        ggtitle(paste("Confirmed (deaths) as of", format( as.Date(max(USCountyData()$UScumulative$time)), "%b %d") ) ) +
+        #ggtitle(paste( z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
+        expand_limits(y = maxN)+ 
+        theme(plot.title = element_text(size = 15))
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      p
+      
+    }, width = plotWidth - 100)  
+    
+    
+    output$historicalUSCounty <- renderPlot({
+      
+      library(shadowtext)
+      library(conflicted)
+      
+      conflict_prefer("filter", "dplyr")
+      conflict_prefer("layout", "graphics")  
+      
+      dd <- USCountyData()$UScurrent %>%
+        filter(province == input$selectState) %>%
+     # dd <- UScurrent %>%
+      #  filter(province == "New York")  %>%
+        as_tibble %>%
+        filter(confirm > 20) %>%
+        group_by(county) %>%
+        mutate(days_since_100 = as.numeric(time - min(time))) %>%
+        ungroup 
+      
+      
+      tem <- dd %>%
+        group_by(county) %>%
+        summarise(maxDays = max(days_since_100) ) %>%
+        arrange(desc(maxDays)) %>%
+        as.data.frame()
+      
+      if(nrow(tem) > 20)
+      dd <- dd %>% 
+        filter( county %in% as.character(tem[1:20, 1]) )  # too many states
+      
+      
+      
+      if(nrow(dd) <10 ) return(NULL)
+      
+      breaks=c(20, 50, 100, 200, 500, 1000, 2000, 10000, 50000,100000)
+      
+      p <- ggplot(dd, aes(days_since_100, confirm, color = county)) +
+        # geom_smooth(method='lm', aes(group=1),
+        #            data = . %>% filter(!country %in% c("China", "Japan", "Singapore")), 
+        #             color='grey10', linetype='dashed') +
+        geom_line(size = 0.8) +
+        geom_point(pch = 21, size = 1) +
+        scale_y_log10(expand = expansion(add = c(0,0.1)), 
+                      breaks = breaks, labels = breaks) +
+        scale_x_continuous(expand = expansion(add = c(0,1))) +
+        theme_gray(base_size = 14) +
+        theme(
+          panel.grid.minor = element_blank(),
+          legend.position = "none", 
+          #legend.spacing.y = unit(0.2, 'cm'),
+          #plot.margin = margin(3,15,3,3,"mm")
+        ) +
+        coord_cartesian(clip = "off") +
+        geom_shadowtext(aes(label = paste0(" ",county)), hjust=0, vjust = 0, 
+                        data = . %>% group_by(county) %>% top_n(1, days_since_100), 
+                        bg.color = "white") +
+        labs(x = "Days since the 20th case", y = "", 
+             subtitle = paste0("Confirmed COVID-19 cases as of ", 
+                               format(as.Date(max(USCountyData()$UScumulative$time)),"%b. %d")) )+
+        xlim(c(0,(floor(max(dd$days_since_100)/10) + 1)*10) )
+      
+      p
+      
+    }, width = plotWidth - 100 )
+    
+    
     
 
 }

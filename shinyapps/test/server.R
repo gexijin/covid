@@ -282,7 +282,7 @@ function(input, output, session) {
         mutate (name = z2( name ) ) %>%
         mutate( name = fct_reorder(name, confirm))
       
-      d <- d[-1, ] #remove the first row
+      #d <- d[-1, ] #remove the first row
       d <- d[1:30, ]
       
       
@@ -321,12 +321,12 @@ function(input, output, session) {
       tem2 <- xgithub$global %>%
         group_by(country) %>%
         summarise(max = max(cum_confirm)) %>%
-        filter(max > 20) %>%
+        filter(max > 200) %>%
         pull(country)
       
       d <- xgithub$global %>%
-        filter(country !=z('中国')) %>%
-        filter(  country %in%  names(tem)[tem > 10]    ) %>% # only keep contries with 20 more data points.
+        #filter(country !=z('中国')) %>%
+        filter(  country %in%  names(tem)[tem > 20]    ) %>% # only keep contries with 20 more data points.
         filter(  country %in%  tem2   ) %>%  # at least 20 cases
         filter (time > as.Date("2020-2-1"))
       
@@ -336,7 +336,7 @@ function(input, output, session) {
         geom_text_repel(aes(label=country), data=d[d$time == time(x), ], hjust=1) +
         theme_gray(base_size = 12) + #theme(legend.position='none') +
         xlab(NULL) + ylab(NULL) + #xlim(as.Date(c("2020-01-15", "2020-03-01"))) +
-        ggtitle (z("其他国家感染人数")) +
+        ggtitle ("Confirmed cases") +
         theme(plot.title = element_text(size = 12)) + 
         theme(legend.title = element_blank()) + 
         theme(legend.text=element_text(size=9))   
@@ -1198,8 +1198,29 @@ function(input, output, session) {
                  heal = cum_heal) %>%
           arrange(province, time)
         
-     
+      } else if(input$selectCountryDetails == "US"  ){  # data from New York Times
+        NYTdata <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv")
+        NYTdata$date <- as.Date(NYTdata$date)
+        NYTdata$state <- as.character(NYTdata$state)
+        UScurrent <- NYTdata %>%
+          rename(province = state, 
+                 confirm = cases,
+                 dead = deaths,
+                 time = date) %>%
+          arrange(province, desc(time)) %>%
+          group_by(province) %>%
+          filter(row_number() ==1) %>%
+          arrange(desc(confirm))%>%
+          mutate(heal = 0) %>%
+          filter(confirm > 1)
         
+        UScumulative <- NYTdata %>%
+          rename(province = state, 
+                 confirm = cases,
+                 dead = deaths,
+                 time = date) %>%
+          mutate(country = "US") %>%
+          arrange( province, time)
         
       } else { 
       USdata1 <- coronavirus %>%
@@ -1307,7 +1328,7 @@ function(input, output, session) {
         geom_path() + 
         #scale_fill_gradientn(colours = rev(heat.colors(10))) +
         scale_fill_gradient2(low = "white", #mid = scales::muted("purple"), 
-                             high = "red", breaks = c(10,100,1000,5000,10000)) +
+                             high = "red", breaks = c(10,100,1000,5000,10000,100000)) +
         coord_map() +
         labs(x = "Longitude", y = "Latitude") +
         guides(fill = guide_legend(title = paste0("Confirmed (", 
@@ -1429,6 +1450,18 @@ function(input, output, session) {
         mutate(days_since_100 = as.numeric(time - min(time))) %>%
         ungroup 
       
+     
+     tem <- dd %>%
+       group_by(province) %>%
+       summarise(maxDays = max(days_since_100) ) %>%
+       arrange(desc(maxDays)) %>%
+       as.data.frame()
+     
+     dd <- dd %>% 
+       filter( province %in% as.character(tem[1:20, 1]) )  # too many states
+     
+     
+     
       if(nrow(dd) <10 ) return(NULL)
       
       breaks=c(20, 50, 100, 200, 500, 1000, 2000, 10000, 50000,100000)

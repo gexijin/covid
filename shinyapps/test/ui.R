@@ -6,7 +6,7 @@ library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 # Define server logic required to draw a histogram
 ui <- fluidPage(
-  titlePanel(paste0(z("疫情统计和预测")," v0.82")),
+  titlePanel(paste0(z("疫情统计和预测")," v0.83")),
   tabsetPanel(
     tabPanel(z("世界")
              ,fluidRow( 
@@ -44,20 +44,23 @@ ui <- fluidPage(
     ,tabPanel(z("各国")
 
 
-              ,selectInput("selectCountryDetails", NULL, choices = countriesDetail, selected = "United States")
-              ,h5("Please wait while we retrieve today's data. All analyses on this page are based on data from this ", 
+              ,selectInput("selectCountryDetails", NULL, choices = countriesDetail, selected = "US")
+              ,conditionalPanel("input.selectCountryDetails == 'US'"
+                                ,h5("Data from the New York Times.") )
+              ,conditionalPanel("input.selectCountryDetails != 'US'"              
+                        ,h5("Please wait while we retrieve today's data. All analyses on this page are based on data from this ", 
                   a("R package",href="https://github.com/RamiKrispin/coronavirus"), 
-                  "by", a("Rami Krispin.",href="https://twitter.com/rami_krispin?lang=en"))
+                  "by", a("Rami Krispin.",href="https://twitter.com/rami_krispin?lang=en")))
              ,plotOutput("USCurrent")
               ,h5(legends[17])
               ,br(),br() 
-              ,conditionalPanel("input.selectCountryDetails == 'United States'"
-                                #,plotOutput("US.state.map")
-                                ,img(src='US_March22_total.jpg', align = "center",width="770", height="440")
+              ,conditionalPanel("input.selectCountryDetails == 'US'"
+                                ,plotOutput("US.state.map")
+                                #,img(src='US_March22_total.jpg', align = "center",width="770", height="440")
                                 ,h5(legends[18])
                                 ,br(),br()    
-                                ,img(src='US_March22_rate.jpg', align = "center",width="770", height="440")
-                                #,plotOutput("US.state.map.Rate")
+                                #,img(src='US_March22_rate.jpg', align = "center",width="770", height="440")
+                                ,plotOutput("US.state.map.Rate")
                                 ,h5(legends[24])
                                 ,br(),br()    
               )
@@ -74,7 +77,7 @@ ui <- fluidPage(
               ,h5(legends[23])
               ,br(),br()          
               ,sliderInput("daysForcasted2", paste(z("选择预测天数") ),
-                           min = 1, max = 14,
+                           min = 1, max = 30,
                            value = 7)
               ,selectInput("selectProvince2", NULL, NULL)
               ,plotOutput("forecastUSstates")
@@ -251,6 +254,7 @@ ui <- fluidPage(
     ,h5("3/15/20 V. 0.6 Changed forecasting parameters from default to ANN.")
     ,h5("3/16/20 V. 0.7 Add provincial level data for U.S. and other countries based on the coronavirus package.")
     ,h5("3/20/20 V. 0.8 Add Italy data")
+    ,h5("3/27/20 V. 0.8 Add us data from the New York Times.")
         )
   )
     ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics      

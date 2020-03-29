@@ -500,7 +500,7 @@ nCov2019_countries <- unique(xgithub$province$country)
 # remove the U.S.
 #ix <- match( "United States", nCov2019_countries)
 #nCov2019_countries <- nCov2019_countries[-ix]
-countriesDetail <- c(countriesDetail, nCov2019_countries)
+countriesDetail <- c("US", countriesDetail, nCov2019_countries)
 
 
 

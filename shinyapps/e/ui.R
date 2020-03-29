@@ -45,7 +45,7 @@ ui <- fluidPage(
 
               ,selectInput("selectCountryDetails", NULL, choices = countriesDetail, selected = "US")
               ,conditionalPanel("input.selectCountryDetails == 'US'"
-                                ,h5("Data from the New York Times.") )
+                                ,h5("Data from the", a("New York Times.", href="https://github.com/nytimes/covid-19-data") ) )
               ,conditionalPanel("input.selectCountryDetails != 'US'"              
                         ,h5("Please wait while we retrieve today's data. All analyses on this page are based on data from this ", 
                   a("R package",href="https://github.com/RamiKrispin/coronavirus"), 
@@ -109,18 +109,18 @@ ui <- fluidPage(
     ,tabPanel(z("美国")
               ,selectInput("selectState", NULL, NULL)
               ,plotOutput("USCountyDataNYT")
-              #,plotlyOutput("historicalUSCounty")
+              ,plotOutput("historicalUSCounty")
               ,br(),br() 
               
               #,plotOutput("historicalUSDirect2")
               ,br(),br() 
-              #,plotOutput("CompareProvinces")
+              ,plotOutput("CompareUScounties")
               ,br(),br()          
               ,sliderInput("daysForcasted3", paste(z("选择预测天数") ),
                            min = 1, max = 30,
                            value = 7)
-              #,selectInput("selectProvince2", NULL, NULL)
-              #,plotOutput("forecastUSstates")
+              ,selectInput("selectCountyUS", NULL, NULL)
+              ,plotOutput("forecastUScounties")
               #,h5(legends[21])
               #,br(),br() 
               
@@ -242,6 +242,7 @@ ui <- fluidPage(
         a("coronavirus",href="https://github.com/RamiKrispin/coronavirus"), "and",
         a("covid19Italy",href="https://github.com/RamiKrispin/covid19Italy"),
         "by", a("Rami Krispin.",href="https://twitter.com/rami_krispin?lang=en")
+        ,"U.S. state and county level data from the", a("New York Times.", href="https://github.com/nytimes/covid-19-data")  
         )    
 
     

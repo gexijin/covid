@@ -248,7 +248,7 @@ myDic = matrix( c(
   "北京时间", "Beijing time",
   "所有的图对数坐标 log10", "log10 scale for all plots",
   "(稍等几秒钟，地图下载)。", "Downloading map......",
-  "选择预测天数", "Choose # of days to forecast from ",
+  "选择预测天数", "Choose # of days to forecast ",
   "简单的算法进行的预测,程序没有认真检查，仅供参考。用了R的forecast 软件包里的exponential smoothing 和forecast函数。",
   "We used a simple time series data forecasting model provided by the forecast package in R and the exponential smoothing method. We did not do rigrious testing of the models.",
   

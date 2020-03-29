@@ -19,8 +19,24 @@ function(input, output, session) {
         if( input$selectProvince == entireCountry ) 
             updateSelectInput(session, "selectCity", NULL, choices = NULL )    
         updateSelectInput(session, "selectProvince2", NULL, choices = countriesData()$UScurrent$province )        
-        updateSelectInput(session, "selectState", NULL, choices = USCountyData()$UScurrent$province )              
+        updateSelectInput(session, "selectState", NULL, choices = USCountyData()$UScurrent$province )  
+        
+        
+        
+        
+        
         })
+  
+    observe({
+      counties <- USCountyData()$UScumulative %>%
+        filter( province == input$selectState) %>%
+        arrange(county, desc(confirm)) %>%
+        group_by(county) %>%
+        filter(row_number() ==1) %>%
+        arrange(desc(confirm)) %>% 
+        pull(county)
+      updateSelectInput(session, "selectCountyUS", NULL, choices = counties) 
+    })
     
     output$todayTotalTable <- renderTable(todayTotal,rownames = TRUE, colnames = TRUE, bordered = TRUE)
 
@@ -1278,7 +1294,7 @@ function(input, output, session) {
     })
 
     output$USCurrent <- renderPlot({
-      
+      withProgress("Downloading data.", value = 0, { 
       d <- countriesData()$UScurrent
       if(nrow(d) > 20) 
         d <- d[1:20, ] 
@@ -1293,7 +1309,7 @@ function(input, output, session) {
       maxN <- max(d$confirm) *1.5
       if(input$logScale) 
         maxN <- max(d$confirm) *10
-      
+      incProgress(0.2)
       
       p <- ggplot(d, aes(name, confirm)) + 
         geom_col(fill='steelblue') + coord_flip() +
@@ -1310,6 +1326,7 @@ function(input, output, session) {
       
       if(input$logScale) 
         p <- p + scale_y_log10() 
+      }) # progress
       p
       
     }, width = plotWidth - 100)  
@@ -1763,6 +1780,9 @@ function(input, output, session) {
       d <- d %>%
         rename(name = county)
       
+      if(is.null(d)) return(NULL)
+      if(nrow(d) < 1) return(NULL)      
+      
       d$confirm=as.numeric(d$confirm)
       if(isEnglish) d$name <- py2( d$name )  # translate into Pinyin
       d$name = fct_reorder(d$name, d$confirm)        
@@ -1781,7 +1801,7 @@ function(input, output, session) {
         xlab(NULL) + ylab(NULL) +
         theme(text = element_text(size=17, family="SimSun"),
               axis.text.x = element_text(angle=0, hjust=1))  + 
-        ggtitle(paste("Confirmed (deaths) as of", format( as.Date(max(USCountyData()$UScumulative$time)), "%b %d") ) ) +
+        ggtitle(paste("Confirmed (deaths) as of", format( as.Date(max(USCountyData()$UScumulative$time)), "%b. %d") ) ) +
         #ggtitle(paste( z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
         expand_limits(y = maxN)+ 
         theme(plot.title = element_text(size = 15))
@@ -1801,16 +1821,15 @@ function(input, output, session) {
       conflict_prefer("filter", "dplyr")
       conflict_prefer("layout", "graphics")  
       
-      dd <- USCountyData()$UScurrent %>%
+      dd <- USCountyData()$UScumulative %>%
         filter(province == input$selectState) %>%
-     # dd <- UScurrent %>%
-      #  filter(province == "New York")  %>%
+     # dd <- UScumulative %>%
+     #   filter(province == "New York")  %>%
         as_tibble %>%
         filter(confirm > 20) %>%
         group_by(county) %>%
         mutate(days_since_100 = as.numeric(time - min(time))) %>%
         ungroup 
-      
       
       tem <- dd %>%
         group_by(county) %>%
@@ -1819,12 +1838,10 @@ function(input, output, session) {
         as.data.frame()
       
       if(nrow(tem) > 20)
-      dd <- dd %>% 
-        filter( county %in% as.character(tem[1:20, 1]) )  # too many states
+         dd <- dd %>% 
+            filter( county %in% as.character(tem[1:20, 1]) )  # too many states
       
-      
-      
-      if(nrow(dd) <10 ) return(NULL)
+      if(nrow(dd) <5 ) return(NULL)
       
       breaks=c(20, 50, 100, 200, 500, 1000, 2000, 10000, 50000,100000)
       
@@ -1858,6 +1875,134 @@ function(input, output, session) {
     }, width = plotWidth - 100 )
     
     
+    USCountyGrowthRate <- reactive({
+      # clculate growth rates for US counties
+      minCases = 20 
+      
+      UScumulative <- USCountyData()$UScumulative %>%
+        filter(province == input$selectState) %>%
+        droplevels()
+        
+      #UScumulative <- UScumulative %>%       
+      #  filter(province == "New York") %>%
+      #  droplevels()
+        
+      tem <- table(UScumulative$county)
+      
+      tem2 <- UScumulative %>%
+        group_by(county) %>%
+        summarise(max = max(confirm)) %>%
+        filter(max > minCases) %>%
+        pull(county)
+      
+      # if no county left return NULL
+      if(length(tem2) == 0) 
+        return(NULL)
+      
+      d <- UScumulative %>%
+        filter(  county %in%  names(tem)[tem >= nPoints]    ) %>% # only keep contries with 20 more data points.
+        filter(  county %in%  tem2   ) %>%  # at least 20 cases
+        droplevels()
+      
+      if(nrow(d) == 0) 
+        return(NULL)
+      
+      dfGroup <- d %>%
+        arrange(county, desc(time)) %>%  # only keep the most recent 10 data points
+        mutate(confirm = log2(confirm + 1)) %>%
+        group_by(county) %>%
+        filter(row_number() %in% 1:nPoints) %>%
+        arrange(time) %>%
+        mutate( time1 =  time - last(time) + nPoints) %>% 
+        do(fitGroup = lm(confirm ~ time1, data = .))
+      
+      Coefs = tidy(dfGroup, fitGroup)
+      Coefs <- Coefs %>% 
+        filter(term == "time1") %>%
+        arrange(desc(estimate)) 
+      
+      maxConfirm <- d %>%
+        arrange(county, desc(time)) %>%  # only keep the most recent 10 data points
+        group_by(county) %>%
+        filter(row_number() == 1) %>%
+        ungroup
+      
+      Coefs <- left_join(Coefs, maxConfirm, by = "county") %>%
+        mutate( Death.Rate = round(dead/confirm*100,2)) %>%
+        mutate ( growthPercent = round((2^estimate -1) *100,2) ) %>%
+        arrange(desc(confirm))
+      
+      return(Coefs)
+      
+      
+    })
+    
+    # compare Provinces
+    output$CompareUScounties <- renderPlot ({
+      minCases = 20
+      maxShow = 30
+      
+      Coefs <- USCountyGrowthRate()
+      if(is.null(Coefs))
+        return(NULL)
+      if(nrow(Coefs) > maxShow)
+        Coefs <- Coefs[1:maxShow,]
+      
+      ggplot(Coefs, aes(x = confirm, y = growthPercent, color = Death.Rate, label = county)) +
+        geom_point(size = 2) + 
+        scale_x_continuous(trans='log10') +
+        geom_text_repel(size = 6, hjust=1) +
+        scale_colour_gradient(low = "black", high = "red", na.value = NA) +
+        xlab(paste("Confirmed cases as of ", format( as.Date(max(USCountyData()$UScumulative$time)), "%b. %d")  ) ) + 
+        ylab(paste("% daily increases in last",nPoints,"days" )) + 
+        labs(color = "Death Rate") +
+        theme_gray(base_size = 12) + 
+        theme(plot.title = element_text(size = 12)) + 
+        theme(legend.text=element_text(size=11))  +
+        theme(axis.text=element_text(size=12),
+              axis.title=element_text(size=12))
+    }, width = plotWidth  )  
+    
+    # Prediction U.S. states
+    output$forecastUScounties <- renderPlot ({
+
+      d2 <- USCountyData()$UScumulative %>%
+        filter(province == input$selectState, county == input$selectCountyUS) %>%
+        arrange(time) %>%
+        droplevels()
+      
+      
+      
+      
+      if(nrow(d2) < 5) return(NULL)
+      
+      
+      np <- nrow(d2) # number of time points
+      if(np > npMax)
+        d2 <- d2[(np-npMax+1):np,]
+      
+      par(mar = c(4, 4, 0, 2))
+      # missing data with average of neighbors
+      d2$confirm<- meanImput(d2$confirm, 2)
+      
+      confirm <- ts(d2$confirm, # percent change
+                    start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
+      forecasted <- forecast(ets(confirm, model="AAN", damped=FALSE), input$daysForcasted3)
+      plot(forecasted, xaxt="n", main="", 
+           ylab = z("确诊人数"),
+           xlab = paste0(input$selectProvince2, 
+                         " is expected to have ",
+                         round(forecasted$mean[input$daysForcasted3],0), 
+                         " confirmed cases by ", 
+                         format( as.Date(max(d2$time)) + input$daysForcasted3, "%b %d"  ),  
+                         z(". 95% CI ["),
+                         round(forecasted$lower[input$daysForcasted3],0), "-",
+                         round(forecasted$upper[input$daysForcasted3],0),"]."
+           )            
+      )
+      a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted3 + nrow(d2) -1 )
+      axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
+    }, width = plotWidth - 100 ) 
     
 
 }

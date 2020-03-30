@@ -1797,7 +1797,7 @@ function(input, output, session) {
         xlab(NULL) + ylab(NULL) +
         theme(text = element_text(size=17, family="SimSun"),
               axis.text.x = element_text(angle=0, hjust=1))  + 
-        ggtitle(paste("Confirmed (deaths) as of", format( as.Date(max(USCountyData()$UScumulative$time)), "%b. %d") ) ) +
+        ggtitle(paste("Cases (deaths) as of", format( as.Date(max(USCountyData()$UScumulative$time)), "%b. %d") ) ) +
         #ggtitle(paste( z("确诊 (死亡)"), gsub(" .*","", y$lastUpdateTime), z("腾迅")) ) +            
         expand_limits(y = maxN)+ 
         theme(plot.title = element_text(size = 15))
@@ -1983,7 +1983,7 @@ function(input, output, session) {
       forecasted <- forecast(ets(confirm, model="AAN", damped=FALSE), input$daysForcasted3)
       plot(forecasted, xaxt="n", main="", 
            ylab = z("确诊人数"),
-           xlab = paste0(input$selectProvince2, 
+           xlab = paste0(input$selectCountyUS, 
                          " is expected to have ",
                          round(forecasted$mean[input$daysForcasted3],0), 
                          " confirmed cases by ", 
@@ -1997,9 +1997,6 @@ function(input, output, session) {
       axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
     }, width = plotWidth - 100 ) 
     
-    
-    
-
     output$US.county.map <- renderPlot({
       # county maps in the U.S.
       library(usmap)

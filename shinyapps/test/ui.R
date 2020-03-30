@@ -107,22 +107,31 @@ ui <- fluidPage(
               
     ) #tab2 --------------------------------------------------
     ,tabPanel(z("美国")
-              ,h5("Loading data from the", a("New York Times.", href="https://github.com/nytimes/covid-19-data") )
+              ,h5("Loading county-level historical data from the", a("New York Times.", href="https://github.com/nytimes/covid-19-data") )
               ,selectInput("selectState", NULL, NULL)
               ,plotOutput("USCountyDataNYT")
+              ,h5(legends[25])
+              ,br(),br() 
               ,plotOutput("historicalUSCounty")
+              ,h5(legends[26])
               ,br(),br() 
               ,plotOutput("US.county.map", inline = TRUE)
-              ,plotOutput("US.county.mapRate", inline = TRUE)
-              #,plotOutput("historicalUSDirect2")
+              ,h5(legends[27])
               ,br(),br() 
+              ,plotOutput("US.county.mapRate", inline = TRUE)
+              ,h5(legends[28])
+              ,br(),br() 
+              #,plotOutput("historicalUSDirect2")
               ,plotOutput("CompareUScounties")
+              ,h5(legends[29])
               ,br(),br()          
               ,sliderInput("daysForcasted3", paste(z("选择预测天数") ),
                            min = 1, max = 30,
                            value = 7)
               ,selectInput("selectCountyUS", NULL, NULL)
               ,plotOutput("forecastUScounties")
+              ,h5(legends[30])
+              ,br(),br() 
               #,h5(legends[21])
               #,br(),br() 
               
@@ -206,11 +215,6 @@ ui <- fluidPage(
               ,plotlyOutput("cities_in_proviences_selected")        
               ,plotlyOutput("cities_in_proviences_selectedAdd")  
               )
-
-
-
-
-
 ,tabPanel(z("地图")
           ,h4(paste0( z(paste0(gsub("-.*","", gsub(" .*|2020-","",y$lastUpdateTime)), "月"))," ",
                       gsub(".*-","", gsub(" .*|2020-","",y$lastUpdateTime)), z("日")), z("(稍等几秒钟，地图下载)。"))
@@ -232,9 +236,12 @@ ui <- fluidPage(
         a("Twitter.", href="https://twitter.com/StevenXGe"),
         "My research interests are genomics, bioinformatics, and data science ",
         a("(lab homepage).", href="http://ge-lab.org/"), 
-        " I am not a epidemiologists or statistician, so be critical of my analyses. 
-        I am just a college professor having fun in a basement during spring break. But  I am enjoying it more 
+        "Source code on ", a("GitHub.",aref="https://github.com/gexijin/wuhan"), 
+        " I am not a epidemiologists or statistician, so be critical of my analyses.",
+
+        "I am just a college professor having fun in a basement during spring break. But  I am enjoying it more 
         than my students on the Florida beach ...")
+        
      ,h5("Accuracy not guaranteed. Part of the data is not official statistics.", style = "color:red")   
     ,h5("For details on data sources see our", a("preprint.", href="https://www.medrxiv.org/content/10.1101/2020.02.25.20027433v1"))
     #,h5("All rights reserved.") 

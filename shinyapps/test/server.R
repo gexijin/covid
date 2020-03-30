@@ -1879,7 +1879,7 @@ function(input, output, session) {
         filter(province == input$selectState) %>%
         droplevels()
         
-      #UScumulative <- UScumulative %>%       
+      # UScumulative <- UScumulative %>%       
       #  filter(province == "New York") %>%
       #  droplevels()
         
@@ -2013,20 +2013,59 @@ function(input, output, session) {
       countyData <- UScurrent[, c("fips","county","confirm")]
       countyData <- countyData[!is.na(countyData$fips),]
       
-      p <- usmap::plot_usmap(regions = "counties", include = c("SD"), #labels = TRUE,
-                        #  data = statepop, values="pop_2015")
+      p <- usmap::plot_usmap(regions = "counties", include = c(input$selectState), labels = TRUE,
                         data = countyData, values = "confirm") + 
-        scale_fill_continuous(
-          low = "white", high = "red", name = "Confirmed", label = scales::comma
-        ) + 
-        labs(subtitle = "These are the states in the Pacific Timezone.") +
+       # labs(subtitle = "These are the states in the Pacific Timezone.") +
         theme(legend.position = "right") + 
-        scale_fill_gradient2(low = "white", high = "red", trans = "log10")
+        scale_fill_gradient2(low = "white", high = "red",  trans = "log10", label = scales::comma) +
+        guides(fill = guide_legend(title = paste0("Confirmed (", 
+                                                format(as.Date(UScurrent$time[1]), "%b. %d"), ")")) ) +  
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                           panel.grid.minor = element_blank()) +
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              axis.title.y=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks.y=element_blank()) 
  
       p
       
-    }, width = plotWidth - 100 )
+    }, width = plotWidth, height = 700)
     
+    output$US.county.mapRate <- renderPlot({
+      # county maps in the U.S.
+      library(usmap)
+      UScurrent <- USCountyGrowthRate() %>%
+        filter(province == input$selectState)
+      
+      #UScurrent <- UScurrent %>%
+      #  filter(province == input$selectState)   
+      
+      countyData <- UScurrent[, c("fips","county","growthPercent")]
+      countyData <- countyData[!is.na(countyData$fips),]
+      
+      p <- usmap::plot_usmap(regions = "counties", include = c(input$selectState), labels = TRUE,
+                             data = countyData, values = "growthPercent") + 
+        # labs(subtitle = "These are the states in the Pacific Timezone.") +
+        theme(legend.position = "right") + 
+        scale_fill_gradient2(low = "white", high = "red", label = scales::comma) +
+        guides(fill = guide_legend(title = paste0("Daily % increase (", 
+                                                  format(as.Date(UScurrent$time[1]), "%b. %d"), ")")) ) +  
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                           panel.grid.minor = element_blank()) +
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              axis.title.y=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks.y=element_blank()) 
+      
+      p
+      
+    }, width = plotWidth, height = 700)
     
 
 }

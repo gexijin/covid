@@ -6,7 +6,7 @@ library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 # Define server logic required to draw a histogram
 ui <- fluidPage(
-  titlePanel(paste0(z("疫情统计和预测")," v0.83")),
+  titlePanel(paste0(z("疫情统计和预测")," v0.84")),
   tabsetPanel(
     tabPanel(z("世界")
              ,fluidRow( 
@@ -107,11 +107,13 @@ ui <- fluidPage(
               
     ) #tab2 --------------------------------------------------
     ,tabPanel(z("美国")
+              ,h5("Loading data from the", a("New York Times.", href="https://github.com/nytimes/covid-19-data") )
               ,selectInput("selectState", NULL, NULL)
               ,plotOutput("USCountyDataNYT")
               ,plotOutput("historicalUSCounty")
               ,br(),br() 
-              ,plotOutput("US.county.map")
+              ,plotOutput("US.county.map", inline = TRUE)
+              ,plotOutput("US.county.mapRate", inline = TRUE)
               #,plotOutput("historicalUSDirect2")
               ,br(),br() 
               ,plotOutput("CompareUScounties")
@@ -274,6 +276,7 @@ ui <- fluidPage(
     ,h5("3/16/20 V. 0.7 Add provincial level data for U.S. and other countries based on the coronavirus package.")
     ,h5("3/20/20 V. 0.8 Add Italy data")
     ,h5("3/27/20 V. 0.8 Add us data from the New York Times.")
+    ,h5("3/28/20 V. 0.8 Add detailed county level data from the New York Times.")
         )
   )
     ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics      

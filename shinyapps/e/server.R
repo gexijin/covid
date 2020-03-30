@@ -21,10 +21,6 @@ function(input, output, session) {
         updateSelectInput(session, "selectProvince2", NULL, choices = countriesData()$UScurrent$province )        
         updateSelectInput(session, "selectState", NULL, choices = USCountyData()$UScurrent$province )  
         
-        
-        
-        
-        
         })
   
     observe({
@@ -1883,7 +1879,7 @@ function(input, output, session) {
         filter(province == input$selectState) %>%
         droplevels()
         
-      #UScumulative <- UScumulative %>%       
+      # UScumulative <- UScumulative %>%       
       #  filter(province == "New York") %>%
       #  droplevels()
         
@@ -1971,9 +1967,6 @@ function(input, output, session) {
         arrange(time) %>%
         droplevels()
       
-      
-      
-      
       if(nrow(d2) < 5) return(NULL)
       
       
@@ -2003,6 +1996,76 @@ function(input, output, session) {
       a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted3 + nrow(d2) -1 )
       axis(1, at = decimal_date(a), labels = format(a, "%b %d"))
     }, width = plotWidth - 100 ) 
+    
+    
+    
+
+    output$US.county.map <- renderPlot({
+      # county maps in the U.S.
+      library(usmap)
+
+      UScurrent <- USCountyData()$UScurrent %>%
+        filter(province == input$selectState)
+      
+      #UScurrent <- UScurrent %>%
+      #  filter(province == input$selectState)   
+      
+      countyData <- UScurrent[, c("fips","county","confirm")]
+      countyData <- countyData[!is.na(countyData$fips),]
+      
+      p <- usmap::plot_usmap(regions = "counties", include = c(input$selectState), labels = TRUE,
+                        data = countyData, values = "confirm") + 
+       # labs(subtitle = "These are the states in the Pacific Timezone.") +
+        theme(legend.position = "right") + 
+        scale_fill_gradient2(low = "white", high = "red",  trans = "log10", label = scales::comma) +
+        guides(fill = guide_legend(title = paste0("Confirmed (", 
+                                                format(as.Date(UScurrent$time[1]), "%b. %d"), ")")) ) +  
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                           panel.grid.minor = element_blank()) +
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              axis.title.y=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks.y=element_blank()) 
+ 
+      p
+      
+    }, width = plotWidth, height = 700)
+    
+    output$US.county.mapRate <- renderPlot({
+      # county maps in the U.S.
+      library(usmap)
+      UScurrent <- USCountyGrowthRate() %>%
+        filter(province == input$selectState)
+      
+      #UScurrent <- UScurrent %>%
+      #  filter(province == input$selectState)   
+      
+      countyData <- UScurrent[, c("fips","county","growthPercent")]
+      countyData <- countyData[!is.na(countyData$fips),]
+      
+      p <- usmap::plot_usmap(regions = "counties", include = c(input$selectState), labels = TRUE,
+                             data = countyData, values = "growthPercent") + 
+        # labs(subtitle = "These are the states in the Pacific Timezone.") +
+        theme(legend.position = "right") + 
+        scale_fill_gradient2(low = "white", high = "red", label = scales::comma) +
+        guides(fill = guide_legend(title = paste0("Daily % increase (", 
+                                                  format(as.Date(UScurrent$time[1]), "%b. %d"), ")")) ) +  
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                           panel.grid.minor = element_blank()) +
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              axis.title.y=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks.y=element_blank()) 
+      
+      p
+      
+    }, width = plotWidth, height = 700)
     
 
 }

@@ -111,7 +111,7 @@ ui <- fluidPage(
               ,plotOutput("USCountyDataNYT")
               ,plotOutput("historicalUSCounty")
               ,br(),br() 
-              
+              ,plotOutput("US.county.map")
               #,plotOutput("historicalUSDirect2")
               ,br(),br() 
               ,plotOutput("CompareUScounties")

@@ -13,7 +13,7 @@
 npMax <- 21  # only use last 3 weeks of data for forecast
 plotWidth = 800
 nPoints = 7
-
+ 
 #--------------English version or Chinese version
 if (file.exists("English_version"))
 isEnglish <- TRUE else isEnglish <- FALSE

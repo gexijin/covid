@@ -13,7 +13,7 @@
 npMax <- 21  # only use last 3 weeks of data for forecast
 plotWidth = 800
 nPoints = 7
- 
+
 #--------------English version or Chinese version
 if (file.exists("English_version"))
 isEnglish <- TRUE else isEnglish <- FALSE
@@ -492,7 +492,7 @@ library(covid19italy)
 #update_data()
 ItalyRegions <- italy_region %>% 
   filter(date == max(date)) %>%
-  arrange(desc(total_currently_positive)) %>%
+  arrange(desc(cumulative_positive_cases)) %>%
   pull(region_name)
 
 # add provincal data from nCov2019

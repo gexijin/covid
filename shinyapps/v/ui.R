@@ -34,7 +34,7 @@ ui <- fluidPage(
               ,plotOutput("CompareCountries")
               ,h5(legends[22])
               ,br(),br()
-              ,plotlyOutput("WorldDeathRate", height = 900)
+              ,plotlyOutput("WorldDeathRate", height = 1200)
               ,h5(legends[13])
               ,br(),br()
               

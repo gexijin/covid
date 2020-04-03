@@ -492,7 +492,7 @@ library(covid19italy)
 #update_data()
 ItalyRegions <- italy_region %>% 
   filter(date == max(date)) %>%
-  arrange(desc(total_currently_positive)) %>%
+  arrange(desc(cumulative_positive_cases)) %>%
   pull(region_name)
 
 # add provincal data from nCov2019

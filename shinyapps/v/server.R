@@ -273,7 +273,7 @@ function(input, output, session) {
         theme(legend.position = "none")
       
       
-      ggplotly(p, tooltip = c("y", "x", "text"), width = plotWidth - 100, height = 900)
+      ggplotly(p, tooltip = c("y", "x", "text"), width = plotWidth - 100, height = 1200)
       
 
       
@@ -1670,8 +1670,8 @@ function(input, output, session) {
 
       p <- italy_region %>% 
         filter(date == max(date)) %>% 
-        select(region_name, cumulative_positive_cases, recovered, death, total_positive_cases) %>%
-        arrange(-total_positive_cases) %>%
+        select(region_name, cumulative_positive_cases, recovered, death, cumulative_positive_cases) %>%
+        arrange(-cumulative_positive_cases) %>%
         mutate(region = factor(region_name, levels = region_name)) %>%
         plot_ly(y = ~ region, 
                 x = ~ cumulative_positive_cases, 

@@ -14,7 +14,7 @@ remotes::install_github("RamiKrispin/covid19Italy")
 install.packages("usmap")
 
 # for USD server
-USDlist = c("foreign", "questionr", "sessioninfo", "plyr", "stringi", 
+USDlist = c("pacman", "foreign", "questionr", "sessioninfo", "plyr", "stringi", 
        "psych", "ggthemes", "extrafont", "scales", "waffle",
        "tigris",  "tidycensus", "viridis", "qualtRics",  "janitor", "rgdal",
        "RColorBrewer", "googlesheets4")

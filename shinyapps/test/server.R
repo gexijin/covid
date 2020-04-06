@@ -1728,7 +1728,10 @@ function(input, output, session) {
     }) 
     
     
-    #--------US county level------------------------
+    #--------US county level-----------------------------------------------
+    # Data from New York Times
+    #----------------------------------------------------------------------
+    
     USCountyData <- reactive({
       withProgress(message = "Downloading data.", value = 0, { 
         library(coronavirus)
@@ -2064,5 +2067,41 @@ function(input, output, session) {
       
     }, width = plotWidth, height = 700)
     
+    #全国细节 历史图 增加-------------------------------------------
+    output$percentIncreaseUScounty <- renderPlotly({
+      pc <- USCountyData()$UScumulative %>%
+        filter(province == input$selectState, county == input$selectCountyUS) %>%
+        arrange(time) %>%
+        droplevels()
+
+      pc0 <- pc
+      pc <- pc[-1, ] # delete the first row
+      pc0 <- pc0[-nrow(pc0) ,] #delete the last row
+      pc$Deaths <-  round((pc$dead / pc0$dead -1 )*100, 1)
+      pc$Cases <-  round((pc$confirm / pc0$confirm -1 )*100, 1)    
+    
+      np <- nrow(pc) # number of time points
+      if(np > npMax)
+        pc <- pc[(np-npMax+1):np,]
+      
+      dl <- pc %>%
+        gather( type, percentage, c(Cases, Deaths))
+      
+      p <- ggplot(dl, aes(time, percentage, group=type, color=type)) +
+        geom_point() + geom_line() +
+        geom_text_repel(aes(label=type), data=dl[dl$time == time(x), ], hjust=1) +
+        theme_gray(base_size = 14) + #theme(legend.position='none') +
+        ylab(NULL) + xlab(NULL) +
+        theme(legend.title = element_blank()) +
+        theme(plot.title = element_text(size = 11))
+      
+      p <- p + ggtitle(paste("%daily increases in", input$selectCountyUS) ) 
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      
+      ggplotly(p, tooltip = c("type", "y", "x"), width = plotWidth) 
+      
+    })
 
 }

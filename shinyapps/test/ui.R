@@ -129,10 +129,11 @@ ui <- fluidPage(
                            min = 1, max = 30,
                            value = 7)
               ,selectInput("selectCountyUS", NULL, NULL)
-              ,plotOutput("forecastUScounties")
+                            ,plotOutput("forecastUScounties")
               ,h5(legends[30])
               ,br(),br() 
               #,h5(legends[21])
+              ,plotlyOutput("percentIncreaseUScounty")
               #,br(),br() 
               
               

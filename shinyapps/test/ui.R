@@ -76,7 +76,7 @@ ui <- fluidPage(
               ,h5(legends[23])
               ,br(),br()          
               ,sliderInput("daysForcasted2", paste(z("选择预测天数") ),
-                           min = 1, max = 30,
+                           min = 1, max = 14,
                            value = 7)
               ,selectInput("selectProvince2", NULL, NULL)
               ,plotOutput("forecastUSstates")
@@ -90,16 +90,16 @@ ui <- fluidPage(
     
     ,tabPanel(z("预测") 
               ,sliderInput("daysForcasted", paste(z("选择预测天数"), gsub("2020-","", xgithub$time))  ,
-                           min = 1, max = 30,
+                           min = 1, max = 14,
                            value = 7)
               ,selectInput("selectCountry", NULL, choices = countryNames, selected= countryNames[2])
               
               ,plotOutput("forecastConfirmedChangeWorld")
               ,h5(legends[14])
               ,br(),br()
-              #,plotOutput("forecastConfirmedChangeWP")
-              #,h5(legends[15])
-              #,br(),br()     
+              ,plotOutput("forecastConfirmedChangeWP")
+              ,h5(legends[15])
+              ,br(),br()     
               ,plotOutput("forecastConfirmedChangeWorldDeath")
               ,h5(legends[16])
               ,br(),br() 

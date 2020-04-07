@@ -9,7 +9,7 @@
 # remotes::install_github("GuangchuangYu/chinamap")   #Chinese map
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")
-
+ 
 npMax <- 21  # only use last 3 weeks of data for forecast
 plotWidth = 800
 nPoints = 7

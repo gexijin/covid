@@ -2205,9 +2205,9 @@ function(input, output, session) {
 
       
       dl <- pc %>%
-        gather( type, percentage, c(Cases, Deaths))
+        gather( type, Numbers, c(Cases, Deaths))
       
-      p <- ggplot(dl, aes(time, percentage, fill=type)) +
+      p <- ggplot(dl, aes(time, Numbers, fill=type)) +
         geom_bar(stat = "identity", position = 'dodge', colour="black") + 
         theme_gray(base_size = 14) + #theme(legend.position='none') +
         ylab(NULL) + xlab(NULL) +
@@ -2244,9 +2244,9 @@ function(input, output, session) {
       
       
       dl <- pc %>%
-        gather( type, percentage, c(Cases, Deaths))
+        gather( type, Numbers, c(Cases, Deaths))
       
-      p <- ggplot(dl, aes(time, percentage, fill=type)) +
+      p <- ggplot(dl, aes(time, Numbers, fill=type)) +
         geom_bar(stat = "identity", position = 'dodge', colour="black") + 
         theme_gray(base_size = 14) + #theme(legend.position='none') +
         ylab(NULL) + xlab(NULL) +

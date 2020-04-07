@@ -1728,7 +1728,10 @@ function(input, output, session) {
     }) 
     
     
-    #--------US county level------------------------
+    #--------US county level-----------------------------------------------
+    # Data from New York Times
+    #----------------------------------------------------------------------
+    
     USCountyData <- reactive({
       withProgress(message = "Downloading data.", value = 0, { 
         library(coronavirus)
@@ -1765,7 +1768,43 @@ function(input, output, session) {
       return(list(UScurrent = UScurrent, UScumulative = UScumulative))
       
     })
-    
+ 
+    USCountyData <- reactive({
+      withProgress(message = "Downloading data.", value = 0, { 
+        library(coronavirus)
+        data("coronavirus")
+        
+        NYTdata <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
+        NYTdata$date <- as.Date(NYTdata$date)
+        NYTdata$state <- as.character(NYTdata$state)
+        UScurrent <- NYTdata %>%
+          rename(province = state, 
+                 confirm = cases,
+                 dead = deaths,
+                 time = date) %>%
+          arrange(province, county, desc(time)) %>%
+          group_by(province, county) %>%
+          filter(row_number() ==1) %>%
+          arrange(desc(confirm))%>%
+          mutate(heal = 0) %>%
+          filter(confirm > 1)
+        
+        UScumulative <- NYTdata %>%
+          rename(province = state, 
+                 confirm = cases,
+                 dead = deaths,
+                 time = date) %>%
+          mutate(country = "US") %>%
+          arrange( province, time)
+        
+        UScumulative$ab <- state.abb[ UScumulative$province] 
+        
+        
+      }) #progress
+      
+      return(list(UScurrent = UScurrent, UScumulative = UScumulative))
+      
+    })   
     
     output$USCountyDataNYT <- renderPlot({
     # The current US data at the county level from NYT
@@ -2063,6 +2102,194 @@ function(input, output, session) {
       p
       
     }, width = plotWidth, height = 700)
+    
+
+    output$percentIncreaseUScounty <- renderPlotly({
+      if(is.null(USCountyData() )) return(NULL)
+      pc <- USCountyData()$UScumulative %>%
+        filter(province == input$selectState, county == input$selectCountyUS) %>%
+        arrange(time) %>%
+        droplevels()
+      
+      if(dim(pc) <5) return(NULL)
+
+      pc0 <- pc
+      pc <- pc[-1, ] # delete the first row
+      pc0 <- pc0[-nrow(pc0) ,] #delete the last row
+      pc$Deaths <-  round((pc$dead / pc0$dead -1 )*100, 1)
+      pc$Cases <-  round((pc$confirm / pc0$confirm -1 )*100, 1)    
+    
+      np <- nrow(pc) # number of time points
+      if(np > npMax)
+        pc <- pc[(np-npMax+1):np,]
+      
+      dl <- pc %>%
+        gather( type, percentage, c(Cases, Deaths))
+      
+      p <- ggplot(dl, aes(time, percentage, group=type, color=type)) +
+        geom_point() + geom_line() +
+        #geom_text_repel(aes(label=type), data=dl[dl$time == time(x), ], hjust=1) +
+        theme_gray(base_size = 14) + #theme(legend.position='none') +
+        ylab(NULL) + xlab(NULL) +
+        theme(legend.title = element_blank()) +
+        theme(plot.title = element_text(size = 11))
+      
+      p <- p + ggtitle(paste("%daily increases in", input$selectCountyUS) ) 
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      
+      ggplotly(p, tooltip = c("type", "y", "x"), width = plotWidth) 
+      
+    })
+    
+
+    output$percentIncreaseUState <- renderPlotly({
+      # daily % increases in states
+      
+      if(is.null(USStateData())) return(NULL)
+      pc <- USStateData()$UScumulative %>%
+        filter(province == input$selectState) %>%
+        arrange(time) %>%
+        droplevels()
+      if(dim(pc) <5) return(NULL)
+      pc0 <- pc
+      pc <- pc[-1, ] # delete the first row
+      pc0 <- pc0[-nrow(pc0) ,] #delete the last row
+      pc$Deaths <-  round((pc$dead / pc0$dead -1 )*100, 1)
+      pc$Cases <-  round((pc$confirm / pc0$confirm -1 )*100, 1)    
+      
+      np <- nrow(pc) # number of time points
+      if(np > npMax)
+        pc <- pc[(np-npMax+1):np,]
+      pc <- pc %>%
+        filter( Deaths < 100, Cases < 100)
+      
+      dl <- pc %>%
+        gather( type, percentage, c(Cases, Deaths))
+      
+      p <- ggplot(dl, aes(time, percentage, group=type, color=type)) +
+        geom_point() + geom_line() +
+       # geom_text_repel(aes(label=type), data=dl[dl$time == time(x), ], hjust=1) +
+        theme_gray(base_size = 14) + #theme(legend.position='none') +
+        ylab(NULL) + xlab(NULL) +
+        theme(legend.title = element_blank()) +
+        theme(plot.title = element_text(size = 11))
+      
+      p <- p + ggtitle(paste("Percent daily increases in", input$selectState) ) 
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      
+      ggplotly(p, tooltip = c("type", "y", "x"), width = plotWidth) 
+      
+    })
+    
+    output$IncreasesUState <- renderPlotly({
+      # daily increases in states
+      if(is.null(USStateData())) return(NULL)
+      pc <- USStateData()$UScumulative %>%
+        filter(province == input$selectState) %>%
+        arrange(time) %>%
+        droplevels()
+      if(dim(pc) <5) return(NULL)
+      pc0 <- pc
+      pc <- pc[-1, ] # delete the first row
+      pc0 <- pc0[-nrow(pc0) ,] #delete the last row
+      pc$Deaths <-  pc$dead - pc0$dead  
+      pc$Cases <-  pc$confirm - pc0$confirm     
+      
+      np <- nrow(pc) # number of time points
+      if(np > npMax)
+        pc <- pc[(np-npMax+1):np,]
+
+      
+      dl <- pc %>%
+        gather( type, Numbers, c(Cases, Deaths))
+      
+      p <- ggplot(dl, aes(time, Numbers, fill=type)) +
+        geom_bar(stat = "identity", position = 'dodge', colour="black") + 
+        theme_gray(base_size = 14) + #theme(legend.position='none') +
+        ylab(NULL) + xlab(NULL) +
+        theme(legend.title = element_blank()) +
+        theme(plot.title = element_text(size = 11))
+      
+      p <- p + ggtitle(paste("Daily new cases and deaths in", input$selectState) ) 
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      
+      ggplotly(p, tooltip = c("type", "y", "x"), width = plotWidth) 
+      
+    })  
+    
+    output$IncreasesUSCounty <- renderPlotly({
+      # daily increases in county
+      if(is.null(USCountyData())) return(NULL)
+      
+      pc <- USCountyData()$UScumulative %>%
+        filter(province == input$selectState, county == input$selectCountyUS) %>%
+        arrange(time) %>%
+        droplevels()
+      if(dim(pc) <5) return(NULL)
+      pc0 <- pc
+      pc <- pc[-1, ] # delete the first row
+      pc0 <- pc0[-nrow(pc0) ,] #delete the last row
+      pc$Deaths <-  pc$dead - pc0$dead  
+      pc$Cases <-  pc$confirm - pc0$confirm     
+      
+      np <- nrow(pc) # number of time points
+      if(np > npMax)
+        pc <- pc[(np-npMax+1):np,]
+      
+      
+      dl <- pc %>%
+        gather( type, Numbers, c(Cases, Deaths))
+      
+      p <- ggplot(dl, aes(time, Numbers, fill=type)) +
+        geom_bar(stat = "identity", position = 'dodge', colour="black") + 
+        theme_gray(base_size = 14) + #theme(legend.position='none') +
+        ylab(NULL) + xlab(NULL) +
+        theme(legend.title = element_blank()) +
+        theme(plot.title = element_text(size = 11))
+      
+      p <- p + ggtitle(paste("Daily new cases and deaths in", input$selectCountyUS) ) 
+      
+      if(input$logScale) 
+        p <- p + scale_y_log10() 
+      
+      ggplotly(p, tooltip = c("type", "y", "x"), width = plotWidth) 
+      
+    })   
+    
+    USStateData <- reactive({
+      # state level data for the U.S.
+      NYTdata <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv")
+      NYTdata$date <- as.Date(NYTdata$date)
+      NYTdata$state <- as.character(NYTdata$state)
+      UScurrent <- NYTdata %>%
+        rename(province = state, 
+               confirm = cases,
+               dead = deaths,
+               time = date) %>%
+        arrange(province, desc(time)) %>%
+        group_by(province) %>%
+        filter(row_number() ==1) %>%
+        arrange(desc(confirm))%>%
+        mutate(heal = 0) %>%
+        filter(confirm > 1)
+      
+      UScumulative <- NYTdata %>%
+        rename(province = state, 
+               confirm = cases,
+               dead = deaths,
+               time = date) %>%
+        mutate(country = "US") %>%
+        arrange( province, time)
+      
+      return(list(UScurrent = UScurrent, UScumulative = UScumulative))
+      
+    })   
     
 
 }

@@ -6,7 +6,7 @@ library(plotly)
 library(shinyBS,verbose=FALSE) # for popup figures
 # Define server logic required to draw a histogram
 ui <- fluidPage(
-  titlePanel(paste0(z("疫情统计和预测")," v0.84")),
+  titlePanel(paste0(z("疫情统计和预测")," v0.86")),
   tabsetPanel(
     tabPanel(z("世界")
              ,fluidRow( 
@@ -76,7 +76,7 @@ ui <- fluidPage(
               ,h5(legends[23])
               ,br(),br()          
               ,sliderInput("daysForcasted2", paste(z("选择预测天数") ),
-                           min = 1, max = 30,
+                           min = 1, max = 14,
                            value = 7)
               ,selectInput("selectProvince2", NULL, NULL)
               ,plotOutput("forecastUSstates")
@@ -90,16 +90,16 @@ ui <- fluidPage(
     
     ,tabPanel(z("预测") 
               ,sliderInput("daysForcasted", paste(z("选择预测天数"), gsub("2020-","", xgithub$time))  ,
-                           min = 1, max = 30,
+                           min = 1, max = 14,
                            value = 7)
               ,selectInput("selectCountry", NULL, choices = countryNames, selected= countryNames[2])
               
               ,plotOutput("forecastConfirmedChangeWorld")
               ,h5(legends[14])
               ,br(),br()
-              #,plotOutput("forecastConfirmedChangeWP")
-              #,h5(legends[15])
-              #,br(),br()     
+              ,plotOutput("forecastConfirmedChangeWP")
+              ,h5(legends[15])
+              ,br(),br()     
               ,plotOutput("forecastConfirmedChangeWorldDeath")
               ,h5(legends[16])
               ,br(),br() 
@@ -109,11 +109,16 @@ ui <- fluidPage(
     ,tabPanel(z("美国")
               ,h5("Loading county-level historical data from the", a("New York Times.", href="https://github.com/nytimes/covid-19-data") )
               ,selectInput("selectState", NULL, NULL)
-              ,plotOutput("USCountyDataNYT")
-              ,h5(legends[25])
-              ,br(),br() 
+
+              ,plotlyOutput("IncreasesUState")   
+              ,plotlyOutput("percentIncreaseUState")
+              
+          
               ,plotOutput("historicalUSCounty")
               ,h5(legends[26])
+              ,br(),br() 
+              ,plotOutput("USCountyDataNYT")
+              ,h5(legends[25])
               ,br(),br() 
               ,plotOutput("US.county.map", inline = TRUE)
               ,h5(legends[27])
@@ -126,13 +131,15 @@ ui <- fluidPage(
               ,h5(legends[29])
               ,br(),br()          
               ,sliderInput("daysForcasted3", paste(z("选择预测天数") ),
-                           min = 1, max = 30,
+                           min = 1, max = 14,
                            value = 7)
               ,selectInput("selectCountyUS", NULL, NULL)
-              ,plotOutput("forecastUScounties")
+                            ,plotOutput("forecastUScounties")
               ,h5(legends[30])
               ,br(),br() 
               #,h5(legends[21])
+              ,plotlyOutput("IncreasesUSCounty")             
+              ,plotlyOutput("percentIncreaseUScounty")
               #,br(),br() 
               
               

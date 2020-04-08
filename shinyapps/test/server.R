@@ -8,7 +8,7 @@ library(lubridate) # for showing up time correctly
 library(plotly)
 library(chinamap)
 library(maps)
-
+  
 function(input, output, session) {
     
     observe({  
@@ -2073,6 +2073,7 @@ function(input, output, session) {
     output$US.county.mapRate <- renderPlot({
       # county maps in the U.S.
       library(usmap)
+      if(is.null(USCountyGrowthRate() )) return(NULL)
       UScurrent <- USCountyGrowthRate() %>%
         filter(province == input$selectState)
       

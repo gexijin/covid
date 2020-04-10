@@ -1,5 +1,5 @@
 # Shiny app for showing the number of confirmed coronavirus cases across China
-# Xijin Ge 2/5/2020
+# Xijin Ge 2/5/2020 
 
 library(shiny)
 library(plotly)

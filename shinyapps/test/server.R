@@ -1570,7 +1570,7 @@ function(input, output, session) {
     # compare Provinces
     output$CompareProvinces <- renderPlot ({
       minCases = 50
-      maxShow = 30
+      maxShow = 50
       
       Coefs <- provinceGrowthRate()
       if(is.null(Coefs))

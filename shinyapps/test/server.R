@@ -1573,6 +1573,7 @@ function(input, output, session) {
       maxShow = 50
       
       Coefs <- provinceGrowthRate()
+      #write.csv(Coefs, "tem.csv")
       if(is.null(Coefs))
         return(NULL)
       if(nrow(Coefs) > maxShow)

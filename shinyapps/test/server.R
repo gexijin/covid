@@ -6,7 +6,7 @@ library(forcats) # ploting
 library(forecast) # time series
 library(lubridate) # for showing up time correctly
 library(plotly)
-library(chinamap)
+library(chinamap)   
 library(maps)
   
 function(input, output, session) {

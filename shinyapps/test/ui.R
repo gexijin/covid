@@ -228,6 +228,13 @@ ui <- fluidPage(
           ,h4("Scroll down to see world map.")
           ,plotOutput("worldMap", height = 1400, width = 1400)    
 )
+,tabPanel("Mobility" 
+          ,br()
+          , plotlyOutput("CountryMoility")
+           
+          ,br()
+          
+) #tab2 --------------------------------------------------
     ,tabPanel(z("数据") 
               ,br()
               , downloadButton('dataDownload', z('中国数据下载')	)

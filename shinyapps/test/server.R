@@ -8,7 +8,7 @@ library(lubridate) # for showing up time correctly
 library(plotly)
 library(chinamap)   
 library(maps)
-  
+    
 function(input, output, session) {
     
     observe({  
@@ -2292,6 +2292,35 @@ function(input, output, session) {
       return(list(UScurrent = UScurrent, UScumulative = UScumulative))
       
     })   
+    
+    
+    
+    #----------------------------------------------------------------------------
+    # mobility data
+    GoogleMobilityData <- reactive({
+      URL = "https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv"
+      withProgress({ 
+        incProgress(0.2, "Downloading data. This can take 5 minutes")
+        res <- read.csv(URL)
+      })
+      res
+    })
+    
+    CountryMoility <- renderPlotly({
+      
+      p <- GoogleMobilityData() %>%
+        filter(iso2c == "US" & admin_level==0) %>%
+        ggplot(aes(x=date,y=percent_change_from_baseline,color = places_category)) +
+        geom_line() +
+        #ggtitle('Google mobility metric for US') +
+        theme(legend.position='bottom')
+      ggplotly(p)
+      
+      
+    })
+    
+    
+    
     
 
 }

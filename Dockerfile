@@ -9,12 +9,13 @@ RUN apt-get update -qq && apt-get install -y \
   libxml2  \
   libssl-dev \
   libudunits2-dev \
+  libmariadb-dev \
   libmariadbclient-dev \
   libpng-dev \
   wget \
   unzip \
   vim
-RUN  apt-get install -y libgdal-dev gdal-bin libproj-dev proj-data proj-bin libgeos-dev
+RUN  apt-get install -y libgdal-dev gdal-bin libproj-dev proj-data proj-bin libgeos-dev 
 
 COPY ./classes /usr/local/src/myscripts
 COPY ./shinyapps /srv/shiny-server

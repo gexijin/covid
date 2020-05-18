@@ -11,6 +11,7 @@ RUN apt-get update -qq && apt-get install -y \
   libudunits2-dev \
   libmariadb-dev \
   libmariadbclient-dev \
+  default-libmysqlclient-dev \
   libpng-dev \
   wget \
   unzip \

@@ -19,3 +19,8 @@ USDlist = c("pacman", "foreign", "questionr", "sessioninfo", "plyr", "stringi",
        "tigris",  "tidycensus", "viridis", "qualtRics",  "janitor", "rgdal",
        "RColorBrewer", "googlesheets4")
 install.packages(USDlist)
+
+# If you do not have BiocManager installed:
+install.packages('BiocManager')
+# Then, if sars2pack is not already installed:
+BiocManager::install('seandavi/sars2pack')

@@ -18,7 +18,7 @@ USDlist = c("pacman", "foreign", "questionr", "sessioninfo", "plyr", "stringi",
        "psych", "ggthemes", "extrafont", "scales", "waffle",
        "tigris",  "tidycensus", "viridis", "qualtRics",  "janitor", "rgdal",
        "RColorBrewer", "googlesheets4")
-install.packages(USDlist)
+#install.packages(USDlist)
 
 # If you do not have BiocManager installed:
 install.packages('BiocManager')

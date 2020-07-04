@@ -15,7 +15,7 @@ RUN apt-get update -qq && apt-get install -y \
   wget \
   unzip \
   vim
-RUN  apt-get install -y libgdal-dev gdal-bin libproj-dev proj-data proj-bin libgeos-dev 
+#RUN  apt-get install -y libgdal-dev gdal-bin libproj-dev proj-data proj-bin libgeos-dev 
 
 COPY ./classes /usr/local/src/myscripts
 COPY ./shinyapps /srv/shiny-server

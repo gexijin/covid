@@ -10,8 +10,6 @@ library(tidyverse)  # ggplot2, purrr, dplyr, tidyr, readr, tibble
 library(stringr)    # working with strings
 library(forcats)    # working with factors
 library(lubridate)  # working with dates in tibbles / data frames
-library(plotly)     # Interactive plots
-library(corrplot)   # Visuazlize correlation plots
 library(ggridges)   # Ridge plots
 library(ggrepel)    # label data points
 
@@ -32,7 +30,7 @@ names(sp500) <- sp500 %>%
     str_to_lower() %>%
     make.names()
 
-#sp500 <- sp500[1:50,]
+sp500 <- sp500[1:10,]
 
 # Creating Functions to Map ----------------------------------------------------
 get_stock_prices <- function(ticker, return_format = "tibble", ...) {
@@ -46,19 +44,18 @@ get_stock_prices <- function(ticker, return_format = "tibble", ...) {
     if (return_format == "tibble") {
         stock_prices <- stock_prices_xts %>%
             as_tibble() %>%
+            drop_na() %>%
             mutate(Date = ymd(index(stock_prices_xts))) # index returns the date from xts object
         
     } else {
         stock_prices <- stock_prices_xts
     }
     Sys.sleep(2)
+    stock_prices 
 }
 
 toXTS <- function (x){
     # Convert tibble to xts
-    x <- x %>%
-        drop_na() # drop rows with NA. This occurs in some tickers such as HWM
-    
     if (!is.xts(x)) {
         x <- xts(subset(x, select = -c(Date)), order.by = x$Date)
     }
@@ -115,6 +112,8 @@ get_daily_returns <- function(x, ...) {
     tail( dailyReturn(x), 30)
 }
 
+
+
 # Mapping the Functions --------------------------------------------------------
 from <- today() - 300
 to   <- today()
@@ -127,7 +126,6 @@ sp500 <- sp500 %>%
                                                          to   = to)
         )
     )
-
 
 
 # calculate technical indicators -------------------------------------------

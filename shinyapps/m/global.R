@@ -1,4 +1,4 @@
-load("/srv/data/sp500_data.Rdata") # linux
+load("/srv/data/sp500_data.RData") # linux
 
 # Plot the stock price
 splot <- function (ticker, days) { 

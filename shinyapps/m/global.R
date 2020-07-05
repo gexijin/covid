@@ -1,5 +1,5 @@
 load("/srv/data/sp500_data.RData") # linux
-
+#load("sp500_data.RData") # windows
 # Plot the stock price
 splot <- function (ticker, days) { 
     data <- getSymbols(ticker, from=today()- days, to=today(), auto.assign = FALSE)  

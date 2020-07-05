@@ -30,7 +30,7 @@ names(sp500) <- sp500 %>%
     str_to_lower() %>%
     make.names()
 
-sp500 <- sp500[1:10,]
+#sp500 <- sp500[1:10,]
 
 # Creating Functions to Map ----------------------------------------------------
 get_stock_prices <- function(ticker, return_format = "tibble", ...) {

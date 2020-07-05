@@ -5,7 +5,6 @@ library(shiny)
 library(ggridges)   # Ridge plots
 library(ggrepel)    # label data points
 library(tidyverse)  # ggplot2, purrr, dplyr, tidyr, readr, tibble
-library(DT) # for renderDataTable
 library(quantmod)   # get stock prices; useful stock analysis functions
 library(lubridate)  # working with dates in tibbles / data frames
 
@@ -125,10 +124,11 @@ shinyServer(function(input, output, session) {
         input$sector
         if(is.null(input$topStocks))
             return(NULL)
+      
         # row ID of selected
         ix <- match(input$topStocks, sp500$symbol)
         
-        data <- toXTS( sp500$stock.prices[[ix]] )
+        data <- toXTS( tail( sp500$stock.prices[[ix]], 100 ) ) #100 days
         chartSeries(data,
                     theme=chartTheme('white'), 
                     name= sp500$symbol[ix]) 

@@ -132,8 +132,8 @@ shinyServer(function(input, output, session) {
         chartSeries(data,
                     theme=chartTheme('white'), 
                     name= sp500$symbol[ix]) 
-        plot( addSMA(n=10,on=1,col = "blue") ) # plot is needed, otherwise the line is not there
-        plot( addSMA(n=50,on=1,col = "red") )
+        plot( addSMA(n=3,on=1,col = "blue") ) # plot is needed, otherwise the line is not there
+        plot( addSMA(n=10,on=1,col = "red") )
         plot( addRSI(n=14,maType="EMA") )
         plot( addMACD(fast = 12, slow = 26, signal = 9) )
         

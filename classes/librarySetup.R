@@ -21,13 +21,13 @@ USDlist = c("pacman", "foreign", "questionr", "sessioninfo", "plyr", "stringi",
 #install.packages(USDlist)
 
 # If you do not have BiocManager installed:
-install.packages('BiocManager')
+#install.packages('BiocManager')
 # Then, if sars2pack is not already installed:
-BiocManager::install('seandavi/sars2pack')
+#BiocManager::install('seandavi/sars2pack')
 
 install.packages("tsibble")
 install.packages("fabletools")  # plot time series
 install.packages("tidyr")
-install.packages("slider") # for moving average
+#install.packages("slider") # for moving average
 install.packages("corrplot") # for correlation plot
-install.packages("circlize")   # for heatmap
+#install.packages("circlize")   # for heatmap

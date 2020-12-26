@@ -15,8 +15,8 @@ library(usmap)   # map ploting
 library(ggplot2)
 library(corrplot) # for correlation plot
 
-library(ComplexHeatmap) # for heat map
-library(circlize)   # for heatmap
+#library(ComplexHeatmap) # for heat map
+#library(circlize)   # for heatmap
 
 library(forecast) # time series
 

@@ -402,7 +402,8 @@ finc <- function(x) {
   # format increases
   # convert 235 -> "+235"
   #         -235 -> "-235"
-  if(x > 0) {
+  if(is.null(x)) { 
+    return(NULL)} else if(x > 0) {
     return( paste0("+",x) )
   } else{
     return( as.character(x) )

@@ -49,7 +49,7 @@ Trend <- read.csv("../../data/us/GT_data_combined.csv") %>%
 
 
 #------------Interest by region
-statesGeo <- read.csv("../../data/us/stateGeo.csv")
+statesGeo <- read.csv("../../data/us/StateGeo.csv")
 
 statesGeo <- merge(statepop, statesGeo, by.x = 'abbr', by.y= 'geoCode' )
 

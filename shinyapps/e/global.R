@@ -9,6 +9,7 @@
 # remotes::install_github("GuangchuangYu/chinamap")   #Chinese map
 # install.packages(c("sp","mapproj","maps","sf"))
 # install.packages("pinyin")
+options(warn=-1)
 
 npMax <- 21  # only use last 3 weeks of data for forecast
 plotWidth = 800
@@ -370,8 +371,6 @@ worldCurrent <- xgithub$global %>%
   as.data.frame()
 
 
-
-
 # missing data imput using the mean of n neighboring data points on both sides
 # if n = 1, then two neighbors, if n=2 then 2 neighbors on both sides
 meanImput <- function (x, n = 2) { 
@@ -398,17 +397,7 @@ increasesByPercentages <- function(x ) {
 }
 
 
-finc <- function(x) {
-  # format increases
-  # convert 235 -> "+235"
-  #         -235 -> "-235"
-  if(is.null(x)) { 
-    return(NULL)} else if(x > 0) {
-    return( paste0("+",x) )
-  } else{
-    return( as.character(x) )
-  } 
-}
+
 #  Below come from #https://shiny.rstudio.com/gallery/unicode-characters.html
 # for displaying Chinese characters
 # Cairo包的PNG设备似乎无法显示中文字符，强制使用R自身的png()设备

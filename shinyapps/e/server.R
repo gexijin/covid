@@ -12,12 +12,12 @@ library(maps)
 function(input, output, session) {
     
     observe({  
-        cityNamesProvince <- unique( x[input$selectProvince,]$city )
-        ix <- match(cityNames, cityNamesProvince)
+      #  cityNamesProvince <- unique( x[input$selectProvince,]$city )
+       # ix <- match(cityNames, cityNamesProvince)
 
-        updateSelectInput(session, "selectCity", NULL, choices = cityNamesList[!is.na(ix)] ) 
-        if( input$selectProvince == entireCountry ) 
-            updateSelectInput(session, "selectCity", NULL, choices = NULL )    
+        #updateSelectInput(session, "selectCity", NULL, choices = cityNamesList[!is.na(ix)] ) 
+        #if( input$selectProvince == entireCountry ) 
+        #    updateSelectInput(session, "selectCity", NULL, choices = NULL )    
         updateSelectInput(session, "selectProvince2", NULL, choices = countriesData()$UScurrent$province )        
         updateSelectInput(session, "selectState", NULL, choices = USCountyData()$UScurrent$province )  
         

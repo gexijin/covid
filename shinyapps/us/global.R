@@ -113,7 +113,7 @@ CTPstate <- CTPstateRaw %>%
     mutate(nTests = nTests / (1e-6 + max(nTests, na.rm = TRUE)) *100 ) %>%
     ungroup()
 
-
+write.csv(CTPstate, "tem.csv")
 ###############################################
 #  Google Mobility data
 ##############################################

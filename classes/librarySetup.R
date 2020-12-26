@@ -12,6 +12,7 @@ remotes::install_github("RamiKrispin/coronavirus")
 install.packages("broom")
 remotes::install_github("RamiKrispin/covid19Italy")
 install.packages("usmap")
+install.packages("ggridges") 
 
 # for USD server
 USDlist = c("pacman", "foreign", "questionr", "sessioninfo", "plyr", "stringi", 

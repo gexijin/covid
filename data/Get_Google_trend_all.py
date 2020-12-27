@@ -14,7 +14,7 @@ print(timeframe)
 
 # Read CSV file
 import pandas as pd  
-states = pd.read_csv("../data/US_states.csv")
+states = pd.read_csv("../us/US_states.csv")
 stateList = states["Region"].tolist()
 
 

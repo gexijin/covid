@@ -2,6 +2,10 @@
 #    COVID data from the Covid tracking project
 #    Google mobility and Google Trends
 # Xijin Ge Xijin.Ge@sdstate.edu
+library(dplyr)
+
+# this is where the script and the data files are located in the container.
+setwd("/srv/data/update/")
 
 ##################################################
 #  Read Covid data from the covid tracking project

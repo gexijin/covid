@@ -452,7 +452,7 @@ function(input, output, session) {
           a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2)  )
           axis(1, at = decimal_date(a), las = 3, labels = format(a, "%b %d"))
         
-    }, width = plotWidth - 100 )  
+    } )  
     
     
     projectionData <- reactive ({

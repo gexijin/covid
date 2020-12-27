@@ -67,8 +67,13 @@ ui <- fluidPage(
                          ,sliderInput("daysForcasted", h5( paste("Days to project from ", max(CTP$date)) )  ,
                                       min = 1, max = 21,
                                       value = 14)
-                         ,plotOutput("stateProjection")
                          ,tableOutput("predictedTable")
+                         ,br()
+                         ,plotOutput("stateProjectionNoSeasonal")  
+                         ,br()
+                         ,plotOutput("stateProjection")
+
+
                 ),
                 tabPanel("About"
                          ,h5("Accuracy not guaranteed.", style = "color:red")   

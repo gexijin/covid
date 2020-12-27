@@ -373,6 +373,88 @@ function(input, output, session) {
     
     
     
+    
+    stateProjectionNoSeasonalData <- reactive ({
+      
+      selected <- input$selectSeries
+      
+      if(length( selected ) < 1) 
+        return(NULL) else {
+          
+          d2 <- CTPstateRaw
+          
+          # entire country
+          if(input$selectState == "US") { 
+            d2 <- CTPraw 
+          } else {
+            #selected state
+            d2 <- d2 %>%
+              filter( state == input$selectState)  
+          }
+          
+          d2 <- d2 %>%               
+            rename(time = date) %>%
+            arrange(time) 
+          
+          ix <- grep(selected[1], nameKey)# 4 columns in the statepop
+          iy <- grep(names(nameKey)[ix], colnames(d2)) 
+          colnames(d2)[iy] <- "selected" 
+          
+          nRep = sum( d2$selected == d2$selected[2]) 
+          if(nRep > 3) 
+            d2 <- d2[-(1:(nRep-3)),]
+          
+          np <- nrow(d2) # number of time points
+          if(np > npMax)
+            d2 <- d2[(np-npMax+1):np,]
+          
+          #  if(sum( d2$selected > 5) <10)
+          #   return(NULL)
+          
+          par(mar = c(4, 4, 0, 2))
+          # missing data with average of neighbors
+          d2$selected<- meanImput(d2$selected, 2)
+          
+          
+          confirm <- ts(d2$selected, # percent change
+                        start = c(year(min(d2$time)), yday(min(d2$time))  ), frequency=365  )
+          
+          forecasted <- forecast(ets(confirm, model="AAN", damped=FALSE), h=input$daysForcasted )
+          
+          return(list(forecasted = forecasted, confirm = confirm, d2 = d2))
+
+        }
+    } )  
+    
+    
+    
+    output$stateProjectionNoSeasonal <- renderPlot ({
+      
+      
+      if(is.null(input$selectSeries ))
+        return(NULL)
+      selected <- input$selectSeries
+      
+      par(mar = c(6, 4, 0, 2))
+      d2 <- stateProjectionNoSeasonalData()$d2
+      confirm <- stateProjectionNoSeasonalData()$confirm
+      forecasted <- stateProjectionNoSeasonalData()$forecasted
+      
+      
+      
+          
+      par(mar = c(6, 4, 2, 2))
+
+
+          plot(forecasted, xaxt="n", main="Simple trend projection (ets)", 
+               ylab = selected[1]
+          )
+          a = seq(as.Date(min(d2$time)), by="days", length=input$daysForcasted + nrow(d2)  )
+          axis(1, at = decimal_date(a), las = 3, labels = format(a, "%b %d"))
+        
+    }, width = plotWidth - 100 )  
+    
+    
     projectionData <- reactive ({
         
         if(is.null(input$selectSeries ))
@@ -412,10 +494,11 @@ function(input, output, session) {
                 
                 #  if(sum( d2$selected > 5) <10)
                 #   return(NULL)
-                
-                par(mar = c(6, 4, 0, 2))
+
                 # missing data with average of neighbors
                 d2$selected<- meanImput(d2$selected, 2)
+                
+                #d2$selected <- log10(d2$selected)
                 
                 # convert to time series using frequency of 7, weekly
                 confirm <- ts(d2$selected, frequency=7  )
@@ -427,15 +510,20 @@ function(input, output, session) {
                 forecasted <- stlf(confirm, 
                                    robust = TRUE, 
                                    h = input$daysForcasted, 
-                                   method = "naive",
+                                   level = c(90),
+                                   #method = "naive"
                                    #lambda="auto",
-                                   #method='ets',
-                                   #etsmodel = "AAN"
+                                   method='ets',
+                                   etsmodel = "AAN"
                                    #etsmodel = "MAM"    
-                                   biasadj=TRUE,
-                                   damped=FALSE
+                                   #biasadj=TRUE,
+                                   #damped=TRUE
                                    )
                 
+                #forecasted$mean <- round(10^forecasted$mean, 0)
+                #forecasted$lower <- round(10^forecasted$lower, 0)
+                #forecasted$upper <- round(10^forecasted$upper, 0)
+                #confirm <- round(10^confirm, 0)
                 
                 return(list(forecasted = forecasted, confirm = confirm, d2 = d2))
                 
@@ -451,14 +539,11 @@ function(input, output, session) {
             return(NULL)
         selected <- input$selectSeries
                 
-                par(mar = c(6, 4, 0, 2))
+                par(mar = c(6, 4, 2, 2))
                 d2 <- projectionData()$d2
                 confirm <- projectionData()$confirm
                 forecasted <- projectionData()$forecasted
              
-                
-                # convert to time series using frequency of 7, weekly
-                confirm <- ts(d2$selected, frequency=7  )
                 
                 # forcast
                 # https://otexts.com/fpp2/forecasting-decomposition.html
@@ -479,8 +564,9 @@ function(input, output, session) {
                 }
                 
                 
-                plot(forecasted, xaxt="n", main="", 
-                     ylab = paste0(selected[1], " in ", input$selectState)  )
+                plot(forecasted, xaxt="n", 
+                     ylab = paste0(selected[1], " in ", input$selectState),
+                     main = "Trend plus weekly pattern (stlf)")
                 
                 #construct date sequence
                 # https://stackoverflow.com/questions/50924044/decimal-date-to-date-time-using-lubridate-for-daily-time-series-created-by-ts
@@ -504,12 +590,17 @@ function(input, output, session) {
         if(is.null(projectionData() ))
             return(NULL)
         
+        if(is.null(stateProjectionNoSeasonalData() ))
+          return(NULL)
+      
         d2 <- projectionData()$d2
         confirm <- projectionData()$confirm
         forecasted <- projectionData()$forecasted
         
+        forecasted2 <- stateProjectionNoSeasonalData()$forecasted
+        
         a = seq(as.Date(max(d2$time)) + 1, by="days", length=input$daysForcasted  )
-        tb <- cbind(forecasted$mean, forecasted$lower[, 2], forecasted$upper[, 2])
+        tb <- cbind(as.numeric(forecasted2$mean), as.numeric(forecasted$mean))
         
         tb[tb < 0] <- 0 # replace negative values as zero
         # format 1000 separators
@@ -519,7 +610,10 @@ function(input, output, session) {
                     as.character( wday(a, label=TRUE)),
                     tb)
         
-        colnames(tb) <- c("Date", "Day", input$selectSeries[1], "Lower 95%", "Upper 95%")
+        colnames(tb) <- c("Date", "Day", 
+                          paste(input$selectSeries[1], "Trend"),
+                          paste( "Trend + Weekly Pattern")
+                          )
         
         tb
         

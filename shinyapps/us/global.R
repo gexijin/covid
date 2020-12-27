@@ -108,12 +108,12 @@ CTPstate <- CTPstateRaw %>%
     group_by(state) %>%
     mutate(cases = cases / (1e-6 + max(cases, na.rm = TRUE)) *100 ) %>%   
     mutate(hospitalized = hospitalized / (1e-6 + max(hospitalized, na.rm = TRUE)) *100 ) %>%   
-    mutate(death = death / (1e-6 + max(death, na.rm = TRUE) *100 )) %>%
-    mutate(ICU = ICU / (1e-6 + max(ICU, na.rm = TRUE) *100 )) %>%
+    mutate(death = death / (1e-6 + max(death, na.rm = TRUE)) *100 ) %>%
+    mutate(ICU = ICU / (1e-6 + max(ICU, na.rm = TRUE)) *100 ) %>%
     mutate(nTests = nTests / (1e-6 + max(nTests, na.rm = TRUE)) *100 ) %>%
     ungroup()
 
-write.csv(CTPstate, "tem.csv")
+#write.csv(CTPstate, "tem.csv")
 ###############################################
 #  Google Mobility data
 ##############################################

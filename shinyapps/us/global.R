@@ -23,6 +23,7 @@ library(forecast) # time series
 npMax <- 70  # only use last 5 weeks of data for forecast
 plotWidth = 800
 nPoints = 7
+beginning = as.Date("2020-03-1")
 #####################################
 #  Read in Google Trend data
 ####################################
@@ -75,7 +76,7 @@ CTPraw <- CTP %>%
     replace_na(list(cases = 0, hospitalized = 0, death = 0, ICU = 0)) %>%
     mutate(date = as.Date(as.character(date), tryFormats = "%Y%m%d")) %>%
     arrange(date) %>%     #sort
-    filter(date >= as.Date("2020-03-1"))   # remove earlier 
+    filter(date >= beginning )   # remove earlier 
 
 # some states ICU numbers are all zero
 CTP <- CTPraw %>%
@@ -102,7 +103,7 @@ CTPstateRaw <- CTPstate %>%
     replace_na(list(cases = 0, hospitalized = 0, death = 0, ICU = 0)) %>%
     mutate(date = as.Date(as.character(date), tryFormats = "%Y%m%d")) %>%
     arrange(date) %>%     #sort
-    filter(date >= as.Date("2020-03-1"))  # remove earlier 
+    filter(date >= beginning)  # remove earlier 
     
 CTPstate <- CTPstateRaw %>%    
     group_by(state) %>%
@@ -124,7 +125,8 @@ mobility <- mobility %>%
     rename(Region = iso_3166_2_code) %>%
     mutate( Region =      # missing iso code is imputed with US
                 replace(Region, nchar(Region) <2, "US") ) %>%
-    mutate(Region = gsub("US-", "", Region))
+    mutate(Region = gsub("US-", "", Region)) %>%
+    filter(date >= beginning) 
 
 mobility <- mobility[, -c(1:3,5)]
 colnames(mobility) <- gsub("_.*", "", colnames(mobility))  # shorten col names

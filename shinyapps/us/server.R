@@ -42,8 +42,8 @@ function(input, output, session) {
         }
         
         #Merge mobility, search and infection data.
-        merged <- inner_join(TrendRegion, CTPRegion, by="date")  %>%
-            inner_join(mobilityRegion, by = 'date') %>%
+        merged <- full_join(TrendRegion, CTPRegion, by="date")  %>%
+            full_join(mobilityRegion, by = 'date') %>%
             select(c(date, cases, hospitalized, death, positiveRate, nTests, ICU,
                      word1, word2, word3, word4, word5, word6, 
                      workplaces, transit, grocery, retail)) %>%
@@ -136,7 +136,7 @@ function(input, output, session) {
                   # removes y axis and labels
                   ay <- list(
                     title = "",
-                    zeroline = FALSE,
+                    zeroline = TRUE,
                     showline = FALSE,
                     showticklabels = FALSE,
                     showgrid = FALSE
@@ -144,8 +144,8 @@ function(input, output, session) {
                   
                   ax <- list(
                     title = "",
-                    zeroline = TRUE,
-                    showline = TRUE,
+                    zeroline = FALSE,
+                    showline = FALSE,
                     showticklabels = TRUE,
                     showgrid = FALSE
                   )
@@ -628,6 +628,33 @@ function(input, output, session) {
         tb
         
     }, include.rownames=FALSE, striped=TRUE, bordered = TRUE, width = "auto", hover=TRUE, align = "r")
+    
+    
+    output$currentStats <- renderText({
+      if(is.null(mergedData()))
+        return(NULL)
+      
+      # filter covid data by state
+      if(input$selectState == 'US') {
+        CTPRegionRaw <- CTPraw %>%
+          arrange( desc(date) )
+      } else {
+        CTPRegionRaw <- CTPstateRaw %>%
+          filter(state == input$selectState) %>%
+          select(-state) %>%
+          arrange( desc(date) )
+      }
+      
+      
+      paste( "In", input$selectState,
+             "on", CTPRegionRaw[1, 'date'], ",  ",
+             "Confirmed Cases:", CTPRegionRaw[1, 'cases'], ",  ",
+             "Hospitalized:", CTPRegionRaw[1, 'hospitalized'], ",  ",
+             "Deaths:", CTPRegionRaw[1, 'death'])
+      
+      
+      
+    })
     
 }
 

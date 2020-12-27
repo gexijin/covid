@@ -14,7 +14,7 @@ library(shiny)
 ui <- fluidPage(
 
     # Application title
-    titlePanel("COVID-19 related Google searches and mobility"),
+    titlePanel("COVID-19, community mobility and internet searches"),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
@@ -22,25 +22,25 @@ ui <- fluidPage(
             selectInput("selectState", NULL,
                         choices = stateNames,
                         selected = stateNames[1]),
-            
             checkboxGroupInput("selectWords", 
                                h5("Frequences of Google searches:"), 
                                choices = keywords,
                                selected = keywords[1]),
-            
             checkboxGroupInput("selectSeries", 
                                h5("COVID-19 Statistics in the US:"), 
                                choices = Disease,
-                               selected = Disease[1]),
-            
+                               selected = Disease[1]),            
+
             checkboxGroupInput("selectMobility", 
-                               h5("Google Mobility"), 
+                               h5("Google Mobility relative to Feb."), 
                                choices = Mobility,
                                selected = NULL),
+
             h6("*Select two to examine correlation*"),
             
             sliderInput("selectMA", h5("Moving average (days):"),
                         min = 1, max = 14, value = 7),
+            p(HTML("<div align=\"right\"> <A HREF=\"javascript:history.go(0)\">Reset</A></div>" ))
             
         ),
 
@@ -50,20 +50,27 @@ ui <- fluidPage(
                 tabPanel("Pattern",
                     plotlyOutput("US_GT_Plot"), 
                     br(),br(),
+                    textOutput("currentStats")
                    # plotOutput("crossCorrelationPlot")
                 ),
-                tabPanel("Map",
+                
+                tabPanel("Maps",
+                         h4("Select one or two COVID-19 statistics."),
                          plotlyOutput("stateMap"),
                          plotlyOutput("stateMap2")
                          ,plotlyOutput("stateScatter")
                 ),
-                tabPanel("Correlation"
+                
+                tabPanel("Correlations"
                          ,plotOutput("corrMatrix")
                 ),
+                
                 #tabPanel("Heatmap", 
                 #         plotOutput("heatmap")
                 #         ),
-                tabPanel("Projection"
+                
+                tabPanel("Projections"
+                         ,h4("Select one  COVID-19 statistics.")
                          ,sliderInput("daysForcasted", h5( paste("Days to project from ", max(CTP$date)) )  ,
                                       min = 1, max = 21,
                                       value = 14)
@@ -75,20 +82,23 @@ ui <- fluidPage(
 
 
                 ),
+                
                 tabPanel("About"
                          ,h5("Accuracy not guaranteed.", style = "color:red")   
                          ,h5("Data sources:",
                              "Covid-19 statistis is from", a("the Covid tracking project.",href="https://covidtracking.com/"), 
                              "Google search frequencies are downloaded from", a("Google Trends", href="https://trends.google.com/trends/?geo=US"), 
-                             "downloaded using the", a("pytrends API.",href="https://pypi.org/project/pytrends/"), "Mobility data is downloaded from",
-                             a("Google Mobility.",href="https://www.google.com/covid19/mobility/")
+                             " using the", a("pytrends API.",href="https://pypi.org/project/pytrends/"), 
+                             "Mobility data is retrieved from",
+                             a("Google Community Mobility Report,",href="https://www.google.com/covid19/mobility/"), 
+                             "which is aggregated, anonymized location data from smart phones."
                          )    
                          ,h5("For feedbacks or suggestions  please contact me via "
                              ,a("email ",href="mailto:xijin.ge@sdstate.edu?Subject=Coronavirus website" ), "or", 
                              a("Twitter.", href="https://twitter.com/StevenXGe"),
                              "My research interests are genomics, bioinformatics, and data science ",
                              a("(lab homepage).", href="http://ge-lab.org/"), 
-                             "Source code on ", a("GitHub.",aref="https://github.com/gexijin/wuhan"), 
+                             "Source code on ", a("GitHub.",aref="https://github.com/gexijin/covid"), 
                              " I am not a epidemiologists or statistician, so be critical of my analyses.")                         
                          
 

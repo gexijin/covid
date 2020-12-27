@@ -10,7 +10,7 @@ setwd("/srv/data/update/")
 ##################################################
 #  Read Covid data from the covid tracking project
 ##################################################
-setwd( "C:/Users/Xijin.Ge/Google Drive/research/covid-19/src/")
+#setwd( "C:/Users/Xijin.Ge/Google Drive/research/covid-19/src/")
 # US data
 url <-  "https://api.covidtracking.com/v1/us/daily.csv"
 download.file(url, "COVID_Tracking_US.csv")

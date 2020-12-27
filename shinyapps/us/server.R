@@ -647,10 +647,10 @@ function(input, output, session) {
       
       
       paste( "In", input$selectState,
-             "on", CTPRegionRaw[1, 'date'], ",  ",
-             "Confirmed Cases:", CTPRegionRaw[1, 'cases'], ",  ",
-             "Hospitalized:", CTPRegionRaw[1, 'hospitalized'], ",  ",
-             "Deaths:", CTPRegionRaw[1, 'death'])
+             "on", format(CTPRegionRaw[1, 'date'], nsmall=0, big.mark=","), ",  ",
+             "Confirmed Cases:", format(CTPRegionRaw[1, 'cases'], nsmall=0, big.mark=","),  ",  " ,
+             "Hospitalized:", format(CTPRegionRaw[1, 'hospitalized'], nsmall=0, big.mark=","), ",  ",
+             "Deaths:", format(CTPRegionRaw[1, 'death'], nsmall=0, big.mark=","))
       
       
       

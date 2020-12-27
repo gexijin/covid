@@ -131,7 +131,24 @@ function(input, output, session) {
 
                 if(nrow(selectedData) < 1) { # if there is no data
                     return(NULL)
-                } else {                 
+                } else { 
+                  
+                  # removes y axis and labels
+                  ay <- list(
+                    title = "",
+                    zeroline = FALSE,
+                    showline = FALSE,
+                    showticklabels = FALSE,
+                    showgrid = FALSE
+                  )
+                  
+                  ax <- list(
+                    title = "",
+                    zeroline = TRUE,
+                    showline = TRUE,
+                    showticklabels = TRUE,
+                    showgrid = FALSE
+                  )
                 
                     p <- plot_ly()
                     
@@ -151,7 +168,7 @@ function(input, output, session) {
                     }
                 }
                 
-                p %>% layout(legend = list(orientation = "h"))
+                p %>% layout(legend = list(orientation = "h"), xaxis = ax, yaxis = ay)
                 
             }
         
@@ -288,14 +305,7 @@ function(input, output, session) {
                 
                 df <- df %>%
                     select(x, y, abbr) %>%
-                    drop_na() %>%
-                    filter( abs(x) > 1e-6 ) %>%
-                    filter( abs(y) > 1e-6)
-                
-                
-                
-                df <- df[rowSums(df[, 1:2]) > 0, ]
-                
+                    drop_na() 
                 
                 correlation <- cor.test(df$x, df$y)
                 
@@ -308,7 +318,7 @@ function(input, output, session) {
                                                    " (P =", formatC(correlation$p.value, format = "e", digits = 2), ")"),
                              size = 3,
                              color = "red",
-                             x = max(df$x) * 0.8,
+                             x = (min(df$x) + max(df$x) )/2,
                              y = min(df$y)
                              )
                 

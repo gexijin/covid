@@ -34,7 +34,7 @@ ui <- fluidPage(
                                selected = Disease[1]),
             
             checkboxGroupInput("selectMobility", 
-                               h5("Decreases in Google Mobility"), 
+                               h5("Google Mobility"), 
                                choices = Mobility,
                                selected = NULL),
             h6("*Select two to examine correlation*"),
@@ -50,7 +50,7 @@ ui <- fluidPage(
                 tabPanel("Pattern",
                     plotlyOutput("US_GT_Plot"), 
                     br(),br(),
-                    plotOutput("crossCorrelationPlot")
+                   # plotOutput("crossCorrelationPlot")
                 ),
                 tabPanel("Map",
                          plotlyOutput("stateMap"),
@@ -98,5 +98,7 @@ ui <- fluidPage(
             )
         )
     )
+    
+    ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics  
 )
 

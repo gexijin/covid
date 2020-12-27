@@ -131,10 +131,10 @@ colnames(mobility) <- gsub("_.*", "", colnames(mobility))  # shorten col names
 
 mobility <- mobility %>%
     select(c(Region, date, transit, workplaces, retail, grocery)) %>% 
-    mutate(transit = -1 * transit) %>%   # reverse direction -10 means 10% decrease in mobility
-    mutate(workplaces = -1 * workplaces) %>%
-    mutate(retail = -1 * retail) %>%
-    mutate(grocery = -1 * grocery) 
+    mutate(transit = 1 * transit) %>%   # reverse direction -10 means 10% decrease in mobility
+    mutate(workplaces = 1 * workplaces) %>%
+    mutate(retail = 1 * retail) %>%
+    mutate(grocery = 1 * grocery) 
 
 # column names
 Mobility <- c("Transit Station", "Workplaces", "Retail & Recreation", "Grocery & Phamarcy")

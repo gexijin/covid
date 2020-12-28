@@ -8,7 +8,7 @@ from datetime import date
 today = date.today()
 # Formate dd/mm/YY
 today = today.strftime("%Y-%m-%d")
-timeframe='2020-04-01 ' + today 
+timeframe='2020-04-15 ' + today 
 print(timeframe)
 
 
@@ -35,7 +35,7 @@ for Region in stateList:
   #prepare payload
   pytrend.build_payload(kw_list, 
                          cat=0, 
-                         timeframe='now 299-d', 
+                         timeframe='2020-04-15 ' + today , 
                          geo=Region, 
                          gprop='')
   #retrieve data
@@ -59,7 +59,7 @@ for Region in stateList:
   #prepare payload
   pytrend.build_payload(kw_list, 
                          cat=0, 
-                         timeframe='now 299-d', 
+                         timeframe='2020-04-15 ' + today , 
                          geo=Region, 
                          gprop='')
   #retrieve data
@@ -84,7 +84,7 @@ for Region in stateList:
   #prepare payload
   pytrend.build_payload(kw_list, 
                          cat=0, 
-                         timeframe='now 299-d', 
+                         timeframe='2020-04-15 ' + today , 
                          geo=Region, 
                          gprop='')
   #retrieve data

@@ -55,7 +55,7 @@ ui <- fluidPage(
                 ),
                 
                 tabPanel("Maps",
-                         h4("Select one or two COVID-19 statistics."),
+                         h4("Select one or two metrics."),
                          plotlyOutput("stateMap"),
                          plotlyOutput("stateMap2")
                          ,plotlyOutput("stateScatter")

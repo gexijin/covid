@@ -636,10 +636,10 @@ function(input, output, session) {
       
       # filter covid data by state
       if(input$selectState == 'US') {
-        CTPRegionRaw <- CTPraw %>%
+        CTPRegionRaw <- as.data.frame( CTPraw ) %>%
           arrange( desc(date) )
       } else {
-        CTPRegionRaw <- CTPstateRaw %>%
+        CTPRegionRaw <- as.data.frame( CTPstateRaw ) %>%
           filter(state == input$selectState) %>%
           select(-state) %>%
           arrange( desc(date) )

@@ -32,11 +32,11 @@ nPoints = 7
 #setwd( "C:/Users/Xijin.Ge/Google Drive/research/covid-19/src/GT")
 #------------Interest over time
 
-read_feather("../../data/us/Trend.feather")
+Trend <- read_feather("../../data/us/Trend.feather")
 
 
 #------------Interest by region
-read_feather("../../data/us/statesGeo.feather")
+statesGeo <- read_feather("../../data/us/statesGeo.feather")
 
 
 ##################################################
@@ -45,22 +45,22 @@ read_feather("../../data/us/statesGeo.feather")
 
 ### US. Data from the COVID Tracking project------------------------------------------------
 
-read_feather("../../data/us/CTPraw.feather")
+CTPraw <- read_feather("../../data/us/CTPraw.feather")
 
-read_feather("../../data/us/CTP.feather")
+CTP <- read_feather("../../data/us/CTP.feather")
 
 ### State-level Data from the COVID Tracking project---------------------------------------
 
-read_feather("../../data/us/CTPstateRaw.feather")    
+CTPstateRaw <- read_feather("../../data/us/CTPstateRaw.feather")    
 
-read_feather("../../data/us/CTPstate.feather") 
+CTPstate <- read_feather("../../data/us/CTPstate.feather") 
 #write.csv(CTPstate, "tem.csv")
 
 ###############################################
 #  Google Mobility data
 ##############################################
 
-read_feather("../../data/us/mobility.feather") 
+mobility <- read_feather("../../data/us/mobility.feather") 
 
 # column names
 Mobility <- c("Transit Station", "Workplaces", "Retail & Recreation", "Grocery & Phamarcy")
@@ -82,7 +82,7 @@ keywords <- c("\"COVID symptoms\"",
 stateNames = c("US", state.abb)
 names(stateNames) = c("US", state.name)
 
-read_feather("../../data/us/mapData.feather") 
+mapData <- read_feather("../../data/us/mapData.feather") 
 #write.csv(mapData, "mapData.csv")
 
 nameKey = list(   

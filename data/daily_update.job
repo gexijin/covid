@@ -1,19 +1,16 @@
 cd /home/ubuntu/covid/data/update
 # download Google trends data for different states
-sudo /home/ubuntu/miniconda3/bin/python3.8 ../GT_region.py
+#sudo /home/ubuntu/miniconda3/bin/python3.8 ../GT_region.py
 
 # download Google trends data for interest over time for different U.S. states
-sudo /home/ubuntu/miniconda3/bin/python3.8 ../Get_Google_trend_all.py
+#sudo /home/ubuntu/miniconda3/bin/python3.8 ../Get_Google_trend_all.py
 
 # Run R script to download additional data
 sudo docker exec covid_webapp_1 Rscript /srv/data/download_data.R
 
 # copy files
-sudo cp StateGeo.csv ../us
-sudo cp GT_data_combined.csv ../us
-sudo cp US_mobility.csv ../us
-sudo cp all-states-history.csv ../us
-sudo cp COVID_Tracking_US.csv ../us
+sudo cp *.feather ../us
+
 
 # restart docker containers
 cd /home/ubuntu/covid/

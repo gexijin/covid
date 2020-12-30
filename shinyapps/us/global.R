@@ -25,7 +25,7 @@ library(forecast) # time series
 npMax <- 70  # only use last 5 weeks of data for forecast
 plotWidth = 800
 nPoints = 7
-beginning = as.Date("2020-03-1")
+#beginning = as.Date("2020-03-1")
 #####################################
 #  Read in Google Trend data
 ####################################

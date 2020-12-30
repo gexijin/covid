@@ -18,6 +18,8 @@ library(feather) # for faster loading of data frames
 # this is where the script and the data files are located in the container.
 setwd("/srv/data/update/")
 
+beginning = as.Date("2020-03-1")
+
 ##################################################
 #  Read Covid data from the covid tracking project
 ##################################################

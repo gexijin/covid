@@ -16,6 +16,7 @@ library(usmap)   # map ploting
 library(ggplot2)
 library(corrplot) # for correlation plot
 library(feather) # for faster loading of data frames
+library(ggrepel) # text annotation
 
 #library(ComplexHeatmap) # for heat map
 #library(circlize)   # for heatmap

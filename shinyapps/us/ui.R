@@ -27,12 +27,12 @@ ui <- fluidPage(
                                choices = keywords,
                                selected = keywords[1]),
             checkboxGroupInput("selectSeries", 
-                               h5("COVID-19 Statistics in the US:"), 
+                               h5("COVID-19 Statistics:"), 
                                choices = Disease,
                                selected = Disease[1]),            
 
             checkboxGroupInput("selectMobility", 
-                               h5("Google Mobility relative to Feb."), 
+                               h5("Google Mobility relative to 2/2020"), 
                                choices = Mobility,
                                selected = NULL),
 
@@ -47,7 +47,7 @@ ui <- fluidPage(
         # Show a plot of the generated distribution
         mainPanel(
             tabsetPanel(
-                tabPanel("Pattern",
+                tabPanel("Trends",
                     plotlyOutput("US_GT_Plot"), 
                     br(),br(),
                     textOutput("currentStats")
@@ -58,7 +58,7 @@ ui <- fluidPage(
                          h4("Select one or two metrics."),
                          plotlyOutput("stateMap"),
                          plotlyOutput("stateMap2")
-                         ,plotlyOutput("stateScatter")
+                         ,plotOutput("stateScatter")
                 ),
                 
                 tabPanel("Correlations"
@@ -101,7 +101,6 @@ ui <- fluidPage(
                              "Source code on ", a("GitHub.",aref="https://github.com/gexijin/covid"), 
                              " I am not a epidemiologists or statistician, so be critical of my analyses.")                         
                          
-
                 ) 
                 
                 

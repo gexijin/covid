@@ -168,7 +168,8 @@ function(input, output, session) {
                     }
                 }
                 
-                p %>% layout(legend = list(orientation = "h"), xaxis = ax, yaxis = ay)
+                p %>% layout(legend = list(orientation = "h"), 
+                             xaxis = ax, yaxis = ay) 
                 
             }
         
@@ -277,7 +278,7 @@ function(input, output, session) {
     })   
 
     
-    output$stateScatter <- renderPlotly({
+    output$stateScatter <- renderPlot({
         # plots map using the usmap package for the 2nd column
         
         if(is.null(mergedData() ))
@@ -289,12 +290,16 @@ function(input, output, session) {
             return(NULL) else { 
                 
                 # COVID numbers are log transformed. 1 is added as there are zeroes. 
-                df <- mapData  %>% # a temporary dataframe. Rename the selected column for plotting map
-                    mutate(hospitalized = log10( 1 + hospitalized)) %>%
-                    mutate(cases = log10(1 + cases)) %>%
-                    mutate(nTests = log10(1 + nTests)) %>%
-                    mutate(death = log10(1 + death)) %>%
-                    mutate(ICU = log10(1 + ICU))
+                
+                #  df <- mapData  %>% # a temporary dataframe. Rename the selected column for plotting map
+                #    mutate(hospitalized = log10( 1 + hospitalized)) %>%
+                #    mutate(cases = log10(1 + cases)) %>%
+                #    mutate(nTests = log10(1 + nTests)) %>%
+                #    mutate(death = log10(1 + death)) %>%
+                #    mutate(ICU = log10(1 + ICU)) 
+                
+              
+                df <- mapData
 
                                     
                 ix <- grep(selected[1], nameKey) + 4 # 4 columns in the statepop 
@@ -309,10 +314,28 @@ function(input, output, session) {
                 
                 correlation <- cor.test(df$x, df$y)
                 
-                p <- ggplot(df, aes(x = x, y = y)) +  #size = pop_2015,
+                if( selected[1] %in% Disease)
+                  xlabels <- paste(selected[1], "per 100,000")
+                
+                if( selected[1] %in% Mobility)
+                  xlabels <- paste("Relative mobility in ", selected[1]) 
+                
+                if( selected[1] %in% keywords)
+                  xlabels <- paste("Relative Google search frequencies of ", selected[1])
+                
+                if( selected[2] %in% Disease)
+                  ylabels <- paste(selected[2], "per 100,000")
+                
+                if( selected[2] %in% Mobility)
+                  ylabels <- paste("Relative mobility in ", selected[2]) 
+                
+                if( selected[2] %in% keywords)
+                  ylabels <- paste("Relative Google search frequencies of ", selected[2]) 
+                
+                p <- ggplot(df, aes(x = x, y = y, label = abbr)) +  #size = pop_2015,
                     geom_point(aes(text=sprintf("%s", abbr))) +
-                    xlab(selected[1]) +
-                    ylab(selected[2]) +
+                    xlab(xlabels) +
+                    ylab(ylabels) +
                     geom_smooth(method='lm') +
                     annotate("text", label = paste0("R=", round(correlation$estimate, 2), 
                                                    " (P =", formatC(correlation$p.value, format = "e", digits = 2), ")"),
@@ -320,9 +343,10 @@ function(input, output, session) {
                              color = "red",
                              x = (min(df$x) + max(df$x) )/2,
                              y = min(df$y)
-                             )
+                             ) +
+                  geom_text_repel()
                 
-                ggplotly(p)
+                p
                 
             }
         

@@ -75,43 +75,75 @@ function(input, output, session) {
                                  retail = Mobility[2],
                                  grocery = Mobility[3],
                                  workplaces = Mobility[4]
-                                 ) )
+                                 ) ) %>%
+          arrange(date, key)
+
+        
+        #----------------------------------------------------
+        # add raw counts as hover text
+        # almost exactly as above but use raw counts for Covid data
+        
+        # filter covid data by state
+        if(input$selectState == 'US') {
+          CTPRegionRaw <- CTPraw 
+        } else {
+          CTPRegionRaw <- CTPstateRaw %>%
+            filter(state == input$selectState) %>%
+            select(-state)
+        }
+        
+        #Merge mobility, search and infection data.
+        mergedRaw <- full_join(TrendRegion, CTPRegionRaw, by="date")  %>%
+          full_join(mobilityRegion, by = 'date') %>%
+          select(c(date, cases, hospitalized, death, positiveRate, nTests, ICU,
+                   word1, word2, word3, word4, word5, word6, 
+                   workplaces, transit, grocery, retail)) %>%
+          gather("key", "value", -date) %>%     # convert to long form
+          as_tsibble(key = key, index = date)   # convert to tsibble object
+        
+        # calculate moving averages     # https://davisvaughan.github.io/slider/
+        mergedRaw <- mergedRaw %>% 
+          group_by_key() %>% 
+          mutate(Daily_MA_raw = slide_dbl(value, 
+                                      ~mean(.x, na.rm = TRUE),
+                                      .before = input$selectMA - 1, # 7 day moving average
+                                      .after = 0
+          )) %>%
+          mutate( key = recode(key, 
+                               word1 = keywords[1],
+                               word2 = keywords[2],
+                               word3 = keywords[3],
+                               word4 = keywords[4],
+                               word5 = keywords[5],
+                               word6 = keywords[6],
+                               hospitalized = Disease[1],
+                               cases = Disease[2],
+                               death = Disease[3],
+                               positiveRate = Disease[4],
+                               nTests = Disease[5],
+                               ICU = Disease[6],
+                               transit = Mobility[1],
+                               retail = Mobility[2],
+                               grocery = Mobility[3],
+                               workplaces = Mobility[4]
+          ) ) %>%
+          arrange(date, key)
+        
+        
+        Raw <- format(round(mergedRaw$Daily_MA_raw,0), nsmall=0, big.mark=",")   #1,323,231
+        merged3 <- cbind(merged3, Raw)
+        colnames(merged3)[5] <- "Raw"
         #write.csv(merged3, "Compiled_data.csv", row.names = FALSE)
         return(merged3)
+        # Data looks like
+        #date	key	value	Daily_MA	Raw
+        #3/1/2020	%Positive Tests	21.81818182	21.81818182	22
+        #3/1/2020	Confirmed cases	0	0	0
+        #3/1/2020	Deaths	0.087006961	0.087006961	3
+        
         
     })
     
-    output$US_GT_Plot_ggplotly <- renderPlotly({
-        # changes of mobility, search and infection  over time for US and states
-        if(is.null(mergedData()))
-            return(NULL)
-        selected <- c(input$selectWords, input$selectMobility, input$selectSeries)
-        
-        if(length(selected ) == 0 ) { # if not initialized yet
-            return(NULL) 
-            } else { 
-                selectedData <- mergedData() %>%
-                    filter(key %in% selected)   
-                
-                if(nrow(selectedData) < 1) { # if there is no data
-                    return(NULL)
-                } else { 
-                
-                p <-  selectedData %>%
-                    autoplot(.vars = Daily_MA) +
-                    ylab("Relative measure or %") +
-                    theme(axis.title.x = element_blank()) +
-                    theme(legend.title = element_blank()) +
-                    theme(legend.position = "bottom")
-        
-                ggplotly(p)%>%
-                    layout(legend = list(
-                    orientation = "h", x = 0.4, y = -0.2
-                    ) )
-            } #else
-        } #else
-        
-    })
     
     
     
@@ -162,9 +194,11 @@ function(input, output, session) {
                         p <- p %>%
                             add_lines(x = as.Date(df$date),
                                       y = df$Daily_MA,
+                                      text = df$Raw,  # show raw numbers on hover
                                       type = "scatter",
                                       mode = "lines",
-                                      name = i)
+                                      name = i,
+                                      hovertemplate = "%{text}<br>%{x}")
                     }
                 }
                 

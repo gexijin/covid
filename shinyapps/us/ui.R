@@ -84,7 +84,6 @@ ui <- fluidPage(
                 ),
                 
                 tabPanel("About"
-                         ,h5("Accuracy not guaranteed.", style = "color:red")   
                          ,h5("Data sources:",
                              "Covid-19 statistis is from", a("the Covid tracking project.",href="https://covidtracking.com/"), 
                              "Google search frequencies are downloaded from", a("Google Trends", href="https://trends.google.com/trends/?geo=US"), 
@@ -98,8 +97,9 @@ ui <- fluidPage(
                              a("Twitter.", href="https://twitter.com/StevenXGe"),
                              "My research interests are genomics, bioinformatics, and data science ",
                              a("(lab homepage).", href="http://ge-lab.org/"), 
-                             "Source code on ", a("GitHub.",aref="https://github.com/gexijin/covid"), 
-                             " I am not a epidemiologists or statistician, so be critical of my analyses.")                         
+                             "Source code on ", a("GitHub,",href="https://github.com/gexijin/covid"), 
+                             "where you can also report bugs or other issues.",
+                             "Not an epidemiologist or statistician. Accuracy not guaranteed.")                         
                          
                 ) 
                 

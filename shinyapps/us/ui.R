@@ -54,10 +54,10 @@ ui <- fluidPage(
                    # plotOutput("crossCorrelationPlot")
                 ),
                 
-                tabPanel("Maps",
-                         h4("Select one or two metrics."),
-                         plotlyOutput("stateMap"),
-                         plotlyOutput("stateMap2")
+                tabPanel("Maps"
+                         ,h4("Select two metrics to investigte spatial correlation. Please wait....")
+                         ,plotlyOutput("stateMap")
+                         ,plotlyOutput("stateMap2")
                          ,plotOutput("stateScatter")
                 ),
                 

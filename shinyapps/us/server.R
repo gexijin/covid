@@ -65,8 +65,8 @@ function(input, output, session) {
                                  word4 = keywords[4],
                                  word5 = keywords[5],
                                  word6 = keywords[6],
-                                 hospitalized = Disease[1],
-                                 cases = Disease[2],
+                                 hospitalized = Disease[2],
+                                 cases = Disease[1],
                                  death = Disease[3],
                                  positiveRate = Disease[4],
                                  nTests = Disease[5],
@@ -153,13 +153,14 @@ function(input, output, session) {
         # Based on https://ramikrispin.github.io/halloween-time-series-workshop/02-plotting-ts-objects/plotting_ts_objects.html
         if(is.null(mergedData()))
             return(NULL)
-        
+
         selected <- c(input$selectWords, input$selectMobility, input$selectSeries)
-        
+
         if(length(selected ) == 0) 
             return(NULL) else { 
                 selectedData <- mergedData() %>%
                     filter(key %in% selected) 
+
 
                 if(nrow(selectedData) < 1) { # if there is no data
                     return(NULL)
@@ -318,7 +319,7 @@ function(input, output, session) {
         if(is.null(mergedData() ))
             return(NULL)
         
-        selected <- c(input$selectWords, input$selectMobility, input$selectSeries)
+        selected <- c(input$selectWords, input$selectSeries, input$selectMobility)
         
         if(length(selected ) < 2) 
             return(NULL) else { 
@@ -355,13 +356,13 @@ function(input, output, session) {
                   xlabels <- paste("Relative mobility in ", selected[1]) 
                 
                 if( selected[1] %in% keywords)
-                  xlabels <- paste("Relative Google search frequencies of ", selected[1])
+                  xlabels <- paste("Relative Google search frequencies of ", selected[1], "in the last 7 days")
                 
                 if( selected[2] %in% Disease)
                   ylabels <- paste(selected[2], "per 100,000")
                 
                 if( selected[2] %in% Mobility)
-                  ylabels <- paste("Relative mobility in ", selected[2]) 
+                  ylabels <- paste("Relative mobility in ", selected[2], " in the last 7 days") 
                 
                 if( selected[2] %in% keywords)
                   ylabels <- paste("Relative Google search frequencies of ", selected[2]) 

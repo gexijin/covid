@@ -35,7 +35,7 @@ for Region in stateList:
   #prepare payload
   pytrend.build_payload(kw_list, 
                          cat=0, 
-                         timeframe='2020-04-15 ' + today , 
+                         timeframe='2020-06-15 ' + today , 
                          geo=Region, 
                          gprop='')
   #retrieve data
@@ -59,7 +59,7 @@ for Region in stateList:
   #prepare payload
   pytrend.build_payload(kw_list, 
                          cat=0, 
-                         timeframe='2020-04-15 ' + today , 
+                         timeframe='2020-06-15 ' + today , 
                          geo=Region, 
                          gprop='')
   #retrieve data
@@ -84,7 +84,7 @@ for Region in stateList:
   #prepare payload
   pytrend.build_payload(kw_list, 
                          cat=0, 
-                         timeframe='2020-04-15 ' + today , 
+                         timeframe='2020-06-15 ' + today , 
                          geo=Region, 
                          gprop='')
   #retrieve data

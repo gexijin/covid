@@ -35,7 +35,7 @@ prep_input <- function(txt, df){
   if(nchar(txt) < 10 || nchar(txt) > 500) {
     return(NULL)
   }
-  txt <- paste("Generate R code, not R Markdown. ", txt)
+  txt <- paste("Generate R code, not R Markdown.", txt)
   if(!is.null(df)) {
     txt <- paste("Use the", df, "dataset. ", txt)
   }
@@ -109,7 +109,10 @@ Only keep cars more efficient than 15 MPG, but less than 40, on the highway.
 Add 0.5 to city MPG for correction.
 Perform log transformation on city MPG.
 Raise highway MPG to the second power.
-Calculate correlation coefficient of  the two transformed variables."
+Calculate correlation coefficient of  the two transformed variables.",
+Neural_net = "Build a neural network model to predict 
+hwy based on displ, cyl, and class.  
+Use the nnet package. Plot the residules."
 )
 
 # prepare a list of available data sets.

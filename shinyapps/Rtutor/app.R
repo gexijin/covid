@@ -35,11 +35,11 @@ prep_input <- function(txt, df){
   if(nchar(txt) < 10 || nchar(txt) > 500) {
     return(NULL)
   }
-
+  txt <- paste("Generate R code, not R Markdown. ", txt)
   if(!is.null(df)) {
     txt <- paste("Use the", df, "dataset. ", txt)
   }
-  txt <- paste("Generate R code, not R Markdown. ", txt)
+
 
   # If the last character is not a stop, add it. 
   # Otherwise, GPT3 will add a sentence.
@@ -128,13 +128,12 @@ datasets <- move_front(datasets, "diamonds")
 ###################################################################
 
 ui <- fluidPage(
-
-  # Application title
-  titlePanel("The Power of AI"),
-
+  titlePanel("Rtutor - Do statistics in English"),
   # Sidebar with a slider input for number of bins
   sidebarLayout(
     sidebarPanel(
+        # Application title
+
       p(HTML("<div align=\"right\"> <A HREF=\"javascript:history.go(0)\">Reset</A></div>")),
 
       uiOutput("data_ui"),
@@ -148,7 +147,9 @@ ui <- fluidPage(
       ),
       actionButton("submit_button", strong("Submit")),
       br(), br(),
-      verbatimTextOutput("usage")
+      verbatimTextOutput("usage"),
+      h5("Personal project by Xijin Ge. 12/6/2022."),
+      h5("Powered by  OpenAI's", a("ChatGPT.", href = "https://openai.com/blog/chatgpt/", target = "_blank")),
     ),
 
     # Show a plot of the generated distribution
@@ -161,6 +162,7 @@ ui <- fluidPage(
       tableOutput("data_table")
     )
   )
+  ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics
 )
 
 

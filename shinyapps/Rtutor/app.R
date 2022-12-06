@@ -148,7 +148,9 @@ ui <- fluidPage(
       actionButton("submit_button", strong("Submit")),
       br(), br(),
       verbatimTextOutput("usage"),
-      h5("Personal project by Xijin Ge. 12/6/2022."),
+      h5("Personal project by",
+        a("Xijin Ge.", href = "https://twitter.com/StevenXGe", target = "_blank"),
+      "12/6/2022."),  
       h5("Powered by  OpenAI's", a("ChatGPT.", href = "https://openai.com/blog/chatgpt/", target = "_blank")),
     ),
 

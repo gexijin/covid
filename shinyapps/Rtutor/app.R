@@ -116,13 +116,13 @@ clean_cmd <- function(cmd, selected_data){
 demos <- c(
   'Select an example request' = 'Example requests',
   Boxplot = "Use ggplot2 to create a boxplot of hwy vs. class. Color by class.",
-  Correlation = "Create a correlation map of all the columns that contain numbers.",
+  Scatter = "Plot hwy vs. cty, colored by class. Change shape by drv.",
   ANOVA = "Conduct ANOVA of hwy by class.",
   Boxplot2 = "Use ggplot2 to create a boxplot of hwy vs. class.  Color by class.
 Add jitter.
 Remove x label.",
   ANOVA2 = "Conduct ANOVA of log-transformed hwy by class and drv.",
-  Scatter = "Plot hwy vs. cty, colored by class. Change shape by drv.",
+  Correlation = "Create a correlation map of all the columns that contain numbers.",
   Barplot = "Calculate average cty by year and class.
 Then use ggplot2 to create a barplot of average mpg by class,
 colored by year. The years should be side by side.",
@@ -207,8 +207,10 @@ ui <- fluidPage(
       tabsetPanel(
         type = "tabs",
         tabPanel("Main",
+          h4("AI generated R code:"),
           verbatimTextOutput("openAI"),
           br(), br(),
+          h4("Results:"),
           uiOutput("results_ui"),
           br(), br(),
           tableOutput("data_table")
@@ -271,9 +273,9 @@ server <- function(input, output, session) {
         placeholder =
 "Clearly state the desired statistical analysis in plain English. See examples above.
 
-Try again with the same request to see different solutions or avoid error.
+To see alternative solutions, try again with the same request.
 
-The code is sometimes incorrect."
+The generated code only works correctly some of the times."
       )
     }
   })

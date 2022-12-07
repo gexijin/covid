@@ -114,7 +114,7 @@ clean_cmd <- function(cmd, selected_data){
 # Prepare data
 ###################################################################
 demos <- c(
-  'Select an example request' = 'Example requests',
+  'Example requests:' = 'Example requests',
   Boxplot = "Use ggplot2 to create a boxplot of hwy vs. class. Color by class.",
   Scatter = "Plot hwy vs. cty, colored by class. Change shape by drv.",
   ANOVA = "Conduct ANOVA of hwy by class.",
@@ -153,6 +153,28 @@ datasets <- move_front(datasets, "iris")
 datasets <- move_front(datasets, "mtcars")
 datasets <- move_front(datasets, "diamonds")
 datasets <- move_front(datasets, "mpg")
+
+# if dataset is not data frame or matrix, remove.
+ix <- sapply(
+  datasets, 
+  function(x) {
+    eval(
+      parse(
+        text = paste(
+          "is.data.frame(",
+          x,
+          ") | is.matrix(",
+           x, 
+           ")"
+        )
+      )
+    )
+  }
+)
+
+datasets <- datasets[which(ix)]
+
+# append a dummy value, used when user upload their data.
 datasets <- c(datasets, uploaded_data)
 
 
@@ -336,7 +358,7 @@ The generated code only works correctly some of the times."
 
     fileInput(
       inputId = "user_file",
-      label = "Upload a csv, tsv, Excel file",
+      label = "Upload a csv, tsv, or Excel file",
       accept = c(
         "text/csv",
         "text/comma-separated-values",
@@ -385,14 +407,21 @@ The generated code only works correctly some of the times."
     }
   })
 
+  openAI_prompt <- reactive({
+    req(input$submit_button)
+    req(input$select_data)
+    prep_input(input$input_text, input$select_data)
+  })
+
   openAI_response <- reactive({
 
     req(input$submit_button)
     req(input$select_data)
+    req(openAI_prompt())
 
     isolate({  # so that it will not responde to text, until submitted
       req(input$input_text)
-      prepared_request <- prep_input(input$input_text, input$select_data)
+      prepared_request <- openAI_prompt()
       req(prepared_request)
 
       withProgress(message = "Thinking ... (About 1 min)", value = 0, {
@@ -459,7 +488,8 @@ The generated code only works correctly some of the times."
   output$prompt_ChatGPT <- renderText({
     req(input$input_text)
     req(input$select_data)
-    prep_input(input$input_text, input$select_data)
+    req(openAI_prompt())
+    openAI_prompt()
   })
   output$R_cmd <- renderText({
     req(openAI_response()$cmd)
@@ -533,15 +563,41 @@ The generated code only works correctly some of the times."
         tempReport <- gsub("\\", "/", tempReport, fixed = TRUE)
 
         # This should retrieve the project location on your device:
+        
+        markdown_template <- paste0(getwd(), "/report.Rmd")
+        file.copy(
+          from = markdown_template,
+          to = tempReport,
+          overwrite = TRUE
+        )
 
-        markdown_location <- paste0(getwd(), "/report.Rmd")
-        file.copy(from = markdown_location, to = tempReport, overwrite = TRUE)
+        req(openAI_response()$cmd)
+        req(openAI_prompt())
 
+        # Add text to RMarkdown file.
+        Rmd_script <- paste0(
+          "\n\n## Your request 1\n",
+          paste(
+            openAI_prompt(),
+            collapse = "\n"
+          ),
+          "\n\n## R script returned by OpenAI 1\n",
+          paste(
+            openAI_response()$cmd,
+            collapse = "\n"
+          )
+        )
+
+        write(
+          Rmd_script,
+          file = tempReport,
+          append = TRUE
+        )
         # Set up parameters to pass to Rmd document
         params <- list(
           df = iris
         )
-#        req(params)
+        req(params)
         # Knit the document, passing in the `params` list, and eval it in a
         # child of the global environment (this isolates the code in the document
         # from the code in this app).

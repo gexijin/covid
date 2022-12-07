@@ -6,7 +6,9 @@ install.packages("nnet") # neural net
 lista <- c(
   "neuralnet", # neural network
   "randomForest", # Random Forest
-  "readxl"    # read Excel files
+  "readxl",    # read Excel files
+  "gridExtra"
+)
 install.packages(lista)
 
 

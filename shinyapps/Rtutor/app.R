@@ -1,14 +1,17 @@
 library(openai)
 library(tidyverse)
 library(shiny)
+library(tippy)
+library(gridExtra)
 
 ###################################################
 # Global variables
 ###################################################
 
-uploaded_data <- "Uploaded data" 
+uploaded_data <- "Upload" 
 min_query_length <- 10  # minimum # of characters
 max_query_length <- 500 # max # of characters
+language_model <- "text-davinci-003"
 
 #' Move an element to the front of a vector
 #'
@@ -91,7 +94,7 @@ clean_cmd <- function(cmd, selected_data){
 
   # remove empty lines
   cmd <- cmd[cmd != ""]
-  
+
   # replace install.packages by "#install.packages"
   cmd <- gsub("install.packages", "#install.packages", cmd)
 
@@ -113,6 +116,7 @@ clean_cmd <- function(cmd, selected_data){
 demos <- c(
   'Select an example request' = 'Example requests',
   Boxplot = "Use ggplot2 to create a boxplot of hwy vs. class. Color by class.",
+  Correlation = "Create a correlation map of all the columns that contain numbers.",
   ANOVA = "Conduct ANOVA of hwy by class.",
   Boxplot2 = "Use ggplot2 to create a boxplot of hwy vs. class.  Color by class.
 Add jitter.
@@ -166,11 +170,11 @@ ui <- fluidPage(
       p(HTML("<div align=\"right\"> <A HREF=\"javascript:history.go(0)\">Reset</A></div>")),
       fluidRow(
         column(
-          width = 5,
+          width = 4,
           uiOutput("demo_data_ui")
         ),
         column(
-          width = 7,
+          width = 8,
           uiOutput("data_upload_ui")
         )
       ),
@@ -187,39 +191,56 @@ ui <- fluidPage(
       tags$head(tags$style(
         "#submit_button{font-size: 16px;color: red}"
       )),
+      tippy::tippy_this(
+        "submit_button",
+        "ChatGPT can return different results for the same request.",
+        theme = "light-border"
+      ),
+
       br(), br(),
       verbatimTextOutput("usage"),
-
-      h5("Powered by  OpenAI's", 
-        a("ChatGPT.", 
-          href = "https://openai.com/blog/chatgpt/", 
-          target = "_blank"
-        ),
-        " Personal project by",
-        a("Xijin Ge.", href = "https://twitter.com/StevenXGe", target = "_blank"),
-      "12/6/2022."
-      ),
     ),
 
     # Show a plot of the generated distribution
     mainPanel(
 
-    tabsetPanel(
-      type = "tabs",
-      tabPanel("Main",
-        verbatimTextOutput("openAI"),
-        br(), br(),
-        uiOutput("results_ui"),
-        br(), br(),
-        tableOutput("data_table")
-      ),
+      tabsetPanel(
+        type = "tabs",
+        tabPanel("Main",
+          verbatimTextOutput("openAI"),
+          br(), br(),
+          uiOutput("results_ui"),
+          br(), br(),
+          tableOutput("data_table")
+        ),
 
-      tabPanel("Debug",
-        verbatimTextOutput("prompt_ChatGPT"),
-        verbatimTextOutput("R_cmd")
+        tabPanel("Debug",
+          verbatimTextOutput("prompt_ChatGPT"),
+          verbatimTextOutput("R_cmd")
+        ),
+
+        tabPanel("About",
+          h5("Powered by OpenAI's",
+            a(
+              "ChatGPT",
+              href = "https://openai.com/blog/chatgpt/", 
+              target = "_blank"
+            ), 
+            ", using the ",
+            language_model,
+            "language model."
+          ),
+          h5(" Personal hobby project by",
+            a(
+              "Xijin Ge.",
+               href = "https://twitter.com/StevenXGe", 
+               target = "_blank"
+            ),
+            "12/6/2022."
+          ),
+          uiOutput("session_info")
+        )
       )
-    )
-
     )
   )
   ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics
@@ -250,7 +271,7 @@ server <- function(input, output, session) {
         placeholder =
 "Clearly state the desired statistical analysis in plain English. See examples above.
 
-If there is an error, try again with the same request.
+Try again with the same request to see different solutions or avoid error.
 
 The code is sometimes incorrect."
       )
@@ -305,7 +326,7 @@ The code is sometimes incorrect."
 
     fileInput(
       inputId = "user_file",
-      label = "Upload a CSV, TSV, or Excel file",
+      label = "Upload a csv, tsv, Excel file",
       accept = c(
         "text/csv",
         "text/comma-separated-values",
@@ -327,7 +348,7 @@ The code is sometimes incorrect."
 
     selectInput(
       inputId = "select_data",
-      label = "Dataset:",
+      label = "Dataset",
       choices = datasets,
       selected = "mpg",
       multiple = FALSE,
@@ -370,7 +391,7 @@ The code is sometimes incorrect."
         start_time <- Sys.time()
         # Send to openAI
         response <- create_completion(
-          engine_id = "text-davinci-003",
+          engine_id = language_model,
           prompt = prepared_request,
           openai_api_key = Sys.getenv("OPEN_API_KEY"),
           max_tokens = 500
@@ -479,6 +500,13 @@ The code is sometimes incorrect."
   bordered = TRUE,
   hover = TRUE
   )
+
+  output$session_info <- renderUI({
+    i <- c("<br><h4>R session info: </h4>")
+    i <- c(i, capture.output(sessionInfo()))
+    HTML(paste(i, collapse = "<br/>"))
+  })
+
 }
 
 shinyApp(ui = ui, server = server)

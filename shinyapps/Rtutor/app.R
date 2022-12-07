@@ -2,6 +2,14 @@ library(openai)
 library(tidyverse)
 library(shiny)
 
+###################################################
+# Global variables
+###################################################
+
+uploaded_data <- "Uploaded data" 
+min_query_length <- 10  # minimum # of characters
+max_query_length <- 500 # max # of characters
+
 #' Move an element to the front of a vector
 #'
 #' The response from GPT3 sometimes contains strings that are not R commands.
@@ -32,14 +40,17 @@ move_front <- function(v, e){
 #' @return Returns a cleaned up version, so that it could be sent to GPT.
 prep_input <- function(txt, selected_data){
   # if too short, do not send. 
-  if(nchar(txt) < 10 || nchar(txt) > 500) {
+  if(nchar(txt) < min_query_length || nchar(txt) > max_query_length) {
     return(NULL)
   }
-  txt <- paste("Generate R code, not R Markdown.", txt)
-  if(!is.null(selected_data)) {
-    txt <- paste("Use the", selected_data, "dataset. ", txt)
-  }
 
+  if(!is.null(selected_data)) {
+    if(selected_data == uploaded_data) {
+      selected_data <- "df"
+    }
+    txt <- paste("Use the", selected_data, "data frame. ", txt)
+  }
+  txt <- paste("Generate R code, not R Markdown. ", txt)
 
   # If the last character is not a stop, add it. 
   # Otherwise, GPT3 will add a sentence.
@@ -72,7 +83,7 @@ clean_cmd <- function(cmd, selected_data){
   cmd <- capture.output(
     cat(cmd)
   )
-  
+
   #cmd is a vector. Each element is a line.
 
   # sometimes it returns RMarkdown code.
@@ -83,8 +94,8 @@ clean_cmd <- function(cmd, selected_data){
   # replace install.packages by "#install.packages"
   cmd <- gsub("install.packages", "#install.packages", cmd)
 
-  # if data is uploaded, add a line to the data.
-  if(selected_data == "df") {
+  # if data is uploaded, add a line to get the data.
+  if(selected_data == uploaded_data) {
     cmd <- c("df <- user_data()", cmd)
   }
   # Add try function. Not really doing anything, tho.
@@ -133,10 +144,11 @@ datasets <- data()$results[, 3] # name of datasets
 datasets <- gsub(" .*", "", datasets)
 datasets <- move_front(datasets, "state.x77")
 datasets <- move_front(datasets, "iris")
-datasets <- move_front(datasets, "mpg")
 datasets <- move_front(datasets, "mtcars")
 datasets <- move_front(datasets, "diamonds")
-datasets <- c(datasets, "df")
+datasets <- move_front(datasets, "mpg")
+datasets <- c(datasets, uploaded_data)
+
 
 ###################################################################
 # UI
@@ -150,8 +162,17 @@ ui <- fluidPage(
         # Application title
 
       p(HTML("<div align=\"right\"> <A HREF=\"javascript:history.go(0)\">Reset</A></div>")),
+      fluidRow(
+        column(
+          width = 6,
+          uiOutput("demo_data_ui")
+        ),
+        column(
+          width = 6,
+          uiOutput("data_upload_ui")
+        )
+      ),
 
-      uiOutput("data_ui"),
       uiOutput("prompt_ui"),
 
       tags$style(type = "text/css", "textarea {width:100%}"),
@@ -163,10 +184,17 @@ ui <- fluidPage(
       actionButton("submit_button", strong("Submit")),
       br(), br(),
       verbatimTextOutput("usage"),
-      h5("Personal project by",
+      verbatimTextOutput("prompt_ChatGPT"),
+      verbatimTextOutput("R_cmd"),
+      h5("Powered by  OpenAI's", 
+        a("ChatGPT.", 
+          href = "https://openai.com/blog/chatgpt/", 
+          target = "_blank"
+        ),
+        " Personal project by",
         a("Xijin Ge.", href = "https://twitter.com/StevenXGe", target = "_blank"),
-      "12/6/2022."),
-      h5("Powered by  OpenAI's", a("ChatGPT.", href = "https://openai.com/blog/chatgpt/", target = "_blank")),
+      "12/6/2022."
+      ),
     ),
 
     # Show a plot of the generated distribution
@@ -202,7 +230,7 @@ server <- function(input, output, session) {
         session,
         "input_text",
         value = "",
-        placeholder = 
+        placeholder =
 "In one or more short sentences, clearly state the desired statistical analysis, step by step, in plain English, just like emailing a friend. Click the Re-submit button below if we do not get it correct."
       )
     }
@@ -212,7 +240,7 @@ server <- function(input, output, session) {
     updateSelectInput(
       session,
       "select_data",
-      selected = "df"
+      selected = uploaded_data
     )
   }, ignoreInit = TRUE, once = TRUE)
 
@@ -221,6 +249,7 @@ server <- function(input, output, session) {
       updateTextInput(session, "submit_button", label = "Re-submit")
     }
   })
+
   user_data <- reactive({
     req(input$user_file)
     in_file <- input$user_file
@@ -242,34 +271,41 @@ server <- function(input, output, session) {
     })
   })
 
-  output$data_ui <- renderUI({
+  output$data_upload_ui <- renderUI({
 
     # Hide this input box after the first run.
     req(input$submit_button == 0)
-#    req(is.null(input$user_file))
 
-    tagList(
-      fileInput(
-        inputId = "user_file",
-        label = strong("Upload data (CSV or text)"),
-        accept = c(
-          "text/csv",
-          "text/comma-separated-values",
-          "text/tab-separated-values",
-          "text/plain",
-          ".csv",
-          ".tsv"
-        )
-      ),
-      selectInput(
-        inputId = "select_data",
-        label = "Demo Datasets:",
-        choices = datasets,
-        selected = "mpg",
-        multiple = FALSE,
-        selectize = FALSE
+    fileInput(
+      inputId = "user_file",
+      label = strong("Upload data (CSV or text)"),
+      accept = c(
+        "text/csv",
+        "text/comma-separated-values",
+        "text/tab-separated-values",
+        "text/plain",
+        ".csv",
+        ".tsv"
       )
+      
     )
+  })
+
+  output$demo_data_ui <- renderUI({
+
+    # Hide this input box after the first run.
+    req(input$submit_button == 0)
+
+
+    selectInput(
+      inputId = "select_data",
+      label = "Or choose a Demo data:",
+      choices = datasets,
+      selected = "mpg",
+      multiple = FALSE,
+      selectize = FALSE
+    )
+
   })
 
   output$prompt_ui <- renderUI({
@@ -277,7 +313,7 @@ server <- function(input, output, session) {
     req(input$select_data)
 
     # hide after data is uploaded
-
+    req(is.null(input$user_file))
 
     if(input$select_data == "mpg") {
       selectInput(
@@ -361,6 +397,16 @@ server <- function(input, output, session) {
 
   })
 
+  output$prompt_ChatGPT <- renderText({
+    req(input$input_text)
+    req(input$select_data)
+    prep_input(input$input_text, input$select_data)
+  })
+  output$R_cmd <- renderText({
+    req(openAI_response()$cmd)
+    openAI_response()$cmd
+  })
+
   output$result_plot <- renderPlot({
     req(openAI_response()$cmd)
     eval(parse(text = openAI_response()$cmd))
@@ -395,7 +441,7 @@ server <- function(input, output, session) {
 
   output$data_table <- renderTable({
     req(input$select_data)
-    if(input$select_data == "df") {
+    if(input$select_data == uploaded_data) {
       eval(parse(text = paste0("user_data()[1:20, ]")))
     } else {
       eval(parse(text = paste0(input$select_data, "[1:20, ]")))

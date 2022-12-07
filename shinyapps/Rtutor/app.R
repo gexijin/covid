@@ -102,8 +102,6 @@ clean_cmd <- function(cmd, selected_data){
   if(selected_data == uploaded_data) {
     cmd <- c("df <- user_data()", cmd)
   }
-  # Add try function. Not really doing anything, tho.
-  cmd <- c("tryCatch({", cmd, "})")
 
   return(cmd)
 
@@ -255,7 +253,7 @@ ui <- fluidPage(
           h5("Powered by OpenAI's",
             a(
               "ChatGPT",
-              href = "https://openai.com/blog/chatgpt/", 
+              href = "https://openai.com/blog/chatgpt/",
               target = "_blank"
             ), 
             ", using the ",
@@ -265,7 +263,7 @@ ui <- fluidPage(
           h5(" Personal hobby project by",
             a(
               "Xijin Ge.",
-               href = "https://twitter.com/StevenXGe", 
+               href = "https://twitter.com/StevenXGe",
                target = "_blank"
             ),
             "12/6/2022."
@@ -496,23 +494,65 @@ The generated code only works correctly some of the times."
     openAI_response()$cmd
   })
 
+  # stores the results after running the generated code.
+  run_result <- reactive({
+    req(openAI_response()$cmd)
+      tryCatch(
+        eval(parse(text = openAI_response()$cmd)),
+        error = function(e) {
+          print(paste("Error caught:", e$message))
+          return(
+            list(
+              value = -1,
+              message = capture.output(print(e$message))
+            )
+          )
+        }
+      )
+
+  })
+
   output$result_plot <- renderPlot({
     req(openAI_response()$cmd)
-    eval(parse(text = openAI_response()$cmd))
+    req(run_result())
+
+    # if error, the returned list has two elements.
+    if(length(run_result()) == 2) {
+      grid::grid.newpage()
+          grid::grid.text(
+            paste(
+              "Error: ",
+              run_result()$message,
+              "\nPlease try again by click Re-submit."
+            ),
+            x = 0.5,
+            y = 0.85,
+            gp = grid::gpar(
+              col = "red",
+              fontsize = 15
+            )
+          )
+    } else {
+      run_result() # show plot
+    }
+
   })
 
   output$result_text <- renderText({
     req(openAI_response()$cmd)
+    req(run_result())
 
-
-    res <- capture.output(
-      eval(
-        parse(
-          text = openAI_response()$cmd
-        )
+    # if error, the returned list has two elements.
+    if(length(run_result()) == 2) {
+      paste(
+        "Error: ",
+        run_result()$message,
+        "\n\nPlease try again by click Re-submit."
       )
-    )
-    paste(res, collapse = "\n")
+    } else {
+      res <- capture.output( run_result() )
+          paste(res, collapse = "\n")
+    }
 
   })
 

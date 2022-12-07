@@ -91,6 +91,7 @@ clean_cmd <- function(cmd, selected_data){
 
   # remove empty lines
   cmd <- cmd[cmd != ""]
+  
   # replace install.packages by "#install.packages"
   cmd <- gsub("install.packages", "#install.packages", cmd)
 
@@ -110,6 +111,7 @@ clean_cmd <- function(cmd, selected_data){
 # Prepare data
 ###################################################################
 demos <- c(
+  'Select an example request' = 'Example requests',
   Boxplot = "Use ggplot2 to create a boxplot of hwy vs. class. Color by class.",
   ANOVA = "Conduct ANOVA of hwy by class.",
   Boxplot2 = "Use ggplot2 to create a boxplot of hwy vs. class.  Color by class.
@@ -164,11 +166,11 @@ ui <- fluidPage(
       p(HTML("<div align=\"right\"> <A HREF=\"javascript:history.go(0)\">Reset</A></div>")),
       fluidRow(
         column(
-          width = 6,
+          width = 5,
           uiOutput("demo_data_ui")
         ),
         column(
-          width = 6,
+          width = 7,
           uiOutput("data_upload_ui")
         )
       ),
@@ -182,10 +184,12 @@ ui <- fluidPage(
         rows = 8, ""
       ),
       actionButton("submit_button", strong("Submit")),
+      tags$head(tags$style(
+        "#submit_button{font-size: 16px;color: red}"
+      )),
       br(), br(),
       verbatimTextOutput("usage"),
-      verbatimTextOutput("prompt_ChatGPT"),
-      verbatimTextOutput("R_cmd"),
+
       h5("Powered by  OpenAI's", 
         a("ChatGPT.", 
           href = "https://openai.com/blog/chatgpt/", 
@@ -199,11 +203,23 @@ ui <- fluidPage(
 
     # Show a plot of the generated distribution
     mainPanel(
-      verbatimTextOutput("openAI"),
-      br(), br(),
-      uiOutput("results_ui"),
-      br(), br(),
-      tableOutput("data_table")
+
+    tabsetPanel(
+      type = "tabs",
+      tabPanel("Main",
+        verbatimTextOutput("openAI"),
+        br(), br(),
+        uiOutput("results_ui"),
+        br(), br(),
+        tableOutput("data_table")
+      ),
+
+      tabPanel("Debug",
+        verbatimTextOutput("prompt_ChatGPT"),
+        verbatimTextOutput("R_cmd")
+      )
+    )
+
     )
   )
   ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics
@@ -215,11 +231,12 @@ ui <- fluidPage(
 ###################################################################
 
 server <- function(input, output, session) {
+
   # load demo data when clicked
   observe({
     req(input$demo_prompt)
     req(input$select_data)
-    if(input$select_data == "mpg") {
+    if(input$select_data == "mpg" && input$demo_prompt != demos[1]) {
       updateTextInput(
         session,
         "input_text",
@@ -231,7 +248,11 @@ server <- function(input, output, session) {
         "input_text",
         value = "",
         placeholder =
-"In one or more short sentences, clearly state the desired statistical analysis, step by step, in plain English, just like emailing a friend. Click the Re-submit button below if we do not get it correct."
+"Clearly state the desired statistical analysis in plain English. See examples above.
+
+If there is an error, try again with the same request.
+
+The code is sometimes incorrect."
       )
     }
   })
@@ -257,15 +278,21 @@ server <- function(input, output, session) {
     req(!is.null(in_file))
 
     isolate({
-      # Read expression file -----------
-      df <- read.csv(in_file)
-      # Tab-delimented if not CSV
-      if (ncol(df) <= 2) {
-        df <- read.table(
-          in_file,
-          sep = "\t",
-          header = TRUE
-        )
+      # Excel file ---------------
+      if(grepl("xls$|xlsx$", in_file, ignore.case = TRUE)) {
+        df <- readxl::read_excel(in_file)
+        df <- as.data.frame(df)
+      } else {
+        #CSV --------------------
+        df <- read.csv(in_file)
+        # Tab-delimented file ----------
+        if (ncol(df) == 2) {
+          df <- read.table(
+            in_file,
+            sep = "\t",
+            header = TRUE
+          )
+        }
       }
       return(df)
     })
@@ -278,16 +305,18 @@ server <- function(input, output, session) {
 
     fileInput(
       inputId = "user_file",
-      label = strong("Upload data (CSV or text)"),
+      label = "Upload a CSV, TSV, or Excel file",
       accept = c(
         "text/csv",
         "text/comma-separated-values",
         "text/tab-separated-values",
         "text/plain",
         ".csv",
-        ".tsv"
+        ".tsv",
+        ".txt",
+        ".xls",
+        ".xlsx"
       )
-      
     )
   })
 
@@ -296,10 +325,9 @@ server <- function(input, output, session) {
     # Hide this input box after the first run.
     req(input$submit_button == 0)
 
-
     selectInput(
       inputId = "select_data",
-      label = "Or choose a Demo data:",
+      label = "Dataset:",
       choices = datasets,
       selected = "mpg",
       multiple = FALSE,
@@ -319,7 +347,7 @@ server <- function(input, output, session) {
       selectInput(
         inputId = "demo_prompt",
         choices = demos,
-        label = "Example requests:"
+        label = NULL
       )
     } else {
       return(NULL)
@@ -349,7 +377,7 @@ server <- function(input, output, session) {
         )
         api_time <- difftime(
           Sys.time(),
-          start_time, 
+          start_time,
           units = "secs"
         )[[1]]
 

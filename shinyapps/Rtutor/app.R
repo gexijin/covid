@@ -72,11 +72,20 @@ clean_cmd <- function(cmd){
   cmd <- capture.output(
     cat(cmd)
   )
+  
+  #cmd is a vector. Each element is a line.
+
   # sometimes it returns RMarkdown code.
   cmd <- gsub("```", "", cmd)
 
+  # remove empty lines
+  cmd <- cmd[cmd != ""]
   # replace install.packages by "#install.packages"
   cmd <- gsub("install.packages", "#install.packages", cmd)
+
+  # Add try function. Not really doing anything, tho.
+  cmd <- c("tryCatch({", cmd, "})")
+
   return(cmd)
 
 }
@@ -131,7 +140,7 @@ datasets <- move_front(datasets, "diamonds")
 ###################################################################
 
 ui <- fluidPage(
-  titlePanel("Rtutor - Do statistics in English"),
+  titlePanel("RTutor - Do statistics in English"),
   # Sidebar with a slider input for number of bins
   sidebarLayout(
     sidebarPanel(

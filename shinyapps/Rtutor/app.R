@@ -196,7 +196,15 @@ ui <- fluidPage(
         "ChatGPT can return different results for the same request.",
         theme = "light-border"
       ),
-
+      downloadButton(
+        outputId = "report",
+        label = "Report"
+      ),
+      tippy::tippy_this(
+        "report",
+        "Generate HTML report of pre-processing tab",
+        theme = "light-border"
+      ),
       br(), br(),
       verbatimTextOutput("usage"),
     ),
@@ -508,6 +516,45 @@ The generated code only works correctly some of the times."
     i <- c(i, capture.output(sessionInfo()))
     HTML(paste(i, collapse = "<br/>"))
   })
+
+  # Markdown report
+  output$report <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = "RTutor_report.html",
+    content = function(file) {
+      withProgress(message = "Generating Report ...", {
+        incProgress(0.2)
+        # Copy the report file to a temporary directory before processing it, in
+        # case we don't have write permissions to the current working dir (which
+        # can happen when deployed).
+
+        tempReport <- file.path(tempdir(), "report.Rmd")
+        # tempReport
+        tempReport <- gsub("\\", "/", tempReport, fixed = TRUE)
+
+        # This should retrieve the project location on your device:
+
+        markdown_location <- paste0(getwd(), "/report.Rmd")
+        file.copy(from = markdown_location, to = tempReport, overwrite = TRUE)
+
+        # Set up parameters to pass to Rmd document
+        params <- list(
+          df = iris
+        )
+#        req(params)
+        # Knit the document, passing in the `params` list, and eval it in a
+        # child of the global environment (this isolates the code in the document
+        # from the code in this app).
+        rmarkdown::render(
+          input = tempReport, # markdown_location,
+          output_file = file,
+          params = params,
+          envir = new.env(parent = globalenv())
+        )
+      })
+    }
+  )
+
 
 }
 

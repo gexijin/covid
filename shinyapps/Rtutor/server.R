@@ -149,7 +149,7 @@ The generated code only works correctly some of the times."
       prepared_request <- openAI_prompt()
       req(prepared_request)
 
-      withProgress(message = "Thinking ... (About 1 min)", value = 0, {
+      withProgress(message = "One sec ...", value = 0, {
         incProgress(0.7)
 
         start_time <- Sys.time()
@@ -217,7 +217,6 @@ The generated code only works correctly some of the times."
     tryCatch(
       eval(parse(text = openAI_response()$cmd)),
       error = function(e) {
-        #print(paste("Error caught:", e$message))
         return(
           list(
             value = -1,
@@ -376,11 +375,9 @@ The generated code only works correctly some of the times."
       ),
       "\n```\n"
     )
-    if(input$record) {
-     return(Rmd_script)
-    } else {
-      return("")
-    }
+
+    return(Rmd_script)
+
 
   })
 

@@ -13,6 +13,8 @@ min_query_length <- 10  # minimum # of characters
 max_query_length <- 500 # max # of characters
 language_model <- "text-davinci-003"
 
+pdf(NULL) # this prevents error Cannot open file 'Rplots.pdf'
+
 #' Move an element to the front of a vector
 #'
 #' The response from GPT3 sometimes contains strings that are not R commands.

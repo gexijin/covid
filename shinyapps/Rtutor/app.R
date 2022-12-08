@@ -114,7 +114,7 @@ clean_cmd <- function(cmd, selected_data){
 demos <- c(
   'Example requests:' = 'Example requests',
   Boxplot = "Use ggplot2 to create a boxplot of hwy vs. class. Color by class.",
-  Scatter = "Plot hwy vs. cty, colored by class. Change shape by drv.",
+  Scatter = "Use ggplot2. Plot hwy vs. cty, colored by class. Change shape by drv.",
   ANOVA = "Conduct ANOVA of hwy by class.",
   Boxplot2 = "Use ggplot2 to create a boxplot of hwy vs. class.  Color by class.
 Add jitter.
@@ -200,7 +200,7 @@ ui <- fluidPage(
       ),
       fluidRow(
         column(
-          width = 6,
+          width = 8,
           uiOutput("prompt_ui")
         )
       ),
@@ -250,6 +250,11 @@ ui <- fluidPage(
         ),
 
         tabPanel("About",
+          p("Upload a data file and just analyze it in plain English. 
+          Or used it to learn R and quickly lookup common commands."),
+          h3("NO WARRANTY!"),
+          h5(" Please use the auto-generated code as a starting point. Verify and validate the code and results."),
+          h5("Supported formats include CSV, TSV/tab-delimited text files, and Excel."),
           h5("Powered by OpenAI's",
             a(
               "ChatGPT",
@@ -260,14 +265,19 @@ ui <- fluidPage(
             language_model,
             "language model."
           ),
-          h5(" Personal hobby project by",
+          p(" Personal hobby project by",
             a(
               "Xijin Ge.",
                href = "https://twitter.com/StevenXGe",
                target = "_blank"
             ),
-            "12/6/2022."
+            " For feedback, please email",
+            a(
+              "gexijin@gmail.com.",
+              href = "mailto:gexijin@gmail.com?Subject=RTutor"
+            )
           ),
+
           uiOutput("session_info")
         )
       )
@@ -356,7 +366,7 @@ The generated code only works correctly some of the times."
 
     fileInput(
       inputId = "user_file",
-      label = "Upload a csv, tsv, or Excel file",
+      label = "Upload a file",
       accept = c(
         "text/csv",
         "text/comma-separated-values",

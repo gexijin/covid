@@ -415,7 +415,7 @@ The generated code only works correctly some of the times."
 
     req(input$submit_button)
     req(input$select_data)
-    req(openAI_prompt())
+#    req(openAI_prompt())
 
     isolate({  # so that it will not responde to text, until submitted
       req(input$input_text)
@@ -497,6 +497,7 @@ The generated code only works correctly some of the times."
   # stores the results after running the generated code.
   run_result <- reactive({
     req(openAI_response()$cmd)
+
       tryCatch(
         eval(parse(text = openAI_response()$cmd)),
         error = function(e) {
@@ -602,20 +603,22 @@ The generated code only works correctly some of the times."
         # tempReport
         tempReport <- gsub("\\", "/", tempReport, fixed = TRUE)
 
-        # This should retrieve the project location on your device:
-        
-        markdown_template <- paste0(getwd(), "/report.Rmd")
-        file.copy(
-          from = markdown_template,
-          to = tempReport,
-          overwrite = TRUE
-        )
-
         req(openAI_response()$cmd)
         req(openAI_prompt())
 
-        # Add text to RMarkdown file.
+        #RMarkdown file's Header
         Rmd_script <- paste0(
+          "---\n",
+          "title: \"Report\"\n",
+          "author: \"RTutor, Powered by ChatGPT\"\n",
+          "date: \"",
+          date(), "\"\n",
+          "output: html_document\n",
+          "---\n"
+        )
+
+        Rmd_script <- paste0(
+          Rmd_script,
           "\n\n## Your request:\n",
           paste(
             openAI_prompt(),
@@ -633,7 +636,7 @@ The generated code only works correctly some of the times."
         write(
           Rmd_script,
           file = tempReport,
-          append = TRUE
+          append = FALSE
         )
 
         # Set up parameters to pass to Rmd document

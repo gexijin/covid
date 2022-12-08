@@ -13,7 +13,7 @@ lista <- c(
   #---correlation----
   "ggfortify",
   "corrplot",
-  "ggcorplot",
+  "ggcorrplot",
   "GGally",
   "corrr"
 )

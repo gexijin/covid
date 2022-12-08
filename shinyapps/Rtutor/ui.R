@@ -50,6 +50,11 @@ ui <- fluidPage(
           downloadButton(
             outputId = "report",
             label = "Report"
+          ),
+          tippy::tippy_this(
+            "report",
+            "Download a HTML report for this session.",
+            theme = "light-border"
           )
         ),
         column(
@@ -57,6 +62,11 @@ ui <- fluidPage(
           downloadButton(
             outputId = "Rmd_source",
             label = "RMarkdown"
+          ),
+          tippy::tippy_this(
+            "Rmd_source",
+            "Download a R Markdown source file.",
+            theme = "light-border"
           )
         )
       ),

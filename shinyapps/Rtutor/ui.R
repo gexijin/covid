@@ -43,10 +43,22 @@ ui <- fluidPage(
         "ChatGPT can return different results for the same request.",
         theme = "light-border"
       ),
-      br(),br(),
-      downloadButton(
-        outputId = "report",
-        label = "Report"
+      br(), br(),
+      fluidRow(
+        column(
+          width = 4,
+          downloadButton(
+            outputId = "report",
+            label = "Report"
+          )
+        ),
+        column(
+          width = 6,
+          downloadButton(
+            outputId = "Rmd_source",
+            label = "R Markdown"
+          )
+        )
       ),
       br(), br(),
       verbatimTextOutput("usage")
@@ -99,7 +111,6 @@ ui <- fluidPage(
               href = "mailto:gexijin@gmail.com?Subject=RTutor"
             )
           ),
-
           uiOutput("session_info")
         )
       )

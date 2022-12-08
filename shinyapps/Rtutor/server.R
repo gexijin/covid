@@ -325,10 +325,10 @@ The generated code only works correctly some of the times."
   })
 
  # Defining & initializing the reactiveValues object
-  Rmd_source_total <- reactiveValues(code = "")
+  Rmd_total <- reactiveValues(code = "")
 
   observeEvent(input$submit_button, {
-    Rmd_source_total$code <- paste0(Rmd_source_total$code, Rmd_chuck())
+    Rmd_total$code <- paste0(Rmd_total$code, Rmd_chuck())
   })
 
   # Markdown report
@@ -350,12 +350,12 @@ The generated code only works correctly some of the times."
     # R Markdown code chuck----------------------
     #if error when running the code, do not run
     if (code_error()) {
-      Rmd_script <- paste(
+      Rmd_script <- paste0(
         Rmd_script,
         "```{R, eval = FALSE}\n"
       )
     } else {
-      Rmd_script <- paste(
+      Rmd_script <- paste0(
         Rmd_script,
         "```{R}\n"
       )
@@ -368,7 +368,7 @@ The generated code only works correctly some of the times."
     }
 
     # Add R code
-    Rmd_script <- paste(
+    Rmd_script <- paste0(
       Rmd_script,
       paste(
         cmd,
@@ -382,7 +382,7 @@ The generated code only works correctly some of the times."
 output$rmd_chuck_output <- renderText({
   req(Rmd_chuck())
   #Rmd_chuck()
-  Rmd_source_total$code
+  Rmd_total$code
 })
 
   # Markdown report
@@ -417,47 +417,21 @@ output$rmd_chuck_output <- renderText({
           "---\n"
         )
 
-        # if uploaded, remove the line: df <- user_data()
-        cmd <- openAI_response()$cmd
-        if(input$select_data == uploaded_data) {
-          cmd <- cmd[-1]
-        }
-
         Rmd_script <- paste0(
           Rmd_script,
           # Get the data from the params list-----------
           "\n\n```{R, echo = FALSE}\n",
           "df <- params$df\n",
           "\n```\n",
-          "\n\n### ",
-          paste(
-            openAI_prompt(),
-            collapse = "\n"
-          )
+          "\n\n### "
         )
 
         # R Markdown code chuck----------------------
-        #if error when running the code, do not run
-        if(code_error()) {
-          Rmd_script <- paste(
-            Rmd_script,
-            "\n```{R, eval = FALSE}\n"
-          )
-        } else {
-          Rmd_script <- paste(
-            Rmd_script,
-            "\n```{R}\n"
-          )
-        }
 
         # Add R code
         Rmd_script <- paste(
           Rmd_script,
-          paste(
-            cmd,
-            collapse = "\n"
-          ),
-          "\n```\n"
+          Rmd_total$code
         )
 
         write(

@@ -166,6 +166,14 @@ The generated code only works correctly some of the times."
           units = "secs"
         )[[1]]
 
+        # if more than 10 requests, slow down.
+        if(counter$requests > 20) {
+          Sys.sleep( counter$requests / 5 + runif(1, 0, 5))
+        }
+        if(counter$requests > 50) {
+          Sys.sleep( counter$requests / 10 + runif(1, 0, 10))
+        }
+
         #issue: check status
 
         cmd <- clean_cmd(response$choices[1, 1], input$select_data)
@@ -180,6 +188,41 @@ The generated code only works correctly some of the times."
       })
     })
   })
+
+    # Pop-up modal for gene assembl information ----
+    observe({
+      if(counter$requests %% 10 == 0 && counter$requests != 0) {
+        shiny::showModal(
+          shiny::modalDialog(
+            size = "s",
+            h4(
+              paste(
+                counter$requests,
+                " API requests."
+                )
+            ),
+            h4("Close this window to continue.")
+          )
+        )
+      }
+
+      if(counter$requests %% 50 == 0 && counter$requests != 0) {
+        shiny::showModal(
+          shiny::modalDialog(
+            size = "s",
+            h4(
+              paste(
+                counter$requests,
+                " API requests."
+                )
+            ),
+            h4("Slow down and smell some roses.")
+          )
+        )
+      }
+
+    })
+
 
   output$openAI <- renderText({
     req(openAI_response()$cmd)
@@ -197,12 +240,12 @@ The generated code only works correctly some of the times."
 
     paste0(
       counter$requests, ". ",
-      "Cumulative Tokens:", counter$tokens,
-      ",  Cost=$",
-      sprintf("%6.4f", counter$tokens * 2e-5)
-#      "\nAPI time: ", 
+      "Cumulative API Cost=$",
+      sprintf("%6.4f", counter$tokens * 2e-5),
+      ", Tokens:", counter$tokens
+#      ,"\n  API time: ",
 #      openAI_response()$time,
-#      " seconds."
+#      " sec."
 #      " Type: ",
 #      paste0(class(run_result()), collapse = "/"),
 #      " Length:",
@@ -306,7 +349,26 @@ The generated code only works correctly some of the times."
 
     # if the prompt include the "plot", generate a plot.
     # otherwise run statistical analysis.
-    if(sum(grepl("plot|chart|tree|graph", openAI_response()$cmd, ignore.case = TRUE)) > 0) {
+    is_plot <- sum(
+      grepl(
+        "plot|chart|tree|graph|map",
+        openAI_response()$cmd, 
+        ignore.case = TRUE
+      )
+    ) > 0
+
+    is_plot <- is_plot ||
+     (
+      sum(
+          grepl(
+            "plot|chart|tree|graph|map",
+            openAI_prompt(),
+            ignore.case = TRUE
+          )
+        ) > 0
+      )
+
+    if (is_plot) {
       plotOutput("result_plot")
     } else {
       verbatimTextOutput("result_text")
@@ -325,8 +387,6 @@ The generated code only works correctly some of the times."
   bordered = TRUE,
   hover = TRUE
   )
-
-
 
   output$session_info <- renderUI({
     i <- c("<br><h4>R session info: </h4>")

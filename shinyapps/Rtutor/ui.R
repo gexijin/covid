@@ -72,7 +72,7 @@ ui <- fluidPage(
         )
       ),
       br(), br(),
-      textOutput("usage")
+      htmlOutput("usage")
     ),
 
     # Show a plot of the generated distribution
@@ -90,26 +90,30 @@ ui <- fluidPage(
           tableOutput("data_table")
         ),
 
-        #tabPanel("Log",
-        #  textOutput("rmd_chuck_output")
-        #),
+        tabPanel("Log",
+          verbatimTextOutput("rmd_chuck_output")
+        ),
 
         tabPanel("About",
-          p("Upload a data file and just analyze it in plain English. 
-          Or used it to learn R and quickly lookup common commands."),
-          h3("NO WARRANTY!"),
-          h5(" Please use the auto-generated code as a starting point. Verify and validate the code and results."),
-          h5("Supported formats include CSV, TSV/tab-delimited text files, and Excel."),
-          h5("Powered by OpenAI's",
+          h5("Powered by ",
             a(
-              "ChatGPT",
-              href = "https://openai.com/blog/chatgpt/",
+              "OpenAI's",
+              href = "https://openai.com/",
               target = "_blank"
             ),
-            ", using the ",
             language_model,
-            "language model."
+            "language model,",
+            " RTutor enables you to chat with your data.",
+            "You can request your analysis,
+            just like asking a real person.",
+            "Upload a data file (CSV, TSV/tab-delimited text files, and Excel) 
+            and just analyze it in plain English. 
+            Or used it to learn R and quickly lookup commands."
           ),
+          h5("NO WARRANTY! Some of the scripts runs but are incorrect. 
+          Please use the auto-generated code as a starting 
+          point for further refinement and validation."),
+
           p(" Personal hobby project by",
             a(
               "Xijin Ge.",

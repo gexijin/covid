@@ -67,6 +67,10 @@ ui <- fluidPage(
           tableOutput("data_table")
         ),
 
+        tabPanel("Rmd",
+          verbatimTextOutput("rmd_chuck_output")
+        ),
+
         tabPanel("About",
           p("Upload a data file and just analyze it in plain English. 
           Or used it to learn R and quickly lookup common commands."),

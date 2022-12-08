@@ -324,6 +324,67 @@ The generated code only works correctly some of the times."
     HTML(paste(i, collapse = "<br/>"))
   })
 
+ # Defining & initializing the reactiveValues object
+  Rmd_source_total <- reactiveValues(code = "")
+
+  observeEvent(input$submit_button, {
+    Rmd_source_total$code <- paste0(Rmd_source_total$code, Rmd_chuck())
+  })
+
+  # Markdown report
+  Rmd_chuck <- reactive({
+
+    req(openAI_response()$cmd)
+    req(openAI_prompt())
+
+    # User request----------------------
+    Rmd_script  <- paste0(
+      "\n\n### ",
+      paste(
+        openAI_prompt(),
+        collapse = "\n"
+      ),
+      "\n\n"
+    )
+
+    # R Markdown code chuck----------------------
+    #if error when running the code, do not run
+    if (code_error()) {
+      Rmd_script <- paste(
+        Rmd_script,
+        "```{R, eval = FALSE}\n"
+      )
+    } else {
+      Rmd_script <- paste(
+        Rmd_script,
+        "```{R}\n"
+      )
+    }
+
+    # if uploaded, remove the line: df <- user_data()
+    cmd <- openAI_response()$cmd
+    if(input$select_data == uploaded_data) {
+      cmd <- cmd[-1]
+    }
+
+    # Add R code
+    Rmd_script <- paste(
+      Rmd_script,
+      paste(
+        cmd,
+        collapse = "\n"
+      ),
+      "\n```\n"
+    )
+    return(Rmd_script)
+  })
+
+output$rmd_chuck_output <- renderText({
+  req(Rmd_chuck())
+  #Rmd_chuck()
+  Rmd_source_total$code
+})
+
   # Markdown report
   output$report <- downloadHandler(
     # For PDF output, change this to "report.pdf"

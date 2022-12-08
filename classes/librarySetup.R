@@ -9,7 +9,13 @@ lista <- c(
   "readxl",    # read Excel files
   "gridExtra",
   "tippy",
-  "ggfortify"
+
+  #---correlation----
+  "ggfortify",
+  "corrplot",
+  "ggcorplot",
+  "GGally",
+  "corrr"
 )
 install.packages(lista)
 

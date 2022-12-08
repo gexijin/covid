@@ -227,6 +227,7 @@ ui <- fluidPage(
       ),
       br(), br(),
       verbatimTextOutput("usage")
+      ,verbatimTextOutput("result_class")
     ),
 
     # Show a plot of the generated distribution
@@ -514,20 +515,20 @@ The generated code only works correctly some of the times."
           return(
             list(
               value = -1,
-              message = capture.output(print(e$message))
+              message = capture.output(print(e$message)),
+              error_status = TRUE
             )
           )
         }
       )
-
   })
 
   output$result_plot <- renderPlot({
     req(openAI_response()$cmd)
     req(run_result())
 
-    # if error, the returned list has two elements.
-    if(length(run_result()) == 2) {
+    # if error, dummy plot with message
+    if(code_error()) {
       grid::grid.newpage()
           grid::grid.text(
             paste(
@@ -545,7 +546,6 @@ The generated code only works correctly some of the times."
     } else {
       run_result() # show plot
     }
-
   })
 
   output$result_text <- renderText({
@@ -553,17 +553,48 @@ The generated code only works correctly some of the times."
     req(run_result())
 
     # if error, the returned list has two elements.
-    if(length(run_result()) == 2) {
+    if (code_error()) {
       paste(
         "Error: ",
         run_result()$message,
         "\n\nPlease try again by click Re-submit."
       )
     } else {
-      res <- capture.output( run_result() )
-          paste(res, collapse = "\n")
+      res <- capture.output(run_result())
+      return(paste(res, collapse = "\n"))
     }
+  })
 
+  # Error when run the generated code?
+  code_error <- reactive({
+    req(!is.null(run_result()))
+    req(input$submit_button)
+    req(openAI_response()$cmd)
+
+    error_status <- FALSE
+
+    # if error returns true, otherwise 
+    #  that slot does not exist, returning false.
+    # or be NULL
+    error_status <- tryCatch(
+      !is.null(run_result()$error_status),
+      error = function(e) {
+        return(TRUE)
+      }
+    )
+    return(error_status)
+  })
+
+  output$result_class <- renderText({
+    req(openAI_response()$cmd)
+    req(run_result())
+
+    paste(
+      "Class:",
+      paste(class(run_result()), collapse = " : "),
+      "\nError:",
+      paste(code_error(), collapse = " : ")
+    )
   })
 
   output$results_ui <- renderUI({
@@ -590,6 +621,8 @@ The generated code only works correctly some of the times."
   bordered = TRUE,
   hover = TRUE
   )
+
+
 
   output$session_info <- renderUI({
     i <- c("<br><h4>R session info: </h4>")
@@ -650,7 +683,7 @@ The generated code only works correctly some of the times."
 
         # R Markdown code chuck----------------------
         #if error when running the code, do not run
-        if(length(run_result()) == 2) {
+        if(code_error()) {
           Rmd_script <- paste(
             Rmd_script,
             "\n```{R, eval = FALSE}\n"

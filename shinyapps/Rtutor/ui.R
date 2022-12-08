@@ -71,7 +71,7 @@ ui <- fluidPage(
         )
       ),
       br(), br(),
-      verbatimTextOutput("usage")
+      textOutput("usage")
     ),
 
     # Show a plot of the generated distribution
@@ -119,7 +119,9 @@ ui <- fluidPage(
             a(
               "gexijin@gmail.com.",
               href = "mailto:gexijin@gmail.com?Subject=RTutor"
-            )
+            ),
+
+            "Version 1.0 12/8/2022."
           ),
           uiOutput("session_info")
         )

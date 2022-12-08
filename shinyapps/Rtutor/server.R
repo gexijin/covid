@@ -194,20 +194,25 @@ The generated code only works correctly some of the times."
 
   output$usage <- renderText({
     req(openAI_response()$cmd)
-    usage <- openAI_response()$response$usage
 
     paste0(
-      "Tokens used: Input=",
-      usage$prompt_tokens,
-      ", Output=",
-      usage$completion_tokens,
-      ". \nCost=$", 
-      sprintf("%f", usage$completion_tokens * 2e-5),
-      "\nAPI time: ", 
-      openAI_response()$time,
-      " seconds."
+      counter$requests, ". ",
+      "Cumulative Tokens:", counter$tokens,
+      ",  Cost=$",
+      sprintf("%6.4f", counter$tokens * 2e-5)
+#      "\nAPI time: ", 
+#      openAI_response()$time,
+#      " seconds."
     )
 
+  })
+
+ # Defining & initializing the reactiveValues object
+  counter <- reactiveValues(tokens = 0, requests = 0)
+  observeEvent(input$submit_button, {
+    counter$tokens <- counter$tokens + 
+      openAI_response()$response$usage$completion_tokens
+    counter$requests <- counter$requests + 1
   })
 
   # stores the results after running the generated code.
@@ -339,6 +344,8 @@ The generated code only works correctly some of the times."
     # User request----------------------
     Rmd_script  <- paste0(
       "\n\n### ",
+      counter$requests,
+      ". ",
       paste(
         openAI_prompt(),
         collapse = "\n"

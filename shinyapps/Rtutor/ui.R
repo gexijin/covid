@@ -5,6 +5,7 @@ library(shiny)
 
 ui <- fluidPage(
   titlePanel("RTutor - Do statistics in English"),
+  windowTitle = "RTutor",
   # Sidebar with a slider input for number of bins
   sidebarLayout(
     sidebarPanel(
@@ -89,9 +90,9 @@ ui <- fluidPage(
           tableOutput("data_table")
         ),
 
-        tabPanel("Log",
-          verbatimTextOutput("rmd_chuck_output")
-        ),
+        #tabPanel("Log",
+        #  textOutput("rmd_chuck_output")
+        #),
 
         tabPanel("About",
           p("Upload a data file and just analyze it in plain English. 

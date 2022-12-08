@@ -1,0 +1,105 @@
+library(shiny)
+###################################################################
+# UI
+###################################################################
+
+ui <- fluidPage(
+  titlePanel("RTutor - Do statistics in English"),
+  # Sidebar with a slider input for number of bins
+  sidebarLayout(
+    sidebarPanel(
+        # Application title
+
+      p(HTML("<div align=\"right\"> <A HREF=\"javascript:history.go(0)\">Reset</A></div>")),
+      fluidRow(
+        column(
+          width = 4,
+          uiOutput("demo_data_ui")
+        ),
+        column(
+          width = 8,
+          uiOutput("data_upload_ui")
+        )
+      ),
+      fluidRow(
+        column(
+          width = 8,
+          uiOutput("prompt_ui")
+        )
+      ),
+
+      tags$style(type = "text/css", "textarea {width:100%}"),
+      tags$textarea(
+        id = "input_text",
+        placeholder = NULL,
+        rows = 8, ""
+      ),
+      actionButton("submit_button", strong("Submit")),
+      tags$head(tags$style(
+        "#submit_button{font-size: 16px;color: red}"
+      )),
+      tippy::tippy_this(
+        "submit_button",
+        "ChatGPT can return different results for the same request.",
+        theme = "light-border"
+      ),
+      br(),br(),
+      downloadButton(
+        outputId = "report",
+        label = "Report"
+      ),
+      br(), br(),
+      verbatimTextOutput("usage")
+    ),
+
+    # Show a plot of the generated distribution
+    mainPanel(
+
+      tabsetPanel(
+        type = "tabs",
+        tabPanel("Main",
+          h4("AI generated R code:"),
+          verbatimTextOutput("openAI"),
+          br(), br(),
+          h4("Results:"),
+          uiOutput("results_ui"),
+          br(), br(),
+          tableOutput("data_table")
+        ),
+
+        tabPanel("About",
+          p("Upload a data file and just analyze it in plain English. 
+          Or used it to learn R and quickly lookup common commands."),
+          h3("NO WARRANTY!"),
+          h5(" Please use the auto-generated code as a starting point. Verify and validate the code and results."),
+          h5("Supported formats include CSV, TSV/tab-delimited text files, and Excel."),
+          h5("Powered by OpenAI's",
+            a(
+              "ChatGPT",
+              href = "https://openai.com/blog/chatgpt/",
+              target = "_blank"
+            ),
+            ", using the ",
+            language_model,
+            "language model."
+          ),
+          p(" Personal hobby project by",
+            a(
+              "Xijin Ge.",
+               href = "https://twitter.com/StevenXGe",
+               target = "_blank"
+            ),
+            " For feedback, please email",
+            a(
+              "gexijin@gmail.com.",
+              href = "mailto:gexijin@gmail.com?Subject=RTutor"
+            )
+          ),
+
+          uiOutput("session_info")
+        )
+      )
+    )
+  )
+  ,tags$head(includeScript("ga.js")) # tracking usage with Google analytics
+)

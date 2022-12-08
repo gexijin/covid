@@ -13,8 +13,6 @@ min_query_length <- 10  # minimum # of characters
 max_query_length <- 500 # max # of characters
 language_model <- "text-davinci-003"
 
-pdf(NULL) # this prevents error Cannot open file 'Rplots.pdf'
-
 #' Move an element to the front of a vector
 #'
 #' The response from GPT3 sometimes contains strings that are not R commands.
@@ -231,7 +229,6 @@ ui <- fluidPage(
       ),
       br(), br(),
       verbatimTextOutput("usage")
-      ,verbatimTextOutput("result_class")
     ),
 
     # Show a plot of the generated distribution
@@ -247,11 +244,6 @@ ui <- fluidPage(
           uiOutput("results_ui"),
           br(), br(),
           tableOutput("data_table")
-        ),
-
-        tabPanel("Debug",
-          verbatimTextOutput("prompt_ChatGPT"),
-          verbatimTextOutput("R_cmd")
         ),
 
         tabPanel("About",
@@ -497,17 +489,6 @@ The generated code only works correctly some of the times."
 
   })
 
-  output$prompt_ChatGPT <- renderText({
-    req(input$input_text)
-    req(input$select_data)
-    req(openAI_prompt())
-    openAI_prompt()
-  })
-  output$R_cmd <- renderText({
-    req(openAI_response()$cmd)
-    openAI_response()$cmd
-  })
-
   # stores the results after running the generated code.
   run_result <- reactive({
     req(openAI_response()$cmd)
@@ -587,18 +568,6 @@ The generated code only works correctly some of the times."
       }
     )
     return(error_status)
-  })
-
-  output$result_class <- renderText({
-    req(openAI_response()$cmd)
-    req(run_result())
-
-    paste(
-      "Class:",
-      paste(class(run_result()), collapse = " : "),
-      "\nError:",
-      paste(code_error(), collapse = " : ")
-    )
   })
 
   output$results_ui <- renderUI({

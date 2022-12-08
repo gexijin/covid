@@ -221,7 +221,6 @@ ui <- fluidPage(
         outputId = "report",
         label = "Report"
       ),
-      uiOutput("report_button_ui"),
       br(), br(),
       verbatimTextOutput("usage")
     ),
@@ -628,13 +627,30 @@ The generated code only works correctly some of the times."
           "\n\n```{R, echo = FALSE}\n",
           "df <- params$df\n",
           "\n```\n",
-          "\n\n## Your request:\n",
+          "\n\n## Request:\n",
           paste(
             openAI_prompt(),
             collapse = "\n"
-          ),
-          # R Markdown code chuck----------------------
-          "\n```{R}\n",
+          )
+        )
+
+        # R Markdown code chuck----------------------
+        #if error when running the code, do not run
+        if(length(run_result()) == 2) {
+          Rmd_script <- paste(
+            Rmd_script,
+            "\n```{R, eval = FALSE}\n"
+          )
+        } else {
+          Rmd_script <- paste(
+            Rmd_script,
+            "\n```{R}\n"
+          )
+        }
+
+        # Add R code
+        Rmd_script <- paste(
+          Rmd_script,
           paste(
             cmd,
             collapse = "\n"
@@ -672,17 +688,6 @@ The generated code only works correctly some of the times."
           envir = new.env(parent = globalenv())
         )
       })
-
-      output$report_button_ui <- renderUI({
-#        req(input$submit_button)
-
-          downloadButton(
-            outputId = "report2",
-            label = "Report"
-          )
-      })
-
-
     }
   )
 }

@@ -216,17 +216,14 @@ ui <- fluidPage(
         "ChatGPT can return different results for the same request.",
         theme = "light-border"
       ),
+      br(),br(),
       downloadButton(
         outputId = "report",
         label = "Report"
       ),
-      tippy::tippy_this(
-        "report",
-        "Generate HTML report of pre-processing tab",
-        theme = "light-border"
-      ),
+      uiOutput("report_button_ui"),
       br(), br(),
-      verbatimTextOutput("usage"),
+      verbatimTextOutput("usage")
     ),
 
     # Show a plot of the generated distribution
@@ -415,7 +412,6 @@ The generated code only works correctly some of the times."
 
     req(input$submit_button)
     req(input$select_data)
-#    req(openAI_prompt())
 
     isolate({  # so that it will not responde to text, until submitted
       req(input$input_text)
@@ -595,9 +591,6 @@ The generated code only works correctly some of the times."
     content = function(file) {
       withProgress(message = "Generating Report ...", {
         incProgress(0.2)
-        # Copy the report file to a temporary directory before processing it, in
-        # case we don't have write permissions to the current working dir (which
-        # can happen when deployed).
 
         tempReport <- file.path(tempdir(), "report.Rmd")
         # tempReport
@@ -614,11 +607,27 @@ The generated code only works correctly some of the times."
           "date: \"",
           date(), "\"\n",
           "output: html_document\n",
+          "params:\n",
+          "  df:\n",
+          "printcode:\n",
+          "  label: \"Display Code\"\n",
+          "  value: TRUE\n",
+          "  input: checkbox\n",
           "---\n"
         )
 
+        # if uploaded, remove the line: df <- user_data()
+        cmd <- openAI_response()$cmd
+        if(input$select_data == uploaded_data) {
+          cmd <- cmd[-1]
+        }
+
         Rmd_script <- paste0(
           Rmd_script,
+          # Get the data from the params list-----------
+          "\n\n```{R, echo = FALSE}\n",
+          "df <- params$df\n",
+          "\n```\n",
           "\n\n## Your request:\n",
           paste(
             openAI_prompt(),
@@ -627,7 +636,7 @@ The generated code only works correctly some of the times."
           # R Markdown code chuck----------------------
           "\n```{R}\n",
           paste(
-            openAI_response()$cmd,
+            cmd,
             collapse = "\n"
           ),
           "\n```\n"
@@ -641,9 +650,18 @@ The generated code only works correctly some of the times."
 
         # Set up parameters to pass to Rmd document
         params <- list(
-          df = iris #user_data()
+          df = iris #dummy
         )
-#        req(params)
+
+        # if uploaded, use that data
+        req(input$select_data)
+        if(input$select_data == uploaded_data) {
+          params <- list(
+            df = user_data()
+          )
+        }
+
+        req(params)
         # Knit the document, passing in the `params` list, and eval it in a
         # child of the global environment (this isolates the code in the document
         # from the code in this app).
@@ -654,6 +672,17 @@ The generated code only works correctly some of the times."
           envir = new.env(parent = globalenv())
         )
       })
+
+      output$report_button_ui <- renderUI({
+#        req(input$submit_button)
+
+          downloadButton(
+            outputId = "report2",
+            label = "Report"
+          )
+      })
+
+
     }
   )
 }

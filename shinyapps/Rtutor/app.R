@@ -621,9 +621,8 @@ The generated code only works correctly some of the times."
             openAI_prompt(),
             collapse = "\n"
           ),
-          "\n\nR script returned by OpenAI\n",
           # R Markdown code chuck----------------------
-          "```{R}\n",
+          "\n```{R}\n",
           paste(
             openAI_response()$cmd,
             collapse = "\n"

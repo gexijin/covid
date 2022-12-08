@@ -8,7 +8,8 @@ lista <- c(
   "randomForest", # Random Forest
   "readxl",    # read Excel files
   "gridExtra",
-  "tippy"
+  "tippy",
+  "ggfortify"
 )
 install.packages(lista)
 

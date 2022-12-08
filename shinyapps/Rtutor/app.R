@@ -198,8 +198,12 @@ ui <- fluidPage(
           uiOutput("data_upload_ui")
         )
       ),
-
-      uiOutput("prompt_ui"),
+      fluidRow(
+        column(
+          width = 6,
+          uiOutput("prompt_ui")
+        )
+      ),
 
       tags$style(type = "text/css", "textarea {width:100%}"),
       tags$textarea(
@@ -627,7 +631,7 @@ The generated code only works correctly some of the times."
           "\n\n```{R, echo = FALSE}\n",
           "df <- params$df\n",
           "\n```\n",
-          "\n\n## Request:\n",
+          "\n\n### ",
           paste(
             openAI_prompt(),
             collapse = "\n"

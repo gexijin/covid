@@ -1,6 +1,5 @@
 library(openai)
 library(tidyverse)
-library(shiny)
 library(tippy)
 library(gridExtra)
 

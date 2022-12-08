@@ -331,7 +331,7 @@ The generated code only works correctly some of the times."
     Rmd_total$code <- paste0(Rmd_total$code, Rmd_chuck())
   })
 
-  # Markdown report
+  # Markdown chuck for the current request
   Rmd_chuck <- reactive({
 
     req(openAI_response()$cmd)
@@ -376,7 +376,12 @@ The generated code only works correctly some of the times."
       ),
       "\n```\n"
     )
-    return(Rmd_script)
+    if(input$record) {
+     return(Rmd_script)
+    } else {
+      return("")
+    }
+
   })
 
 output$rmd_chuck_output <- renderText({
@@ -384,6 +389,25 @@ output$rmd_chuck_output <- renderText({
   #Rmd_chuck()
   Rmd_total$code
 })
+
+  # Markdown report
+  output$Rmd_source <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = "RTutor.Rmd",
+    content = function(file) {
+      Rmd_script <- paste0(
+        "---\n",
+        "title: \"Report\"\n",
+        "author: \"RTutor, Powered by ChatGPT\"\n",
+        "date: \"",
+        date(), "\"\n",
+        "output: html_document\n",
+        "---\n",
+        Rmd_total$code
+      )
+      writeLines(Rmd_script, file)
+    }
+  )
 
   # Markdown report
   output$report <- downloadHandler(

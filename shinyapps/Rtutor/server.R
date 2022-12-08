@@ -213,10 +213,12 @@ The generated code only works correctly some of the times."
             h4(
               paste(
                 counter$requests,
-                " API requests."
+                " API requests!"
                 )
             ),
-            h4("Slow down and smell some roses.")
+            h4("Slow down and smell some roses. 
+            Or PayPal me some funds (gexijin@gmail.com) 
+            to cover the API and server costs.")
           )
         )
       }

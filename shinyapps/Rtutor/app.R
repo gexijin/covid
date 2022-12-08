@@ -616,16 +616,19 @@ The generated code only works correctly some of the times."
 
         # Add text to RMarkdown file.
         Rmd_script <- paste0(
-          "\n\n## Your request 1\n",
+          "\n\n## Your request:\n",
           paste(
             openAI_prompt(),
             collapse = "\n"
           ),
-          "\n\n## R script returned by OpenAI 1\n",
+          "\n\nR script returned by OpenAI\n",
+          # R Markdown code chuck----------------------
+          "```{R}\n",
           paste(
             openAI_response()$cmd,
             collapse = "\n"
-          )
+          ),
+          "\n```\n"
         )
 
         write(
@@ -633,11 +636,12 @@ The generated code only works correctly some of the times."
           file = tempReport,
           append = TRUE
         )
+
         # Set up parameters to pass to Rmd document
         params <- list(
-          df = iris
+          df = iris #user_data()
         )
-        req(params)
+#        req(params)
         # Knit the document, passing in the `params` list, and eval it in a
         # child of the global environment (this isolates the code in the document
         # from the code in this app).
@@ -650,8 +654,6 @@ The generated code only works correctly some of the times."
       })
     }
   )
-
-
 }
 
 shinyApp(ui = ui, server = server)

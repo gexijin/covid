@@ -203,6 +203,12 @@ The generated code only works correctly some of the times."
 #      "\nAPI time: ", 
 #      openAI_response()$time,
 #      " seconds."
+#      " Type: ",
+#      paste0(class(run_result()), collapse = "/"),
+#      " Length:",
+#      length(run_result())
+
+
     )
 
   })
@@ -300,7 +306,7 @@ The generated code only works correctly some of the times."
 
     # if the prompt include the "plot", generate a plot.
     # otherwise run statistical analysis.
-    if(sum(grepl("plot|Plot|PLOT", openAI_response()$cmd)) > 0) {
+    if(sum(grepl("plot|chart|tree|graph", openAI_response()$cmd, ignore.case = TRUE)) > 0) {
       plotOutput("result_plot")
     } else {
       verbatimTextOutput("result_text")

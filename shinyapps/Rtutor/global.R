@@ -11,7 +11,7 @@ uploaded_data <- "Upload"
 min_query_length <- 10  # minimum # of characters
 max_query_length <- 500 # max # of characters
 language_model <- "text-davinci-003"
-
+pdf(NULL)
 #' Move an element to the front of a vector
 #'
 #' The response from GPT3 sometimes contains strings that are not R commands.

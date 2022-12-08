@@ -115,7 +115,9 @@ clean_cmd <- function(cmd, selected_data){
 ###################################################################
 demos <- c(
   'Example requests:' = 'Example requests',
-  Boxplot = "Use ggplot2 to create a boxplot of hwy vs. class. Color by class.",
+
+  'Boxplot ggplot2' = "Use ggplot2 to create a boxplot of hwy vs. class. Color by class.",
+  'Boxplot in Base R' = "Create a boxplot of cty vs. class.",
   Scatter = "Use ggplot2. Plot hwy vs. cty, colored by class. Change shape by drv.",
   ANOVA = "Conduct ANOVA of hwy by class.",
   Boxplot2 = "Use ggplot2 to create a boxplot of hwy vs. class.  Color by class.
@@ -510,19 +512,19 @@ The generated code only works correctly some of the times."
   run_result <- reactive({
     req(openAI_response()$cmd)
 
-      tryCatch(
-        eval(parse(text = openAI_response()$cmd)),
-        error = function(e) {
-          print(paste("Error caught:", e$message))
-          return(
-            list(
-              value = -1,
-              message = capture.output(print(e$message)),
-              error_status = TRUE
-            )
+    tryCatch(
+      eval(parse(text = openAI_response()$cmd)),
+      error = function(e) {
+        #print(paste("Error caught:", e$message))
+        return(
+          list(
+            value = -1,
+            message = capture.output(print(e$message)),
+            error_status = TRUE
           )
-        }
-      )
+        )
+      }
+    )
   })
 
   output$result_plot <- renderPlot({

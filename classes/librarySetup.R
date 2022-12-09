@@ -15,7 +15,8 @@ lista <- c(
   "corrplot",
   "ggcorrplot",
   "GGally",
-  "corrr"
+  "corrr",
+  "shinybusy"
 )
 install.packages(lista)
 

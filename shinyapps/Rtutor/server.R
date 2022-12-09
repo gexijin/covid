@@ -11,6 +11,7 @@ library(gridExtra)
 
 server <- function(input, output, session) {
 
+  pdf(NULL)
   # load demo data when clicked
   observe({
     req(input$demo_prompt)
@@ -149,43 +150,46 @@ The generated code only works correctly some of the times."
       prepared_request <- openAI_prompt()
       req(prepared_request)
 
-      withProgress(message = "One sec ...", value = 0, {
-        incProgress(0.7)
+      shinybusy::show_modal_spinner(
+        spin = "orbit",
+        text = "Talking to OpenAI server ...",
+        color = "#000000"
+      )
 
-        start_time <- Sys.time()
-        # Send to openAI
-        response <- create_completion(
-          engine_id = language_model,
-          prompt = prepared_request,
-          openai_api_key = Sys.getenv("OPEN_API_KEY"),
-          max_tokens = 500
+      start_time <- Sys.time()
+      # Send to openAI
+      response <- create_completion(
+        engine_id = language_model,
+        prompt = prepared_request,
+        openai_api_key = Sys.getenv("OPEN_API_KEY"),
+        max_tokens = 500
+      )
+      api_time <- difftime(
+        Sys.time(),
+        start_time,
+        units = "secs"
+      )[[1]]
+
+      # if more than 10 requests, slow down.
+      if(counter$requests > 20) {
+        Sys.sleep( counter$requests / 5 + runif(1, 0, 5))
+      }
+      if(counter$requests > 50) {
+        Sys.sleep( counter$requests / 10 + runif(1, 0, 10))
+      }
+
+      #issue: check status
+
+      cmd <- clean_cmd(response$choices[1, 1], input$select_data)
+      shinybusy::remove_modal_spinner()
+      return(
+        list(
+          cmd = cmd,
+          response = response,
+          time = round(api_time, 0)
         )
-        api_time <- difftime(
-          Sys.time(),
-          start_time,
-          units = "secs"
-        )[[1]]
+      )
 
-        # if more than 10 requests, slow down.
-        if(counter$requests > 20) {
-          Sys.sleep( counter$requests / 5 + runif(1, 0, 5))
-        }
-        if(counter$requests > 50) {
-          Sys.sleep( counter$requests / 10 + runif(1, 0, 10))
-        }
-
-        #issue: check status
-
-        cmd <- clean_cmd(response$choices[1, 1], input$select_data)
-
-        return(
-          list(
-            cmd = cmd,
-            response = response,
-            time = round(api_time, 0)
-          )
-        )
-      })
     })
   })
 

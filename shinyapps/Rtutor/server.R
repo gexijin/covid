@@ -199,12 +199,7 @@ The generated code only works correctly some of the times."
         shiny::showModal(
           shiny::modalDialog(
             size = "s",
-            h4(
-              paste(
-                counter$requests,
-                " API requests."
-                )
-            ),
+            h4(sample(jokes, 1)),
             h4("Close this window to continue.")
           )
         )
